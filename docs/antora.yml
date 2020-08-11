@@ -1,0 +1,6 @@
+name: openshift4-monitoring
+title: OpenShift4 Monitoring
+version: master
+start_page: ROOT:index.adoc
+nav:
+  - modules/ROOT/partials/nav.adoc
