@@ -1,3 +1,6 @@
-= OpenShift4 Monitoring: A Commodore component to manage OpenShift4 Monitoring
+= OpenShift4 Monitoring
 
-{doctitle} is a Commodore component for managing OpenShift4 Monitoring.
+openshift4-monitoring is a Commodore component to manage OpenShift4 Monitoring.
+It creates a ConfigMap in order to configure the monitoring stack of the cluster.
+
+See the xref:references/parameters.adoc[parameters] reference for further details.

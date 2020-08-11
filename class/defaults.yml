@@ -1,3 +1,25 @@
 parameters:
   openshift4_monitoring:
     namespace: openshift-monitoring
+    defaultConfig:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ''
+    configs:
+      prometheusK8s:
+        externalLabels:
+          cluster_id: ${cluster:name}
+          tenant_id: ${customer:name}
+        retention: 8d
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 50Gi
+      prometheusOperator: {}
+      alertmanagerMain: {}
+      kubeStateMetrics: {}
+      grafana: {}
+      telemeterClient: {}
+      k8sPrometheusAdapter: {}
+      openshiftStateMetrics: {}
+      thanosQuerier: {}
