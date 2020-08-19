@@ -1,0 +1,73 @@
+= Parameters
+
+The parent key for all of the following parameters is `openshift4_monitoring`.
+
+== `defaultConfig`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+nodeSelector:
+  node-role.kubernetes.io/infra: ''
+----
+
+A dictionary holding the default configuration which should be applied to all components.
+
+== `configs`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+prometheusK8s:
+  externalLabels:
+    cluster_id: ${cluster:name}
+    tenant_id: ${customer:name}
+  retention: 8d
+  volumeClaimTemplate:
+    spec:
+      resources:
+        requests:
+          storage: 50Gi
+----
+
+A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configurable-monitoring-components_configuring-monitoring[monitoring components].
+
+See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html[OpenShift docs] for available parameters.
+
+This table shows the monitoring components you can configure and the keys used to specify the components:
+
+[options="header"]
+|====
+|Component|Key
+|Prometheus Operator|`prometheusOperator`
+|Prometheus|`prometheusK8s`
+|Alertmanager|`alertmanagerMain`
+|kube-state-metrics|`kubeStateMetrics`
+|openshift-state-metrics|`openshiftStateMetrics`
+|Grafana|`grafana`
+|Telemeter Client|`telemeterClient`
+|Prometheus Adapter|`k8sPrometheusAdapter`
+|Thanos Querier|`thanosQuerier`
+|====
+
+== Example
+
+[source,yaml]
+----
+defaultConfig:
+  nodeSelector:
+    node-role.kubernetes.io/infra: ''
+configs:
+  prometheusK8s:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 100Gi
+----
