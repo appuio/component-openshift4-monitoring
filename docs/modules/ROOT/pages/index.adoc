@@ -4,3 +4,14 @@ openshift4-monitoring is a Commodore component to manage OpenShift4 Monitoring.
 It creates a ConfigMap in order to configure the monitoring stack of the cluster.
 
 See the xref:references/parameters.adoc[parameters] reference for further details.
+
+== Node Selector
+
+A node selector is configured to only run the monitoring pods on infra nodes.
+By doing so, the monitoring can be run on only a subset of the worker nodes.
+
+[IMPORTANT]
+====
+Ensure that the target cluster does have nodes with the infra role label set.
+See the components defaults for the exact value.
+====
