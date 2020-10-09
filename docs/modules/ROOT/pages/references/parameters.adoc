@@ -59,6 +59,42 @@ This table shows the monitoring components you can configure and the keys used t
 |Thanos Ruler|`thanosRuler`
 |====
 
+== `alertManagerConfig`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+route:
+  group_wait: 0s
+  group_interval: 5s
+  repeat_interval: 10m
+inhibit_rules:
+  # Don't send warning or info if a critical is already firing
+  - target_match_re:
+      severity: warning|info
+    source_match:
+      severity: critical
+    equal:
+      - namespace
+      - alertname
+  # Don't send info if a warning is already firing
+  - target_match_re:
+      severity: info
+    source_match:
+      severity: warning
+    equal:
+      - namespace
+      - alertname
+----
+
+A dictionary holding the configuration for the AlertManager.
+
+See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configuring-alertmanager[OpenShift docs] for available parameters.
+
+
 == Example
 
 [source,yaml]
