@@ -8,7 +8,7 @@ parameters:
       prometheusK8s:
         externalLabels:
           cluster_id: ${cluster:name}
-          tenant_id: ${customer:name}
+          tenant_id: ${cluster:tenant}
         retention: 8d
         volumeClaimTemplate:
           spec:
