@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove usage of deprecated parameters ([#5])
+- Enable Kapitan secrets ([#7])
 
 [Unreleased]: https://github.com/appuio/component-openshift4-monitoring/compare/d503a46ca74c912d7599da47a6bb2910dc484d23...HEAD
 
@@ -23,3 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#4]: https://github.com/appuio/component-openshift4-monitoring/pull/4
 [#5]: https://github.com/appuio/component-openshift4-monitoring/pull/5
 [#6]: https://github.com/appuio/component-openshift4-monitoring/pull/6
+[#7]: https://github.com/appuio/component-openshift4-monitoring/pull/7
