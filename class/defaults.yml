@@ -18,7 +18,12 @@ parameters:
       prometheusUserWorkload: ${openshift4_monitoring:configs:prometheusK8s}
       prometheusOperator: {}
       prometheusOperatorUserWorkload: {}
-      alertmanagerMain: {}
+      alertmanagerMain:
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 2Gi
       kubeStateMetrics: {}
       grafana: {}
       telemeterClient: {}

@@ -34,6 +34,13 @@ prometheusK8s:
       resources:
         requests:
           storage: 50Gi
+prometheusUserWorkload: ${openshift4_monitoring:configs:prometheusK8s}
+alertmanagerMain:
+  volumeClaimTemplate:
+    spec:
+      resources:
+        requests:
+          storage: 2Gi
 ----
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configurable-monitoring-components_configuring-monitoring[monitoring components].
