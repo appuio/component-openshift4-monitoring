@@ -30,4 +30,12 @@ local params = inv.parameters.openshift4_monitoring;
         ),
       },
     },
+  '10_alertmanager_config': kube.Secret('alertmanager-main') {
+    metadata+: {
+      namespace: params.namespace,
+    },
+    stringData: {
+      'alertmanager.yaml': std.manifestYamlDoc(params.alertManagerConfig),
+    },
+  },
 }
