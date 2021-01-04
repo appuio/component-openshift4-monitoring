@@ -3,6 +3,7 @@ local kube = import 'lib/kube.libjsonnet';
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 
+local rules = import 'rules.jsonnet';
 
 {
   '00_namespace': kube.Namespace(params.namespace) {
@@ -38,4 +39,5 @@ local params = inv.parameters.openshift4_monitoring;
       'alertmanager.yaml': std.manifestYamlDoc(params.alertManagerConfig),
     },
   },
+  prometheus_rules: rules,
 }
