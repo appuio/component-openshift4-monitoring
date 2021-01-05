@@ -11,7 +11,7 @@ local rules = import 'rules.jsonnet';
       annotations:: {},
       labels+: {
         'network.openshift.io/policy-group': 'monitoring',
-      } + if std.member(inv.classes, 'components.networkpolicy') then {
+      } + if std.member(inv.applications, 'networkpolicy') then {
         [inv.parameters.networkpolicy.labels.noDefaults]: 'true',
         [inv.parameters.networkpolicy.labels.purgeDefaults]: 'true',
       } else {},
