@@ -53,3 +53,5 @@ parameters:
           equal:
             - namespace
             - alertname
+    alerts:
+      ignoreNames: []

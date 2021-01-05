@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/openshift/cluster-monitoring-operator",
+          "subdir": "jsonnet"
+        }
+      },
+      "version": "45cb6f2942dff5afe17bbbf46f1eb6d3e7708f51",
+      "name": "cluster-monitoring-operator"
+    }
+  ],
+  "legacyImports": true
+}

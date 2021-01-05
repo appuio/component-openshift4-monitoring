@@ -101,6 +101,20 @@ A dictionary holding the configuration for the AlertManager.
 
 See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configuring-alertmanager[OpenShift docs] for available parameters.
 
+== `alerts`
+
+[horizontal]
+type:: dictionary
+
+Configuration parameters related to influence the resulting alert rules.
+
+=== `ignoreNames`
+
+[horizontal]
+type:: list
+default:: `[]`
+
+List of https://github.com/prometheus-operator/kube-prometheus[kube-prometheus] alert rule names to be dropped.
 
 == Example
 
@@ -116,4 +130,8 @@ configs:
         resources:
           requests:
             storage: 100Gi
+alerts:
+  ignoreNames:
+    - KubeAPIErrorsHigh
+    - KubeClientErrors
 ----

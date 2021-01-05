@@ -5,6 +5,12 @@ It creates a ConfigMap in order to configure the monitoring stack of the cluster
 
 See the xref:references/parameters.adoc[parameters] reference for further details.
 
+[IMPORTANT]
+====
+This Commodore component violates a warning from the OpenShift 4 documentation.
+See xref:explanations/alert_rules.adoc[Alert rules] for the how and the why.
+====
+
 == Node Selector
 
 A node selector is configured to only run the monitoring pods on infra nodes.

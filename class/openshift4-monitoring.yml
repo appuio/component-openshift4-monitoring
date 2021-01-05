@@ -1,5 +1,60 @@
 parameters:
   kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cloud-credential-operator/4ef74fd4ae81ff9eb4cdfa8805abf6775e4561d0/manifests/05_deployment.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cloud-credential-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-version-operator/0a34ac3632dd869e9975fc6e9ebdcb95ef9374b8/install/0000_90_cluster-version-operator_02_servicemonitor.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-version-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-machine-approver/a41f06413e622c95021265c08f514e5b4146d73b/manifests/0000_90_cluster-machine-approver_04_alertrules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-machine-approver.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-samples-operator/96ced04cf97062f55d78ca9de1cf7571892e87a6/manifests/010-prometheus-rules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-samples-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-image-registry-operator/bcbdb7c1d4eefeddecf74047a280a74362514e33/manifests/09-prometheus-rules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-image-registry-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-ingress-operator/171507d5814b6ba081cab72ffa2afd6c52d1f283/manifests/0000_90_ingress-operator_03_prometheusrules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-ingress-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/be4604abdc0c47463ca39ba80316ce5219867109/manifests/0000_90_kube-apiserver-operator_03_servicemonitor.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-kube-apiserver-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/be4604abdc0c47463ca39ba80316ce5219867109/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-kube-apiserver.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-kube-controller-manager-operator/ca8c60ac037a529018808a0cf11e7ef587debe7b/manifests/0000_90_kube-controller-manager-operator_05_alert-kcm-down.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-kube-controller-manager-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-kube-controller-manager-operator/ca8c60ac037a529018808a0cf11e7ef587debe7b/manifests/0000_90_kube-controller-manager-operator_05_alert-pdb.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-kube-controller-manager-pdb.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-kube-scheduler-operator/c419f3bd7f74a433994a98333edff5d9f4cf25ac/manifests/0000_90_kube-scheduler-operator_03_servicemonitor.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-kube-scheduler-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/elasticsearch-operator/c89d0034c17449fc78420cd0719dde0fda795ae3/hack/prometheus-rules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/elasticsearch-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-logging-operator/5e9f2af80938b1262cfef5a6d63d8534830689b3/files/fluentd/fluentd_prometheus_alerts.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-logging-operator-fluentd.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/machine-api-operator/0af747bec740e5ccd4c254c472bcf583048803f6/install/0000_90_machine-api-operator_04_alertrules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/machine-api-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-autoscaler-operator/bbebf6175c4ccf152b3fe8947b56d3a261d5adf0/install/09_alertrules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/cluster-autoscaler-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/machine-config-operator/caa109b1c077c78823835a9e3a8e6593c93f8341/install/0000_90_machine-config-operator_01_prometheus-rules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/machine-config-operator.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/703e11d2d06757b63bd38d4a484fac4d7cbcdde1/manifests/0000_90_olm_01-prometheus-rule.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/operator-lifecycle-manager.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-network-operator/4952fa6d00cb8476d00645304c6b0b2973fab043/bindata/network/openshift-sdn/alert-rules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/openshift-sdn.yaml
     compile:
       - input_paths:
           - openshift4-monitoring/component/app.jsonnet
