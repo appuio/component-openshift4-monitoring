@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Document usage of infra nodes ([#2])
 - Configure user workload monitoring defaults ([#4])
 - Configure AlertManager ([#6])
+- Ability to manage alert rules ([#10])
 
 ### Changed
 
@@ -27,3 +28,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#6]: https://github.com/appuio/component-openshift4-monitoring/pull/6
 [#7]: https://github.com/appuio/component-openshift4-monitoring/pull/7
 [#8]: https://github.com/appuio/component-openshift4-monitoring/pull/8
+[#10]: https://github.com/appuio/component-openshift4-monitoring/pull/10
