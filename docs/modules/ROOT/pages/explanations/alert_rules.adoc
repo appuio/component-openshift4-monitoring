@@ -1,14 +1,14 @@
 = Alert rules
 
-The OpenShift 4 monitoring stack brings a long a plethora of alert rules.
-At its core, those rules come from the https://github.com/prometheus-operator/kube-prometheus[kube-prometheus].
+The OpenShift 4 monitoring stack brings a plethora of alert rules.
+At its core, those rules come from https://github.com/prometheus-operator/kube-prometheus[kube-prometheus].
 Those rules aren't without flaws and somethimes need tweaking.
 This stands in conflict with https://docs.openshift.com/container-platform/4.6/monitoring/configuring-the-monitoring-stack.html#support-considerations_configuring-the-monitoring-stack[Support considerations for monitoring].
 Monitoring is a key component for OpenShift 4.
-Altering it beyond what's supported, has the potential to affect a clusters stability.
+Altering it beyond what's supported, has the potential to affect a cluster's stability.
 
-This component addresses this by create its own set of alert rules.
+This component addresses this by creating its own set of alert rules.
 Those alert rules are a duplicate of the onces brought by OpenShift 4 with the alert names prefixed with `SYN_`.
 
 This stands in violation of "Creating additional […] `PrometheusRule` objects in the `openshift-*` […] projects" from https://docs.openshift.com/container-platform/4.6/monitoring/configuring-the-monitoring-stack.html#support-considerations_configuring-the-monitoring-stack[Support considerations for monitoring].
-However, the autors of this components are confident that this won't necatively impact the cluster.
+However, the authors of this components are confident that this won't negatively impact the cluster.
