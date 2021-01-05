@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
-- Fix detection of component precence ([#13])
+- Detection of component presence ([#13])
 
 [Unreleased]: https://github.com/appuio/component-openshift4-monitoring/compare/d503a46ca74c912d7599da47a6bb2910dc484d23...HEAD
 
