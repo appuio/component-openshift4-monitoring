@@ -116,6 +116,61 @@ default:: `[]`
 
 List of https://github.com/prometheus-operator/kube-prometheus[kube-prometheus] alert rule names to be dropped.
 
+== `silence`
+
+[horizontal]
+type:: dict
+
+Parameters to configure the silence CronJob.
+
+=== `schedule`
+
+[horizontal]
+type:: string
+default:: '0 */4 * * *'
+
+Schedule of the CronJob in cron syntax.
+
+=== `serviceAccountName`
+
+[horizontal]
+type:: string
+default:: prometheus-k8s
+
+Name of the service account used when running the silence job.
+The service account must have permission to access the Alertmanager service through its oAuth proxy.
+
+=== `servingCertsCABundleName`
+
+[horizontal]
+type:: string
+default:: serving-certs-ca-bundle
+
+Name of the config map containing the CA bundle of the Alertmanager service.
+
+=== `jobHistoryLimit`
+
+[horizontal]
+type:: dict
+
+Parameters to configure the numbers of silence job objects to keep.
+
+==== `failed`
+
+[horizontal]
+type:: number
+default:: 3
+
+Number of faild jobs to keep.
+
+==== `successfull`
+
+[horizontal]
+type:: number
+default:: 3
+
+Number of successfull jobs to keep.
+
 == Example
 
 [source,yaml]
