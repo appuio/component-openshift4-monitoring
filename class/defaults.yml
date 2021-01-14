@@ -62,7 +62,7 @@ parameters:
       servingCertsCABundleName: serving-certs-ca-bundle
       jobHistoryLimit:
         failed: 3
-        successfull: 3
+        successful: 3
 
     images:
       oc:

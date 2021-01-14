@@ -35,7 +35,7 @@ local cm = kube.ConfigMap('silence') + namespace {
         ],
         "startsAt": "$(date -u +'%Y-%m-%dT%H:%M:%S')",
         "endsAt": "$(date -u +'%Y-%m-%dT%H:%M:%S' --date '+1 year')",
-        "createdBy": "CronJob",
+        "createdBy": "cronjob/silence",
         "comment": "${comment}"
       }
       EOF
@@ -55,7 +55,7 @@ local cronJob = kube.CronJob('silence') + namespace {
   spec+: {
     schedule: params.silence.schedule,
     failedJobsHistoryLimit: params.silence.jobHistoryLimit.failed,
-    successfulJobsHistoryLimit: params.silence.jobHistoryLimit.successfull,
+    successfulJobsHistoryLimit: params.silence.jobHistoryLimit.successful,
     jobTemplate+: {
       spec+: {
         template+: {

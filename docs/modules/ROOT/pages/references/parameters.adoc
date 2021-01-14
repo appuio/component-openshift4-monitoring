@@ -161,7 +161,7 @@ Parameters to configure the numbers of silence job objects to keep.
 type:: number
 default:: 3
 
-Number of faild jobs to keep.
+Number of failed jobs to keep.
 
 ==== `successfull`
 
@@ -169,7 +169,7 @@ Number of faild jobs to keep.
 type:: number
 default:: 3
 
-Number of successfull jobs to keep.
+Number of successful jobs to keep.
 
 == Example
 
