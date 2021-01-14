@@ -55,3 +55,16 @@ parameters:
             - alertname
     alerts:
       ignoreNames: []
+
+    silence:
+      schedule: '0 */4 * * *'
+      serviceAccountName: prometheus-k8s
+      servingCertsCABundleName: serving-certs-ca-bundle
+      jobHistoryLimit:
+        failed: 3
+        successful: 3
+
+    images:
+      oc:
+        image: quay.io/appuio/oc
+        tag: v4.6@sha256:d7a50d8812bc13e2a1cef119d268ebb051e9ffb53960942180a36982ec59f647

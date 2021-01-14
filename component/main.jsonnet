@@ -40,4 +40,5 @@ local rules = import 'rules.jsonnet';
     },
   },
   prometheus_rules: rules,
+  silence: import 'silence.jsonnet',
 }
