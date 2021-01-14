@@ -35,7 +35,7 @@ local cm = kube.ConfigMap('silence') + namespace {
         ],
         "startsAt": "$(date -u +'%Y-%m-%dT%H:%M:%S')",
         "endsAt": "$(date -u +'%Y-%m-%dT%H:%M:%S' --date '+1 year')",
-        "createdBy": "cronjob/silence",
+        "createdBy": "Kubernetes object `cronjob/silence` in the monitoring namespace",
         "comment": "${comment}"
       }
       EOF
