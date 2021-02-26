@@ -1,2 +1,3 @@
 * xref:index.adoc[Home]
 * xref:references/parameters.adoc[Parameters]
+* xref:how-tos/opsgenie.adoc[OpsGenie integration]

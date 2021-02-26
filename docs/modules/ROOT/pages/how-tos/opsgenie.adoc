@@ -1,0 +1,303 @@
+= Integrating Alertmanager with OpsGenie
+
+This how-to assumes that you're already using OpsGenie.
+It additionally assumes that you're familiar with managing schedules and escalations.
+
+== Prerequisites
+
+In order to setup Alertmanager integration with OpsGenie, you'll need sufficient permissions in OpsGenie to setup integrations and heartbeats.
+If you're using teams in OpsGenie, request role "admin" in your team to be able to follow along.
+
+== Enabling the integrations in OpsGenie (once per team)
+
+[NOTE]
+====
+The Prometheus and REST API integrations can be used to forward alerts from multiple clusters to OpsGenie
+====
+
+In OpsGenie, navigate to "Teams > Your Team > Integrations" and enable the Prometheus and REST API integrations.
+You can use the same integrations to receive alerts from multiple Alertmanagers.
+In the REST API integration enable "Read Access" and "Create and Update Access."
+The REST API integration is required for heartbeat alerts, such as the "Watchdog" alert.
+
+Save the API keys which are generated when enabling the integrations in Vault, we'll reference them from the Commodore hierarchy.
+
+The snippets in this how-to assume that you're using the default Commodore Vault hierarchy, and expect the OpsGenie API keys to be in the following locations:
+
+* Prometheus Integration: `clusters/kv/<tenant-id>/<cluster-id>/opsgenie/api-key`
+* REST API Integration: `clusters/kv/<tenant-id>/<cluster-id>/opsgenie/heartbeat-password`
+
+== Configuring the cluster heartbeat in OpsGenie (for each cluster)
+
+Configure a heartbeat in "Teams > Your Team > Heartbeats" to receive `Watchdog` alerts from the cluster as heartbeats in OpsGenie.
+Create a new heartbeat, the name can be whatever you'd like.
+However, we suggest using the Commodore `<cluster-id>` of the cluster as the heartbeat name.
+Set the heartbeat interval to two minutes.
+Optionally, you can add the cluster's display name (or any other descriptive name for the cluster) in the heartbeat's description field.
+
+== Configuring Alertmanager to send alerts to OpsGenie
+
+To configure Alertmanager to send alerts to OpsGenie we need to configure an Alertmanager receiver using Alertmanager's `opsgenie` integration.
+First, we need to configure the `opsgenie_api_key` in the `global` section of the Alertmanager config.
+For the global API key you'll want to reference the Vault secret holding the API key for the Prometheus integration.
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    global:
+      opsgenie_api_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/api-key}
+----
+
+Next, we need to configure the OpsGenie receiver.
+First off, we want to set our team as the responder for all the alerts received from Alertmanager.
+We recommend that you use the team's UUID for configuring the responders, as the UUID remains stable even if the team name is changed.
+We also configure the OpsGenie receiver as the default receiver.
+
+[NOTE]
+====
+The team's UUID can be found in the URL of the team dashboard.
+Alternatively, you can find the Team's UUID by querying the OpsGenie API using the `curl` command below.
+
+[source,bash]
+----
+OPSGENIE_REST_API_KEY="<Rest API Integration Key>"
+TEAM_NAME="Your Team"
+curl -H "Authorization: GenieKey $OPSGENIE_REST_API_KEY" "https://api.opsgenie.com/v2/teams/${TEAM_NAME}?identifierType=name" | jq -r '.data.id'
+----
+
+====
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    receivers:
+      - name: opsgenie
+        opsgenie_configs:
+          - responders:
+              - id: <team-uuid>
+                type: team
+    route:
+      receiver: opsgenie
+----
+
+Additionally, we configure a number of things to make use of Project Syn and Openshift4 conventions in the alerts which are created in OpsGenie.
+
+This how-to makes use of some Project Syn and OpenShift 4 conventions in the alerts, such as the alert criticality being present as label `severity`.
+To ensure the configuration snippets which use fields in `.GroupLabels` work correctly,  alerts must be grouped by `alertname`, `namespace`, and `severity` at least.
+
+[NOTE]
+====
+We don't need group alerts by the `tenant_id` and `cluster_id` labels, since each cluster has its own Alertmanager.
+All alerts in a cluster's Alertmanager will have the same value for `tenant_id` and `cluster_id`, allowing us to refer to them through `.CommonLabels`.
+====
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    route:
+      group_by:
+        - alertname
+        - namespace
+        - severity
+----
+
+First we want to map the alert group's `severity` label to an OpsGenie priority.
+OpsGenie priorities are `P1`, `P2`, `P3` and `P4` in descending order of urgency.
+We want to map `critical` severity to `P1`, `warning` to `P2`, `info` to `P3` and everything else (this includes alerts which don't have a severity label) to `P4`.
+To achieve this mapping we add the following configuration in the OpsGenie receiver:
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    receivers:
+      - name: opsgenie
+        opsgenie_configs:
+          - priority: '{{ if eq .GroupLabels.severity "critical" }}P1{{ else if eq .GroupLabels.severity "warning" }}P2{{ else if eq .GroupLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+----
+
+Next, we want to have a title for the OpsGenie alerts which gives some Project Syn information at a glance (tenant and cluster):
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    receivers:
+      - name: opsgenie
+        opsgenie_configs:
+          - message: '[{{ .CommonLabels.tenant_id }}/{{ .CommonLabels.cluster_id }}] {{ .GroupLabels.alertname }} in {{ .GroupLabels.namespace }}'
+----
+
+Because the https://github.com/prometheus/alertmanager/blob/master/template/default.tmpl[default Alertmanager template] for OpsGenie alert descriptions doesn't fully match our use case, we deploy a custom template for the alert description.
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    receivers:
+      - name: opsgenie
+        opsgenie_configs:
+          - description: |-
+              {{ if gt (len .Alerts.Firing) 0 -}}
+              Alerts Firing:
+              {{ range .Alerts.Firing }}
+               - Message: {{ .Annotations.message }}
+                 Labels:
+              {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+              {{ end }}   Annotations:
+              {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+              {{ end }}   Source: {{ .GeneratorURL }}
+              {{ end }}
+              {{- end }}
+              {{ if gt (len .Alerts.Resolved) 0 -}}
+              Alerts Resolved:
+              {{ range .Alerts.Resolved }}
+               - Message: {{ .Annotations.message }}
+                 Labels:
+              {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+              {{ end }}   Annotations:
+              {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+              {{ end }}   Source: {{ .GeneratorURL }}
+              {{ end }}
+              {{- end }}
+----
+
+To make alerts filterable, we add a number of key-value pairs as `details` and a number of values as `tags`.
+OpsGenie allows filtering alerts both by `tag` and by `details.key` and `details.value`.
+Note that tags must be provided as a single comma-separated string to Alertmanager.
+
+[NOTE]
+====
+Alertmanager upstream has merged a https://github.com/prometheus/alertmanager/pull/2276[PR (prometheus/alertmanager#2276)] which will automatically add all common labels as details to the OpsGenie alert.
+As of 2021-02-24, there's no Alertmanager release which contains this change.
+====
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    receivers:
+      - name: opsgenie
+        opsgenie_configs:
+          - details:
+              namespace: '{{- if .CommonLabels.exported_namespace -}}{{- .CommonLabels.exported_namespace -}}{{- else if .CommonLabels.namespace -}}{{- .CommonLabels.namespace -}}{{- end -}}'
+              pod: '{{- if .CommonLabels.pod -}}{{- .CommonLabels.pod -}}{{- end -}}'
+              deployment: '{{- if .CommonLabels.deployment -}}{{- .CommonLabels.deployment -}}{{- end -}}'
+              alertname: '{{ .GroupLabels.alertname }}'
+              cluster_id: '{{ .CommonLabels.cluster_id }}'
+              tenant_id: '{{ .CommonLabels.tenant_id }}'
+              severity: '{{ .GroupLabels.severity }}'
+            tags: '{{ .CommonLabels.tenant_id }},
+              {{ .CommonLabels.cluster_id }},
+              {{ .GroupLabels.severity }},
+              {{ .GroupLabels.alertname }},
+              {{ .GroupLabels.namespace }},
+              {{- if .CommonLabels.exported_namespace -}}{{ .CommonLabels.exported_namespace }},{{- end -}}'
+----
+
+Finally, we need to make sure that the Watchdog alert is sent to OpsGenie as a heartbeat instead of a regular alert.
+To this effect, we configure an additional receiver which sends alerts to the OpsGenie REST API integration.
+In particular, this receiver sends alerts to the heartbeat `ping` endpoint for the heartbeat we've configured.
+If you followed our suggestion and used the Commodore `cluster-id` as the name for the heartbeat the snippet below will work out of the box.
+For this receiver you need to provide the API key of the REST API integration, which should be stored in Vault.
+
+In addition to the receiver, we also add a routing configuration to match alerts which are called `Watchdog` and ensure they're sent to the `heartbeat` receiver with a repeat interval of one minute (60 seconds).
+
+[source,yaml]
+----
+openshift4_monitoring:
+  alertManagerConfig:
+    receivers:
+      - name: heartbeat
+        webhook_configs:
+          - send_resolved: false
+            url: https://api.opsgenie.com/v2/heartbeats/${cluster:name}/ping
+            http_config:
+              basic_auth:
+                password: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/heartbeat-password}
+    route:
+      routes:
+        - match:
+            alertname: Watchdog
+          repeat_interval: 60s
+          receiver: heartbeat
+----
+
+== Full component configuration
+
+Since we've discussed individual elements of the Alertmanager configuration in the previous section, here's the full, copy-pasteable configuration.
+
+[source,yaml]
+----
+parameters:
+  openshift4_monitoring:
+    alertManagerConfig:
+      global:
+        opsgenie_api_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/api-key}
+      receivers:
+        - name: opsgenie
+          opsgenie_configs:
+            - priority: '{{ if eq .GroupLabels.severity "critical" }}P1{{ else if eq .GroupLabels.severity "warning" }}P2{{ else if eq .GroupLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+              message: '[{{ .CommonLabels.tenant_id }}/{{ .CommonLabels.cluster_id }}] {{ .GroupLabels.alertname }} in {{ .GroupLabels.namespace }}'
+              description: |-
+                {{ if gt (len .Alerts.Firing) 0 -}}
+                Alerts Firing:
+                {{ range .Alerts.Firing }}
+                 - Message: {{ .Annotations.message }}
+                   Labels:
+                {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                {{ end }}   Annotations:
+                {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                {{ end }}   Source: {{ .GeneratorURL }}
+                {{ end }}
+                {{- end }}
+                {{ if gt (len .Alerts.Resolved) 0 -}}
+                Alerts Resolved:
+                {{ range .Alerts.Resolved }}
+                 - Message: {{ .Annotations.message }}
+                   Labels:
+                {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                {{ end }}   Annotations:
+                {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                {{ end }}   Source: {{ .GeneratorURL }}
+                {{ end }}
+                {{- end }}
+              details:
+                namespace: '{{- if .CommonLabels.exported_namespace -}}{{- .CommonLabels.exported_namespace -}}{{- else if .CommonLabels.namespace -}}{{- .CommonLabels.namespace -}}{{- end -}}'
+                pod: '{{- if .CommonLabels.pod -}}{{- .CommonLabels.pod -}}{{- end -}}'
+                deployment: '{{- if .CommonLabels.deployment -}}{{- .CommonLabels.deployment -}}{{- end -}}'
+                alertname: '{{ .GroupLabels.alertname }}'
+                cluster_id: '{{ .CommonLabels.cluster_id }}'
+                tenant_id: '{{ .CommonLabels.tenant_id }}'
+                severity: '{{ .GroupLabels.severity }}'
+              tags: '{{ .CommonLabels.tenant_id }},
+                {{ .CommonLabels.cluster_id }},
+                {{ .GroupLabels.severity }},
+                {{ .GroupLabels.alertname }},
+                {{ .GroupLabels.namespace }},
+                {{- if .CommonLabels.exported_namespace -}}{{ .CommonLabels.exported_namespace }},{{- end -}}'
+              responders:
+                - id: <team-uuid>
+                  type: team
+        - name: heartbeat
+          webhook_configs:
+            - send_resolved: false
+              url: https://api.opsgenie.com/v2/heartbeats/${cluster:name}/ping
+              http_config:
+                basic_auth:
+                  password: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/heartbeat-password}
+      route:
+        group_by:
+          - alertname
+          - namespace
+          - severity
+        receiver: opsgenie
+        routes:
+          - match:
+              alertname: Watchdog
+            repeat_interval: 60s
+            receiver: heartbeat
+----

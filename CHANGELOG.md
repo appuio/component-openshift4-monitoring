@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configure AlertManager ([#6])
 - Ability to manage alert rules ([#10])
 - Ensure silence in Alertmanager using a CronJob ([#14])
+- Add how-to for sending alerts to OpsGenie ([#17])
 
 ### Changed
 
@@ -36,3 +37,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#10]: https://github.com/appuio/component-openshift4-monitoring/pull/10
 [#13]: https://github.com/appuio/component-openshift4-monitoring/pull/13
 [#14]: https://github.com/appuio/component-openshift4-monitoring/pull/14
+[#17]: https://github.com/appuio/component-openshift4-monitoring/pull/17
