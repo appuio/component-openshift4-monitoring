@@ -116,6 +116,25 @@ default:: `[]`
 
 List of https://github.com/prometheus-operator/kube-prometheus[kube-prometheus] alert rule names to be dropped.
 
+=== `customAnnotations`
+
+[horizontal]
+type:: dict
+default:: `{}`
+
+Maps alert names to sets of custom annotations.
+Allows configuring custom annotations for individual alerts.
+
+Example:
+
+[source,yaml]
+----
+customAnnotations:
+  Watchdog:
+    runbook_url: https://www.google.com/?q=Watchdog
+----
+
+
 == `silence`
 
 [horizontal]
