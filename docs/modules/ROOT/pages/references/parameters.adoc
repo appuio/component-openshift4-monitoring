@@ -122,7 +122,8 @@ List of https://github.com/prometheus-operator/kube-prometheus[kube-prometheus] 
 type:: dict
 default:: `{}`
 
-Maps alert names to sets of custom annotations. Allows configuring custom annotations for individual alerts.
+Maps alert names to sets of custom annotations.
+Allows configuring custom annotations for individual alerts.
 
 Example:
 
