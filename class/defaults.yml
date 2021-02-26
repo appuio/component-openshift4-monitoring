@@ -55,6 +55,7 @@ parameters:
             - alertname
     alerts:
       ignoreNames: []
+      customAnnotations: {}
 
     silence:
       schedule: '0 */4 * * *'
