@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 - Detection of component presence ([#13])
+- Skip recording rules when adding custom annotations ([#19])
 
 [Unreleased]: https://github.com/appuio/component-openshift4-monitoring/compare/d503a46ca74c912d7599da47a6bb2910dc484d23...HEAD
 [#1]: https://github.com/appuio/component-openshift4-monitoring/pull/1
@@ -42,3 +43,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#14]: https://github.com/appuio/component-openshift4-monitoring/pull/14
 [#17]: https://github.com/appuio/component-openshift4-monitoring/pull/17
 [#18]: https://github.com/appuio/component-openshift4-monitoring/pull/18
+[#19]: https://github.com/appuio/component-openshift4-monitoring/pull/19
