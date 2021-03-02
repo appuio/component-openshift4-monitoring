@@ -78,16 +78,22 @@ local annotateRules = {
         group {
           rules: std.map(
             function(rule)
-              local annotations =
-                defaultAnnotations +
-                if std.objectHas(rule, 'alert') && std.objectHas(customAnnotations, rule.alert) then
-                  customAnnotations[rule.alert]
-                else
-                  {};
+              // Only add custom annotations to alert rules, since recording
+              // rules cannot have annotations.
+              // We identify alert rules by the presence of the `alert` field.
+              if std.objectHas(rule, 'alert') then
+                local annotations =
+                  defaultAnnotations +
+                  if std.objectHas(customAnnotations, rule.alert) then
+                    customAnnotations[rule.alert]
+                  else
+                    {};
 
-              rule {
-                annotations+: annotations,
-              },
+                rule {
+                  annotations+: annotations,
+                }
+              else
+                rule,
             group.rules
           ),
         },
