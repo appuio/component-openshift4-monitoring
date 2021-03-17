@@ -68,4 +68,4 @@ parameters:
     images:
       oc:
         image: quay.io/appuio/oc
-        tag: v4.6@sha256:d7a50d8812bc13e2a1cef119d268ebb051e9ffb53960942180a36982ec59f647
+        tag: v4.6
