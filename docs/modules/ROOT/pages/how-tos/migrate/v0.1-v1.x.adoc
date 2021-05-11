@@ -1,0 +1,106 @@
+= Migrate from component version v0.1.0 to v1.x
+
+Due to the nature of the fix for #24, migrating to the fixed version of the component requires a couple manual steps.
+
+This document guides you through the migration.
+
+NOTE: While we give `oc` commands to manage the ArgoCD apps, you can also perform those steps through the ArgoCD UI, if you prefer.
+
+== Prerequisites
+
+* `oc` CLI available and logged into the cluster as a user which can impersonate `cluster-admin`
+* `argocd` CLI available, see https://argo-cd.readthedocs.io/en/stable/cli_installation/[ArgoCD CLI installation documentation]
+
+== Procedure
+
+. Setup port-forward to ArgoCD and login to ArgoCD with the CLI
++
+[source,shell]
+----
+oc --as=cluster-admin -n syn port-forward svc/argocd-server 8080:80 & sleep 1
+argocd login --plaintext --username=admin --password=$(oc --as=cluster-admin -n syn get secret steward -ojsonpath='{.data.token}' |base64 -d) localhost:8080
+----
+
+. Disable auto-sync for the ArgoCD apps `root` and `openshift4-monitoring`
++
+With `argocd`:
++
+[source,shell]
+----
+argocd app set --sync-option=none root
+argocd app set --sync-option=none openshift4-monitoring
+----
++
+With `oc`:
++
+[source,shell]
+----
+oc --as=cluster-admin -n syn patch apps root --type=json \
+  -p '[{"op":"replace", "path":"/spec/syncPolicy", "value": {}}]'
+oc --as=cluster-admin -n syn patch apps openshift4-monitoring --type=json \
+  -p '[{"op":"replace", "path":"/spec/syncPolicy", "value": {}}]'
+----
+
+. Remove ArgoCD managed-by label from the `openshift-monitoring` namespace object
++
+[source,shell]
+----
+oc --as=cluster-admin label ns openshift-monitoring argocd.argoproj.io/instance-
+----
+
+. Update cluster to use openshift4-monitoring v1.0.0. Add the following configuration in the cluster config:
++
+.inventory/classes/<tenant-id>/<cluster-id>.yml
+[source,yaml]
+----
+parameters:
+  components:
+    openshift4_monitoring:
+      version: v1.0.0
+----
+
+. Compile and push catalog
++
+[source,shell]
+----
+commodore catalog compile --push -i <cluster-id>
+----
+
+. Trigger a hard refresh of `openshift4-monitoring` app
++
+[source,shell]
+----
+argocd app get --hard-refresh openshift4-monitoring
+----
++
+NOTE: You can trigger a hard refresh via the ArgoCD UI instead of using the ArgoCD CLI command.
+
+. Sync `root` app
++
+With `argocd`:
++
+[source,shell]
+----
+argocd app sync root
+----
++
+With `oc`:
++
+[source,shell]
+----
+oc --as=cluster-admin -n syn patch apps root --type=json \
+  -p '[{
+    "op":"replace",
+    "path":"/spec/syncPolicy",
+    "value": {"automated": {"prune": true, "selfHeal": true}}
+  }]'
+----
++
+NOTE: With `oc` we don't directly trigger a sync, but instead re-enable auto-sync in the app object.
+
+. Terminate port-forward to ArgoCD
++
+[source,shell]
+----
+kill %1
+----
