@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.1.0]
+
+### Added
+
+- Add parameter `enableUserWorkload` ([#28])
+
 ## [v1.0.0]
 
 ### Fixed
@@ -38,9 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detection of component presence ([#13])
 - Skip recording rules when adding custom annotations ([#19])
 
-[Unreleased]: https://github.com/appuio/component-openshift4-monitoring/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/appuio/component-openshift4-monitoring/compare/v1.1.0...HEAD
 [v0.1.0]: https://github.com/appuio/component-openshift4-monitoring/releases/tag/v0.1.0
 [v1.0.0]: https://github.com/appuio/component-openshift4-monitoring/releases/tag/v1.0.0
+[v1.1.0]: https://github.com/appuio/component-openshift4-monitoring/releases/tag/v1.1.0
 
 [#1]: https://github.com/appuio/component-openshift4-monitoring/pull/1
 [#2]: https://github.com/appuio/component-openshift4-monitoring/pull/2
@@ -56,3 +63,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#18]: https://github.com/appuio/component-openshift4-monitoring/pull/18
 [#19]: https://github.com/appuio/component-openshift4-monitoring/pull/19
 [#26]: https://github.com/appuio/component-openshift4-monitoring/pull/26
+[#28]: https://github.com/appuio/component-openshift4-monitoring/pull/28

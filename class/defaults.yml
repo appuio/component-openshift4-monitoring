@@ -4,6 +4,7 @@ parameters:
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
+    enableUserWorkload: false
     configs:
       prometheusK8s:
         externalLabels:
