@@ -16,6 +16,14 @@ nodeSelector:
 
 A dictionary holding the default configuration which should be applied to all components.
 
+== `enableUserWorkload`
+
+[horizontal]
+type:: boolean
+default:: false
+
+A parameter to enable https://docs.openshift.com/container-platform/4.7/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
+
 == `configs`
 
 [horizontal]
