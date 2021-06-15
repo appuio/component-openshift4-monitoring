@@ -38,7 +38,7 @@ local ns_patch =
       data: {
         'config.yaml': std.manifestYamlDoc(
           {
-            'enableUserWorkload': params.enableUserWorkload
+            enableUserWorkload: params.enableUserWorkload,
           } + std.mapWithKey(
             function(field, value) value + params.defaultConfig,
             params.configs
