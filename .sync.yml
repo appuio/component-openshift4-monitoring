@@ -1,0 +1,10 @@
+:global:
+  componentName: openshift4-monitoring
+  # Disable component compile workflow for now, since Commodore currently
+  # doesn't really support compiling components which depend on another
+  # component's component library.
+  feature_componentCompile: false
+
+docs/antora.yml:
+  name: openshift4-monitoring
+  title: OpenShift4 Monitoring
