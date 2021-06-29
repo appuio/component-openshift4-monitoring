@@ -10,8 +10,10 @@ local defaultAnnotations = {
 
 local upstreamManifests = std.flatMap(
   function(file)
-    std.parseJson(kap.yaml_load_stream('openshift4-monitoring/manifests/' + file)),
-  kap.dir_files_list('openshift4-monitoring/manifests/')
+    std.parseJson(kap.yaml_load_stream(
+      'openshift4-monitoring/manifests/%s/%s' % [ params.manifests_version, file ]
+    )),
+  kap.dir_files_list('openshift4-monitoring/manifests/%s' % [ params.manifests_version ])
 );
 
 local additionalRules = {
