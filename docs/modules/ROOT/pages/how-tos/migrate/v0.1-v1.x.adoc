@@ -21,7 +21,7 @@ oc --as=cluster-admin -n syn port-forward svc/argocd-server 8080:80 & sleep 1
 argocd login --plaintext --username=admin --password=$(oc --as=cluster-admin -n syn get secret steward -ojsonpath='{.data.token}' |base64 -d) localhost:8080
 ----
 
-. Disable auto-sync for the ArgoCD apps `root` and `openshift4-monitoring`
+. Disable auto sync for the ArgoCD apps `root` and `openshift4-monitoring`
 +
 With `argocd`:
 +
@@ -96,7 +96,7 @@ oc --as=cluster-admin -n syn patch apps root --type=json \
   }]'
 ----
 +
-NOTE: With `oc` we don't directly trigger a sync, but instead re-enable auto-sync in the app object.
+NOTE: With `oc` we don't directly trigger a sync, but instead re-enable auto sync in the app object.
 
 . Terminate port-forward to ArgoCD
 +
