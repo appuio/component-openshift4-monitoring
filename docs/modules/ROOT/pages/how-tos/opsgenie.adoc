@@ -172,7 +172,7 @@ Note that tags must be provided as a single comma-separated string to Alertmanag
 [NOTE]
 ====
 Alertmanager upstream has merged a https://github.com/prometheus/alertmanager/pull/2276[PR (prometheus/alertmanager#2276)] which will automatically add all common labels as details to the OpsGenie alert.
-As of 2021-02-24, there's no Alertmanager release which contains this change.
+As of 2021–02–24, there's no Alertmanager release which contains this change.
 ====
 
 [source,yaml]
