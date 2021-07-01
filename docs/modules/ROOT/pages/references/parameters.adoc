@@ -2,6 +2,17 @@
 
 The parent key for all of the following parameters is `openshift4_monitoring`.
 
+== `manifests_version`
+
+[horizontal]
+type:: string
+default:: `release-4.7`
+
+Select which version of the upstream alerting (and recording) rules should be used by the component.
+This parameter must be changed to match the cluster's OCP4 minor version.
+
+NOTE: Once we've implemented https://syn.tools/syn/SDDs/0027-dynamic-cluster-facts.html[dynamic cluster facts], this parameter will be automatically set based on the value of the reported cluster version.
+
 == `defaultConfig`
 
 [horizontal]
