@@ -134,7 +134,7 @@ local rules =
       {
         local group = rules[alertGroupName],
         name: 'syn-' + group.name,
-        rules: [
+        rules: std.sort([
           rule {
             alert: if rule.alert != 'Watchdog' then
               'SYN_' + rule.alert
@@ -145,7 +145,7 @@ local rules =
             },
           }
           for rule in group.rules
-        ],
+        ], function(r) r.alert),
       }
       for alertGroupName in std.sort(std.objectFields(rules))
     ],
