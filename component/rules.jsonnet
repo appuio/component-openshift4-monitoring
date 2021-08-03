@@ -104,6 +104,32 @@ local annotateRules = {
   },
 };
 
+local rulePatches = {
+  // upstream SystemMemoryExceedsReservation rule doesn't have `for` field
+  SystemMemoryExceedsReservation: {
+    'for': '15m',
+  },
+};
+
+local patchRules = {
+  spec+: {
+    groups: std.map(
+      function(group)
+        group {
+          rules: std.map(
+            function(rule)
+              if std.objectHas(rulePatches, rule.alert) then
+                rule + rulePatches[rule.alert]
+              else
+                rule,
+            group.rules
+          ),
+        },
+      super.groups
+    ),
+  },
+};
+
 local rules =
   std.foldl(
     function(x, y)
@@ -115,6 +141,7 @@ local rules =
       + additionalRules
       + annotateRules
       + filterRules
+      + patchRules
     ).spec.groups,
     {},
   );
