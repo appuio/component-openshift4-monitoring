@@ -104,12 +104,12 @@ local annotateRules = {
   },
 };
 
-local rulePatches = {
-  // upstream SystemMemoryExceedsReservation rule doesn't have `for` field
-  SystemMemoryExceedsReservation: {
-    'for': '15m',
-  },
-};
+local rulePatches =
+  com.getValueOrDefault(
+    params.alerts.patchRules,
+    params.manifests_version,
+    {}
+  );
 
 local patchRules = {
   spec+: {
@@ -118,8 +118,11 @@ local patchRules = {
         group {
           rules: std.map(
             function(rule)
-              if std.objectHas(rulePatches, rule.alert) then
-                rule + rulePatches[rule.alert]
+              if (
+                std.objectHas(rule, 'alert') &&
+                std.objectHas(rulePatches, rule.alert)
+              ) then
+                rule + com.makeMergeable(rulePatches[rule.alert])
               else
                 rule,
             group.rules
