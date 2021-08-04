@@ -222,7 +222,7 @@ default:: 3
 
 Number of failed jobs to keep.
 
-==== `successfull`
+==== `successful`
 
 [horizontal]
 type:: number
