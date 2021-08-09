@@ -153,6 +153,27 @@ customAnnotations:
     runbook_url: https://www.google.com/?q=Watchdog
 ----
 
+=== `patchRules`
+type:: dict
+keys:: potential values of parameter `manifests_versions`
+default:: See https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[`class/defaults.yml` on GitHub]
+
+The parameter `patchRules` allows users to customize upstream alerts.
+The component expects that top-level keys in the parameter correspond to values of parameter `manifests_versions`.
+This enables users to selectively patch upstream alerts for a particular OpenShift 4 version.
+
+For each version, the component expects alert names as keys and any alert configuration as values.
+See the Prometheus https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/[alerting rules documentation] for extended documentation on configuring alerting rules.
+
+Example:
+
+[source,yaml]
+----
+patchRules:
+  release-4.7:
+    SystemMemoryExceedsReservation:
+      for: 30m
+----
 
 == `silence`
 
@@ -201,7 +222,7 @@ default:: 3
 
 Number of failed jobs to keep.
 
-==== `successfull`
+==== `successful`
 
 [horizontal]
 type:: number

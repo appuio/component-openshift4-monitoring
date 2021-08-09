@@ -59,6 +59,10 @@ parameters:
     alerts:
       ignoreNames: []
       customAnnotations: {}
+      patchRules:
+        release-4.7:
+          SystemMemoryExceedsReservation:
+            for: 15m
 
     silence:
       schedule: '0 */4 * * *'

@@ -104,6 +104,35 @@ local annotateRules = {
   },
 };
 
+local rulePatches =
+  com.getValueOrDefault(
+    params.alerts.patchRules,
+    params.manifests_version,
+    {}
+  );
+
+local patchRules = {
+  spec+: {
+    groups: std.map(
+      function(group)
+        group {
+          rules: std.map(
+            function(rule)
+              if (
+                std.objectHas(rule, 'alert') &&
+                std.objectHas(rulePatches, rule.alert)
+              ) then
+                rule + com.makeMergeable(rulePatches[rule.alert])
+              else
+                rule,
+            group.rules
+          ),
+        },
+      super.groups
+    ),
+  },
+};
+
 local rules =
   std.foldl(
     function(x, y)
@@ -115,6 +144,7 @@ local rules =
       + additionalRules
       + annotateRules
       + filterRules
+      + patchRules
     ).spec.groups,
     {},
   );
