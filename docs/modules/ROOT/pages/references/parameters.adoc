@@ -27,6 +27,43 @@ nodeSelector:
 
 A dictionary holding the default configuration which should be applied to all components.
 
+
+== `upstreamRules.networkPlugin`
+
+[horizontal]
+type:: boolean
+default:: `openshift-sdn`
+
+Choose either `openshift-sdn` or `ovn-kubernetes` depending on the installed network plugin.
+
+
+== `upstreamRules.elasticsearchOperator`
+
+[horizontal]
+type:: boolean
+default:: `true`
+
+Whether the Elasticsearch Operator prometheus rules should be included or not.
+
+
+== `upstreamRules.clusterSamplesOperator`
+
+[horizontal]
+type:: boolean
+default:: `true`
+
+Whether the Cluster Samples Operator prometheus rules should be included or not.
+
+
+== `upstreamRules.openshiftLogging`
+
+[horizontal]
+type:: boolean
+default:: `true`
+
+Whether the OpenShift Logging Operator prometheus rules should be included or not.
+
+
 == `enableUserWorkload`
 
 [horizontal]

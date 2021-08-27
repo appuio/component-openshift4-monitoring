@@ -8,12 +8,35 @@ local defaultAnnotations = {
   syn_component: inv.parameters._instance,
 };
 
+local upstreamManifestsFileExclude = function(file) (
+  (
+    params.upstreamRules.networkPlugin == 'openshift-sdn' &&
+    file == 'ovn-kubernetes-control-plane.yaml'
+  )
+  || (
+    params.upstreamRules.elasticsearchOperator == false &&
+    file == 'elasticsearch-operator.yaml'
+  )
+  || (
+    params.upstreamRules.openshiftLogging == false &&
+    file == 'cluster-logging-operator-fluentd.yaml'
+  )
+  || (
+    params.upstreamRules.clusterSamplesOperator == false &&
+    file == 'cluster-samples-operator.yaml'
+  )
+);
+
 local upstreamManifests = std.flatMap(
   function(file)
     std.parseJson(kap.yaml_load_stream(
       'openshift4-monitoring/manifests/%s/%s' % [ params.manifests_version, file ]
     )),
-  kap.dir_files_list('openshift4-monitoring/manifests/%s' % [ params.manifests_version ])
+  std.filter(
+    function(file)
+      !upstreamManifestsFileExclude(file),
+    kap.dir_files_list('openshift4-monitoring/manifests/%s' % [ params.manifests_version ])
+  ),
 );
 
 local additionalRules = {
