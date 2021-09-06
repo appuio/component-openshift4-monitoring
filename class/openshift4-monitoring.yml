@@ -47,8 +47,11 @@ parameters:
         source: https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/${openshift4_monitoring:manifests_version}/manifests/0000_90_olm_01-prometheus-rule.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/operator-lifecycle-manager.yaml
       - type: https
-        source: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/openshift-sdn/alert-rules.yaml
-        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/openshift-sdn.yaml
+        source: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/${openshift4_monitoring:upstreamRules:networkPlugin}/alert-rules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/${openshift4_monitoring:upstreamRules:networkPlugin}.yaml
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/alert-rules-control-plane.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/ovn-kubernetes-control-plane.yaml
     compile:
       - input_paths:
           - openshift4-monitoring/component/app.jsonnet

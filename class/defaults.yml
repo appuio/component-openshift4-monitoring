@@ -7,6 +7,11 @@ parameters:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
     enableUserWorkload: false
+    upstreamRules:
+      networkPlugin: openshift-sdn
+      elasticsearchOperator: true
+      clusterSamplesOperator: true
+      openshiftLogging: true
     configs:
       prometheusK8s:
         externalLabels:
