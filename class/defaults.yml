@@ -3,6 +3,7 @@ parameters:
     namespace: openshift-monitoring
     # TODO: select based on reported OCP version once we have dynamic facts
     manifests_version: release-4.7
+    manifests_version_logging: release-5.1
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
