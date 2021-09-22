@@ -55,15 +55,6 @@ default:: `true`
 Whether the Cluster Samples Operator prometheus rules should be included or not.
 
 
-== `upstreamRules.openshiftLogging`
-
-[horizontal]
-type:: boolean
-default:: `true`
-
-Whether the OpenShift Logging Operator prometheus rules should be included or not.
-
-
 == `enableUserWorkload`
 
 [horizontal]

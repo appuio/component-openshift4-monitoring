@@ -18,10 +18,6 @@ local upstreamManifestsFileExclude = function(file) (
     file == 'elasticsearch-operator.yaml'
   )
   || (
-    params.upstreamRules.openshiftLogging == false &&
-    file == 'cluster-logging-operator-fluentd.yaml'
-  )
-  || (
     params.upstreamRules.clusterSamplesOperator == false &&
     file == 'cluster-samples-operator.yaml'
   )
