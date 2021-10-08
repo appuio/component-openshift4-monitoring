@@ -3,6 +3,34 @@
 This how-to assumes that you're already using OpsGenie.
 It additionally assumes that you're familiar with managing schedules and escalations.
 
+[NOTE]
+====
+**For VSHN managed clusters** there is a template in the commodore-defaults repo, so the process can be abbreviated:
+
+Ensure the Vault secrets below exist (`clusters/kv/<tenant-id>/<cluster-id>/opsgenie/api-key` and `clusters/kv/<tenant-id>/<cluster-id>/opsgenie/heartbeat-password`)
+
+Set the Team UUID (usually in the tenant's `common.yml`):
+
+[source,yaml]
+----
+parameters:
+  opsgenie:
+    teamID: <team-uuid>
+----
+
+Include the template in the cluster YAML:
+
+[source,yaml]
+----
+parameters:
+  openshift4_monitoring:
+    alertManagerConfig: ${opsgenie:template}
+----
+
+And that's it!
+
+====
+
 == Prerequisites
 
 In order to setup Alertmanager integration with OpsGenie, you'll need sufficient permissions in OpsGenie to setup integrations and heartbeats.
