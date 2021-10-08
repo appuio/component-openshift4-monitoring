@@ -23,7 +23,7 @@ local ns_patch =
         } + if std.member(inv.applications, 'networkpolicy') then {
           [inv.parameters.networkpolicy.labels.noDefaults]: 'true',
           [inv.parameters.networkpolicy.labels.purgeDefaults]: 'true',
-        },
+        } else {},
       },
     }
   );
