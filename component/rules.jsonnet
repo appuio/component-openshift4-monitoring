@@ -10,14 +10,14 @@ local defaultAnnotations = {
 
 local upstreamManifestsFileExclude = function(file) (
   (
-    params.upstreamRules.networkPlugin == 'openshift-sdn' &&
+    params.upstreamRules.networkPlugin != 'ovn-kubernetes' &&
     (
       file == 'ovn-kubernetes-control-plane.yaml' ||
       file == 'ovn-kubernetes.yaml'
     )
   )
   || (
-    params.upstreamRules.networkPlugin == 'ovn-kubernetes' &&
+    params.upstreamRules.networkPlugin != 'openshift-sdn' &&
     file == 'openshift-sdn.yaml'
   )
   || (
