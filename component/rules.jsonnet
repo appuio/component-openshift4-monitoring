@@ -178,7 +178,16 @@ local rules =
         [y.name]+: com.makeMergeable(y),
       },
     (
-      monitoringOperator['prometheus-k8s/rules']
+      (
+        if params.manifests_version == 'release-4.7' then
+          monitoringOperator['prometheus-k8s/rules']
+        else
+          monitoringOperator['prometheus-k8s/prometheusRule']
+          + monitoringOperator['prometheus-operator/prometheusRule']
+          + monitoringOperator['prometheus-operator/prometheusRuleValidatingWebhook']
+          + monitoringOperator['thanos-querier/prometheusRule']
+          + monitoringOperator['thanos-ruler/thanosRulerPrometheusRule']
+      )
       + additionalRules
       + annotateRules
       + filterRules
