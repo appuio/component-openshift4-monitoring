@@ -8,6 +8,7 @@
 .cache/
 helmcharts/
 manifests/
+manifests_requiring_prerendering/
 vendor/
 jsonnetfile.lock.json
 crds/
