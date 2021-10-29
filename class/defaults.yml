@@ -3,6 +3,13 @@ parameters:
     namespace: openshift-monitoring
     # TODO: select based on reported OCP version once we have dynamic facts
     manifests_version: release-4.7
+    =_cluster_monitoring_operator_version_map:
+      # For release-4.7 we're using the old legacy commit hash
+      # No idea what this points to exactly, -SG,2021-10-29.
+      release-4.7: 45cb6f2942dff5afe17bbbf46f1eb6d3e7708f51
+      release-4.8: release-4.8
+    jsonnetfile_parameters:
+      cmo_version: ${openshift4_monitoring:_cluster_monitoring_operator_version_map:${openshift4_monitoring:manifests_version}}
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
