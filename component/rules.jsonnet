@@ -30,31 +30,28 @@ local upstreamManifestsFileExclude = function(file) (
   )
 );
 
-local upstreamManifests = std.flatMap(
-  function(file)
-    std.parseJson(kap.yaml_load_stream(
-      'openshift4-monitoring/manifests/%s/%s' % [ params.manifests_version, file ]
-    )),
-  std.filter(
+local loadFiles(root) =
+  local fpath = '%s/%s' % [ root, params.manifests_version ];
+  std.flatMap(
     function(file)
-      !upstreamManifestsFileExclude(file),
-    kap.dir_files_list('openshift4-monitoring/manifests/%s' % [ params.manifests_version ])
-  ),
-) + std.flatMap(
-  function(file)
-    std.parseJson(kap.yaml_load_stream(
-      'compiled/openshift4-monitoring/prerendered_manifests/%s/%s' % [
-        params.manifests_version,
-        file,
-      ]
-    )),
-  std.filter(
-    function(file)
-      !upstreamManifestsFileExclude(file),
-    kap.dir_files_list(
-      'compiled/openshift4-monitoring/prerendered_manifests/%s' % [ params.manifests_version ]
+      std.parseJson(kap.yaml_load_stream('%s/%s' % [ fpath, file ])),
+    std.filter(
+      function(file)
+        !upstreamManifestsFileExclude(file),
+      kap.dir_files_list(fpath)
     )
-  )
+  );
+
+local fileRoots = [
+  'openshift4-monitoring/manifests',
+  'compiled/openshift4-monitoring/prerendered_manifests',
+];
+
+local upstreamManifests = std.flattenArrays(
+  [
+    loadFiles(root)
+    for root in fileRoots
+  ]
 );
 
 local additionalRules = {
