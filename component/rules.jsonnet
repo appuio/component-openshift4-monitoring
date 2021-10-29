@@ -40,6 +40,21 @@ local upstreamManifests = std.flatMap(
       !upstreamManifestsFileExclude(file),
     kap.dir_files_list('openshift4-monitoring/manifests/%s' % [ params.manifests_version ])
   ),
+) + std.flatMap(
+  function(file)
+    std.parseJson(kap.yaml_load_stream(
+      'compiled/openshift4-monitoring/prerendered_manifests/%s/%s' % [
+        params.manifests_version,
+        file,
+      ]
+    )),
+  std.filter(
+    function(file)
+      !upstreamManifestsFileExclude(file),
+    kap.dir_files_list(
+      'compiled/openshift4-monitoring/prerendered_manifests/%s' % [ params.manifests_version ]
+    )
+  )
 );
 
 local additionalRules = {

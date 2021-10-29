@@ -4,9 +4,13 @@ parameters:
       - type: https
         source: https://raw.githubusercontent.com/openshift/cloud-credential-operator/${openshift4_monitoring:manifests_version}/manifests/0000_90_cloud-credential-operator_04_alertrules.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cloud-credential-operator.yaml
+      # Download cluster-version-operator rules YAML to folder
+      # `manifests_requiring_prerendering/`, because we cannot prerender
+      # directly in Jsonnet.  This approach can be used for other YAMLs which
+      # need prerendering too.
       - type: https
         source: https://raw.githubusercontent.com/openshift/cluster-version-operator/${openshift4_monitoring:manifests_version}/install/0000_90_cluster-version-operator_02_servicemonitor.yaml
-        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-version-operator.yaml
+        output_path: dependencies/openshift4-monitoring/manifests_requiring_prerendering/${openshift4_monitoring:manifests_version}/cluster-version-operator.yaml
       - type: https
         source: https://raw.githubusercontent.com/openshift/cluster-machine-approver/${openshift4_monitoring:manifests_version}/manifests/0000_90_cluster-machine-approver_04_alertrules.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-machine-approver.yaml
@@ -49,7 +53,18 @@ parameters:
       - type: https
         source: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/alert-rules-control-plane.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/ovn-kubernetes-control-plane.yaml
+
     compile:
+      # Prerender cluster-version-operator YAML with Jinja2.
+      # This works even though the file is templated with Gotemplate, because
+      # the only construct we need to render is {{ "..." }} which is valid
+      # Jinja2 as well.
+      # If more similar files need to be rendered, just add them to the
+      # input_paths array for this compile entry.
+      - input_paths:
+          - openshift4-monitoring/manifests_requiring_prerendering/${openshift4_monitoring:manifests_version}/cluster-version-operator.yaml
+        input_type: jinja2
+        output_path: prerendered_manifests/${openshift4_monitoring:manifests_version}/
       - input_paths:
           - openshift4-monitoring/component/app.jsonnet
         input_type: jsonnet
@@ -58,3 +73,10 @@ parameters:
           - openshift4-monitoring/component/main.jsonnet
         input_type: jsonnet
         output_path: openshift4-monitoring/
+      # Remove the prerendered YAMLs (see above) from
+      # `compiled/openshift4-monitoring` to avoid having them end up in the
+      # cluster catalog.
+      - input_paths:
+          - compiled/openshift4-monitoring/prerendered_manifests
+        input_type: remove
+        output_path: .
