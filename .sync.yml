@@ -8,3 +8,8 @@
 docs/antora.yml:
   name: openshift4-monitoring
   title: OpenShift4 Monitoring
+
+.gitignore:
+  additionalEntries:
+    - manifests_requiring_prerendering/
+    - jsonnetfile.json
