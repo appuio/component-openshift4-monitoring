@@ -171,6 +171,53 @@ local patchRules = {
   },
 };
 
+local cmoRules =
+  if params.manifests_version == 'release-4.7' then
+    monitoringOperator['prometheus-k8s/rules']
+  else
+    local rules =
+      std.foldl(
+        function(acc, it) acc + it,
+        std.map(
+          com.makeMergeable,
+          [
+            monitoringOperator['alertmanager/prometheusRule'],
+            monitoringOperator['cluster-monitoring-operator/prometheusRule'],
+            monitoringOperator['control-plane/prometheusRule'],
+            monitoringOperator['kube-state-metrics/prometheusRule'],
+            monitoringOperator['node-exporter/prometheusRule'],
+            monitoringOperator['prometheus-k8s/prometheusRule'],
+            monitoringOperator['prometheus-operator/prometheusRule'],
+            monitoringOperator['prometheus-operator/prometheusRuleValidatingWebhook'],
+            monitoringOperator['thanos-querier/prometheusRule'],
+            monitoringOperator['thanos-ruler/thanosRulerPrometheusRule'],
+          ],
+        ),
+        {}
+      );
+    if params.manifests_version == 'release-4.8' then
+      // Remove `openshift-etcd.rules` provided by the
+      // cluster-monitoring-operator on OCP4.8.
+      // This is done to avoid duplicate rules because we're using the OCP4.9
+      // cluster-etcd-operator Jsonnet on OCP4.8.
+      rules {
+        spec+: {
+          groups: [
+            g
+            for g in super.groups
+            if g.name != 'openshift-etcd.rules'
+          ],
+        },
+      }
+    else
+      rules;
+
+local etcdRules =
+  if params.manifests_version == 'release-4.7' then
+    {}
+  else
+    com.makeMergeable(import 'cluster-etcd-operator/main.jsonnet');
+
 local rules =
   std.foldl(
     function(x, y)
@@ -178,7 +225,8 @@ local rules =
         [y.name]+: com.makeMergeable(y),
       },
     (
-      monitoringOperator['prometheus-k8s/rules']
+      cmoRules
+      + etcdRules
       + additionalRules
       + annotateRules
       + filterRules

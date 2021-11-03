@@ -1,4 +1,15 @@
 parameters:
+  openshift4_monitoring:
+    =_manifest_urls:
+      kube-apiserver:
+        release-4.7:
+          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.7/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
+          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.7/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
+          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.7/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
+        release-4.8:
+          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.8/bindata/v4.1.0/alerts/api-usage.yaml
+          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.8/bindata/v4.1.0/alerts/cpu-utilization.yaml
+          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.8/bindata/v4.1.0/alerts/kube-apiserver-slos.yaml
   kapitan:
     dependencies:
       - type: https
@@ -29,6 +40,15 @@ parameters:
       - type: https
         source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/${openshift4_monitoring:manifests_version}/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-kube-apiserver.yaml
+      - type: https
+        source: ${openshift4_monitoring:_manifest_urls:kube-apiserver:${openshift4_monitoring:manifests_version}:api-usage}
+        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-kube-apiserver-api-usage.yaml
+      - type: https
+        source: ${openshift4_monitoring:_manifest_urls:kube-apiserver:${openshift4_monitoring:manifests_version}:cpu-utilization}
+        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-kube-apiserver-cpu-utilization.yaml
+      - type: https
+        source: ${openshift4_monitoring:_manifest_urls:kube-apiserver:${openshift4_monitoring:manifests_version}:slos}
+        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-kube-apiserver-slos.yaml
       - type: https
         source: https://raw.githubusercontent.com/openshift/cluster-kube-controller-manager-operator/${openshift4_monitoring:manifests_version}/manifests/0000_90_kube-controller-manager-operator_05_alerts.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-kube-controller-manager-operator.yaml
