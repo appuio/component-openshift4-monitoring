@@ -78,6 +78,9 @@ parameters:
         release-4.7:
           SystemMemoryExceedsReservation:
             for: 15m
+        release-4.8:
+          FailingOperator:
+            for: 15m
 
     silence:
       schedule: '0 */4 * * *'
