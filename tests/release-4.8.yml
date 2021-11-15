@@ -7,3 +7,6 @@ parameters:
 
   resource_locker:
     namespace: syn-resource-locker
+
+  openshift4_monitoring:
+    manifests_version: release-4.8
