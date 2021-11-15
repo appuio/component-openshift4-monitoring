@@ -8,9 +8,11 @@ parameters:
       # No idea what this points to exactly, -SG,2021-10-29.
       release-4.7: 45cb6f2942dff5afe17bbbf46f1eb6d3e7708f51
       release-4.8: release-4.8
+      release-4.9: release-4.9
     =_etcd_operator_version_map:
       release-4.7: '' # not required for 4.7 since the cluster-monitoring-operator has the etcd rules
       release-4.8: release-4.9 # etcd-operator Jsonnet only available for 4.9
+      release-4.9: release-4.9
     jsonnetfile_parameters:
       cmo_version: ${openshift4_monitoring:_cluster_monitoring_operator_version_map:${openshift4_monitoring:manifests_version}}
       etcd_version: ${openshift4_monitoring:_etcd_operator_version_map:${openshift4_monitoring:manifests_version}}

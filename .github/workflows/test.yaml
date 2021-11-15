@@ -34,6 +34,7 @@ jobs:
         instance:
           - release-4.7
           - release-4.8
+          - release-4.9
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
