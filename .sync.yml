@@ -1,9 +1,5 @@
 :global:
   componentName: openshift4-monitoring
-  # Disable component compile workflow for now, since Commodore currently
-  # doesn't really support compiling components which depend on another
-  # component's component library.
-  feature_componentCompile: false
 
 docs/antora.yml:
   name: openshift4-monitoring
@@ -13,3 +9,12 @@ docs/antora.yml:
   additionalEntries:
     - manifests_requiring_prerendering/
     - jsonnetfile.json
+
+.github/workflows/test.yaml:
+  goldenTest_makeTarget: golden-diff -e instance=${{ matrix.instance }}
+  makeTarget: test -e instance=${{ matrix.instance }}
+  matrix:
+    key: instance
+    entries:
+      - release-4.7
+      - release-4.8
