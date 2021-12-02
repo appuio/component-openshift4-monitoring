@@ -31,10 +31,12 @@ A dictionary holding the default configuration which should be applied to all co
 == `upstreamRules.networkPlugin`
 
 [horizontal]
-type:: boolean
+type:: string
 default:: `openshift-sdn`
 
 Choose either `openshift-sdn` or `ovn-kubernetes` depending on the installed network plugin.
+If a custom network plugin is used, set any other string as the value for this parameter.
+This ensures neither openshift-sdn nor OVN-Kubernetes monitoring rules are deployed.
 
 
 == `upstreamRules.elasticsearchOperator`
