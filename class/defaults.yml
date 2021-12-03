@@ -89,6 +89,7 @@ parameters:
         failed: 3
         successful: 3
 
+    rules: {}
     images:
       oc:
         image: quay.io/appuio/oc
