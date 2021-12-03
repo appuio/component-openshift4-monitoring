@@ -64,7 +64,6 @@ local ns_patch =
       namespace: params.namespace,
       labels+: {
         role: 'alert-rules',
-        syn: true,
       },
     },
     spec+: {
@@ -74,6 +73,9 @@ local ns_patch =
           local rnamekey = std.splitLimit(rname, ':', 1);
           params.rules[group_name][rname] {
             [rnamekey[0]]: rnamekey[1],
+            labels+: {
+              syn: 'true',
+            },
           }
           for rname in std.objectFields(params.rules[group_name])
           if params.rules[group_name][rname] != null
