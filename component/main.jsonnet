@@ -64,6 +64,7 @@ local ns_patch =
       namespace: params.namespace,
       labels+: {
         role: 'alert-rules',
+        syn: true,
       },
     },
     spec+: {
