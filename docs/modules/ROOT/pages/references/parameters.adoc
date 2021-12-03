@@ -260,6 +260,39 @@ default:: 3
 
 Number of successful jobs to keep.
 
+== `rules`
+
+[horizontal]
+type:: dict
+default:: `{}`
+
+This parameter allows users to configure additional Prometheus rules to deploy on the cluster.
+
+Each key-value pair in the dictionary is transformed into a `PrometheusRule` object by the component.
+
+The component expects that values are dicts themselves and expects that keys in those dicts are prefixed with `record:` or `alert:` to indicate whether the rule is a recording or alerting rule.
+The component will transform the keys into fields in the resulting rule by taking the prefix as the field name and the rest of the key as the field value.
+For example, key `"record:sum:some:metric:5m"` would be transformed into `record: sum:some:metric:5m` which should define a recording rule with name `sum:some:metric:5m`.
+This field is then merged into the provided value which should be a valid rule definition.
+
+See the Prometheus docs for supported configurations for https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/[recording] and https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/[alerting] rules.
+
+
+Example:
+
+[source,yaml]
+---
+rules:
+  generic-rules:
+    "alert:ContainerOOMKilled":
+      annotations:
+        message: A container ({{$labels.container}}) in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOM killed
+      expr: |
+        kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+      labels:
+        source: https://git.vshn.net/swisscompks/syn-tenant-repo/-/blob/master/common.yml
+        severity: devnull
+
 == Example
 
 [source,yaml]

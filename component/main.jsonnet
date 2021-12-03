@@ -1,6 +1,8 @@
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
+local prom = import 'lib/prom.libsonnet';
 local rl = import 'lib/resource-locker.libjsonnet';
+
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
@@ -56,4 +58,28 @@ local ns_patch =
   },
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
+} + {
+  [group_name + '_rules']: prom.PrometheusRule(group_name) {
+    metadata+: {
+      namespace: params.namespace,
+      labels+: {
+        role: 'alert-rules',
+      },
+    },
+    spec+: {
+      groups+: [ {
+        name: group_name,
+        rules: [
+          local rnamekey = std.splitLimit(rname, ':', 1);
+          params.rules[group_name][rname] {
+            [rnamekey[0]]: rnamekey[1],
+          }
+          for rname in std.objectFields(params.rules[group_name])
+          if params.rules[group_name][rname] != null
+        ],
+      } ],
+    },
+  }
+  for group_name in std.objectFields(params.rules)
+  if params.rules[group_name] != null
 }
