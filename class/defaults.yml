@@ -93,4 +93,4 @@ parameters:
     images:
       oc:
         image: quay.io/appuio/oc
-        tag: v4.6
+        tag: v4.9
