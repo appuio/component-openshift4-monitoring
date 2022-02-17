@@ -91,7 +91,7 @@ alertmanagerMain:
           storage: 2Gi
 ----
 
-A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configurable-monitoring-components_configuring-monitoring[monitoring components].
+A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[monitoring components].
 
 See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html[OpenShift docs] for available parameters.
 
@@ -124,7 +124,7 @@ prometheus: ${openshift4_monitoring:configs:prometheusK8s}
 thanosRuler: {}
 ----
 
-A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configurable-monitoring-components_configuring-the-monitoring-stack[user workload monitoring components].
+A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[user workload monitoring components].
 
 This table shows the monitoring components you can configure and the keys used to specify the components:
 
