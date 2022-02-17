@@ -35,9 +35,7 @@ parameters:
             resources:
               requests:
                 storage: 50Gi
-      prometheusUserWorkload: ${openshift4_monitoring:configs:prometheusK8s}
       prometheusOperator: {}
-      prometheusOperatorUserWorkload: {}
       alertmanagerMain:
         volumeClaimTemplate:
           spec:
@@ -50,6 +48,9 @@ parameters:
       k8sPrometheusAdapter: {}
       openshiftStateMetrics: {}
       thanosQuerier: {}
+    configsUserWorkload:
+      prometheusOperator: {}
+      prometheus: ${openshift4_monitoring:configs:prometheusK8s}
       thanosRuler: {}
     alertManagerConfig:
       route:

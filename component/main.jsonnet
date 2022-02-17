@@ -48,6 +48,20 @@ local ns_patch =
         ),
       },
     },
+  [if params.enableUserWorkload then '10_configmap_user_workload']:
+    kube.ConfigMap('user-workload-monitoring-config') {
+      metadata+: {
+        namespace: 'openshift-user-workload-monitoring',
+      },
+      data: {
+        'config.yaml': std.manifestYamlDoc(
+          std.mapWithKey(
+            function(field, value) value + params.defaultConfig,
+            params.configsUserWorkload
+          )
+        ),
+      },
+    },
   '10_alertmanager_config': kube.Secret('alertmanager-main') {
     metadata+: {
       namespace: ns,

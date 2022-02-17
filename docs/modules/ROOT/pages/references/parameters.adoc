@@ -83,7 +83,6 @@ prometheusK8s:
       resources:
         requests:
           storage: 50Gi
-prometheusUserWorkload: ${openshift4_monitoring:configs:prometheusK8s}
 alertmanagerMain:
   volumeClaimTemplate:
     spec:
@@ -92,7 +91,7 @@ alertmanagerMain:
           storage: 2Gi
 ----
 
-A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configurable-monitoring-components_configuring-monitoring[monitoring components].
+A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[monitoring components].
 
 See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html[OpenShift docs] for available parameters.
 
@@ -102,9 +101,7 @@ This table shows the monitoring components you can configure and the keys used t
 |====
 |Component|Key
 |Prometheus Operator|`prometheusOperator`
-|Prometheus Operator User Workload|`prometheusOperatorUserWorkload`
 |Prometheus|`prometheusK8s`
-|Prometheus User Workload|`prometheusUserWorkload`
 |Alertmanager|`alertmanagerMain`
 |kube-state-metrics|`kubeStateMetrics`
 |openshift-state-metrics|`openshiftStateMetrics`
@@ -112,6 +109,30 @@ This table shows the monitoring components you can configure and the keys used t
 |Telemeter Client|`telemeterClient`
 |Prometheus Adapter|`k8sPrometheusAdapter`
 |Thanos Querier|`thanosQuerier`
+|====
+
+== `configsUserWorkload`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+prometheusOperator: {}
+prometheus: ${openshift4_monitoring:configs:prometheusK8s}
+thanosRuler: {}
+----
+
+A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[user workload monitoring components].
+
+This table shows the monitoring components you can configure and the keys used to specify the components:
+
+[options="header"]
+|====
+|Component|Key
+|Prometheus Operator|`prometheusOperator`
+|Prometheus|`prometheus`
 |Thanos Ruler|`thanosRuler`
 |====
 
