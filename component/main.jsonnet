@@ -8,6 +8,7 @@ local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 
 local rules = import 'rules.jsonnet';
+local capacity = import 'capacity.libsonnet';
 
 local ns =
   if params.namespace != 'openshift-monitoring' then
@@ -72,6 +73,7 @@ local ns_patch =
   },
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
+  [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
 } + {
   [group_name + '_rules']: prom.PrometheusRule(group_name) {
     metadata+: {
