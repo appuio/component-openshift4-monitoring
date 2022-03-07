@@ -5,3 +5,12 @@
 .How-Tos
 * xref:how-tos/opsgenie.adoc[OpsGenie integration]
 * xref:how-tos/migrate/v0.1-v1.x.adoc[Migration from component version v0.1.0 to v1.x]
+
+.Explanation
+* xref:explanations/resource_management.adoc[Resource Management]
+
+.Runbooks
+* xref:runbooks/podcapacity.adoc[Pod Capacity Alert]
+* xref:runbooks/resourcerequests.adoc[Resource Requests Alert]
+* xref:runbooks/memorycapacity.adoc[Memory Capacity Alert]
+* xref:runbooks/cpucapacity.adoc[CPU Capacity Alert]

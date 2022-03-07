@@ -1,0 +1,112 @@
+= Alert Group: syn-PodCapacity
+
+An OpenShift cluster can handle a limited number of pods per node.
+If you try to run more pods than this limit, OpenShift won't be able to schedule these pods.
+
+We provide two rules to notice if a cluster is hitting the limit of runnable pods.
+
+== Alert Rule: SYN_TooManyPods [[SYN_TooManyPods]]
+
+=== icon:glasses[] Overview
+
+This alert means that the cluster only has capacity for few additional pods.
+By default this threshold is the pod limit per node.
+
+This means if you receive this alert the cluster will likely won't be able to keep all workloads running in case of a worker node failure.
+After verifying the alert you should add worker nodes as soon as possible.
+
+=== icon:search[] Investigate
+
+* Verify the alert
+** Check the per worker node pod limit of your cluster
++
+[source,shell]
+----
+kubectl get KubeletConfig -o yaml
+----
+** Check the number of pods on each worker node
++
+[source,shell]
+----
+kubectl describe node -lnode-role.kubernetes.io/app | grep -E "(^Name:|^Non-terminated)"
+----
+** Verify that the reported capacity is correct.
+If not there might be a bug in the alert rule.
+Please disable this alert and open an issue for this component.
+* Look at running pods for any large number of suspicious pods
+* Add one or more worker nodes according to the install https://kb.vshn.ch/oc4/index.html[instructions for your cloud]
+
+=== icon:wrench[] Tune
+
+If this alert isn't actionable, noisy, or was raised too late you might want to tune it.
+
+Through the component parameters you have the option modify the alert threshold, change for how long it needs to be firing until you are alerted, or disable it outright.
+In the example below will adapt the rule to only alert after two hours, but increase the threshold to 1000 pods.
+
+[source,yaml]
+----
+capacityAlerts:
+  enabled: false
+  groups:
+    PodCapacity:
+      rules:
+        TooManyPods:
+          enabled: true
+          for: 2h
+          expr:
+            threshold: '1000' <1>
+----
+<1> The threshold can be an arbitrary promql expression
+
+== Alert Rule: SYN_ExpectTooManyPods [[SYN_ExpectTooManyPods]]
+
+=== icon:glasses[] Overview
+
+This alert means that we expect that the cluster will soon only have capacity for few additional pods.
+By default we expect the cluster to not have enough capacity to handle a node failure in three days.
+After verifying the alert you should plan to add worker nodes in the next days.
+
+=== icon:search[] Investigate
+
+* Look at the source of this alert in Prometheus
+** Does the prediction look realistic?
+** Compare it to the graph without the `predict_linear`
+** If there is any doubt in the prediction, monitor this graph for the next hours or days
+* Check the number of actually running pods on each worker node
++
+[source,shell]
+----
+kubectl describe node -lnode-role.kubernetes.io/app | grep -E "(^Name:|^Non-terminated)"
+----
+If the number is widely different than the prediction, the alert is probably not actionable.
+* Look at running pods for any large number of suspicious pods
+* Add one or more worker nodes according to the install https://kb.vshn.ch/oc4/index.html[instructions for your cloud]
+
+
+=== icon:wrench[] Tune
+
+If this alert isn't actionable, noisy, or was raised too late you might want to tune it.
+
+Through the component parameters you have the option tune the alert rule.
+You can modify the threshold, change for how long it needs to be firing until you are alerted, how far into the future to predict, or disable it outright.
+
+
+In the example below will adapt the rule so that it will alert if we expect to not be able to schedule any more pods in 5 days, but only if it fired for 12h.
+
+[source,yaml]
+----
+capacityAlerts:
+  enabled: false
+  groups:
+    PodCapacity:
+      rules:
+        ExpectTooManyPods:
+          enabled: true
+          for: 12h
+          expr:
+            threshold: '0' <1>
+            predict: '5*24*60*60' <2>
+----
+<1> The threshold can be an arbitrary promql expression
+<2> How far into the future to predict in seconds
+
