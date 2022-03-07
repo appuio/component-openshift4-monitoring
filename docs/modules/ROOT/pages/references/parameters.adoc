@@ -281,6 +281,61 @@ default:: 3
 
 Number of successful jobs to keep.
 
+== `capacityAlerts`
+
+[horizontal]
+type:: dict
+
+This parameter allows users to enable and configure alerts for capacity management.
+The capacity alerts are disabled by default and can be enabled by setting the key `capacityAlerts.enabled` to `true`.
+
+The dictionary will be transformed into a `PrometheusRule` object by the component.
+
+The component provides 10 alerts that are grouped in four groups.
+You can disable or modify each of these alert rules individually.
+The fields in these rules will be added to the final `PrometheusRule`, with the exception of `expr`.
+The `expr` field contains parameters for the default alert rule but can be overwritten using the `expr.raw` (see example below).
+See xref:explanations/resource_management.adoc[Resource Management] for an explanation for every alert rule.
+
+Example:
+
+[source,yaml]
+---
+capacityAlerts:
+  enabled: true <1>
+  groups:
+    PodCapacity:
+      rules:
+        TooManyPods:
+          annotations:
+            message: 'The number of pods is too damn high' <2>
+          for: 3h <3>
+        ExpectTooManyPods:
+          expr: <4>
+            range: '2d'
+            predict: '5*24*60*60'
+
+    ResourceRequests:
+      rules:
+        TooMuchMemoryRequested:
+          enabled: true
+          expr:
+            raw: sum(kube_pod_resource_request{resource="memory"}) > 9000*1024*1024*1024 <5>
+    CpuCapacity:
+      rules:
+        ClusterCpuUsageHigh:
+          enabled: false <6>
+        ExpectClusterCpuUsageHigh:
+          enabled: false <6>
+---
+<1> Enables capacity alerts
+<2> Changes the alert message for the pod capacity alert
+<3> Only alerts for pod capacity if it fires for 3 hours
+<4> Change the pod count prediction to look at the last two days and predict the value in five days
+<5> Completely overrides the default alert rule and alerts if the total memory request is over 9000 GB
+<6> Disables both CPU capacity alert rules
+
+
 == `rules`
 
 [horizontal]
@@ -313,6 +368,7 @@ rules:
       labels:
         source: https://git.vshn.net/swisscompks/syn-tenant-repo/-/blob/master/common.yml
         severity: devnull
+---
 
 == Example
 
