@@ -272,7 +272,7 @@ There are some metrics that might be considered as an indicator for cluster capa
 Similarly to the total memory and CPU requests of workloads one could look at the total memory and CPU limits as an indicator for cluster capacity.
 However in almost all cases the total limits are a lot higher than the actual capacity of the cluster.
 This is normal and this overprovisioning is one of the advantages of Kubernetes.
-It0s hard to say what level of overprovisioning is OK and what's not, so observing the actual resource usage is more effective.
+It's hard to say what level of overprovisioning is OK and what's not, so observing the actual resource usage is more effective.
 
 .**High Node Usage / System Imbalance**
 
