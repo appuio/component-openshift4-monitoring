@@ -294,7 +294,8 @@ The dictionary will be transformed into a `PrometheusRule` object by the compone
 The component provides 10 alerts that are grouped in four groups.
 You can disable or modify each of these alert rules individually.
 The fields in these rules will be added to the final `PrometheusRule`, with the exception of `expr`.
-The `expr` field contains parameters for the default alert rule but can be overwritten using the `expr.raw` (see example below).
+The `expr` field contains fields which can be used to tune the default alert rule.
+Alternatively the default rule can be completely overwritten by setting the `expr.raw` field (see example below).
 See xref:explanations/resource_management.adoc[Resource Management] for an explanation for every alert rule.
 
 Example:

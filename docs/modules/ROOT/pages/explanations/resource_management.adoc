@@ -39,7 +39,7 @@ max(
 
 .**Expect too many pods**
 
-We alert if we predict to be unable to run all currently running pods in three days if the largest worker node crashes.
+We alert if we predict that we'll be unable to run all pods if the largest worker node crashes in three days, assuming linear growth of running pods based on the change in running pods over the last 24 hours.
 ```
 // The pod capacity of all worker nodes
 sum(
@@ -71,7 +71,7 @@ The combined memory and CPU requests of all workloads is another good indicator.
 If the combined requests are higher than the actual resources, some workloads will no be scheduled.
 
 The component provides four resource request related alerts.
-They alert if there isn't enough CPU or memory capacity if the largest worker node disappears or if we predict that the cluster will exceed this threshold in three days.,
+They alert if there isn't enough CPU or memory capacity if the largest worker node disappears or if we predict that the cluster will exceed this threshold in three days.
 
 .**Too much memory requested**
 ```
@@ -256,10 +256,10 @@ max(
 
 [NOTE]
 ====
-By default for predictions we take the one day moving average over one day to predict three days into the future.
+By default, we use the one day moving average over one day for queries which predict three days into the future.
 Without the moving average the prediction is influenced too much by temporary changes.
 
-If for example an environment is updated using a blue-green deployment, without the moving average the alert will see this sudden increase in resource usage, interpolate this for three days and will fire.
+For example, if an environment is updated using a blue-green deployment, without the moving average the alert will see this sudden increase in resource usage, extrapolate the increase over three days and will fire, generating a false-positive alert.
 The moving average gives us a better indication of the long term trend.
 ====
 

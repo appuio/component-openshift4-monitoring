@@ -7,10 +7,10 @@ If a cluster has too many requested resources it might not be able to schedule a
 
 === icon:glasses[] Overview
 
-This alert means that the total sum of memory requests of user workload is close to the capacity of the cluster.
-By default it will fire if the amount of unrequested memory is less than the capacity of the largest worker node.
+This alert indicates that the total sum of memory requests of user workload is close to the capacity of the cluster.
+By default, it will fire if the amount of unrequested memory is less than the capacity of the largest worker node.
 
-This means if you receive this alert the cluster likely won’t be able to keep all workloads running in case of a worker node failure.
+If you receive this alert, it's likely that the cluster won’t be able to reschedule all workloads in case of a worker node failure.
 After verifying the alert you should add more memory capacity as soon as possible.
 
 === icon:search[] Investigate
@@ -23,14 +23,14 @@ After verifying the alert you should add more memory capacity as soon as possibl
 kubectl describe node -lnode-role.kubernetes.io/app | grep "Allocated resources" -A 8
 ----
 +
-If not there might be a bug in the alert rule.
-Please disable this alert and open an issue for this component.
+If the allocated resources reported by Kubernetes don't indicate high memory reservation on the nodes, there might be a bug in the alert rule.
+If that's the case, please disable this alert and open an issue for this component.
 ** Check if there is a sudden increase in resource requests that indicate that this might be temporary.
 * Either add more worker nodes or resize existing worker nodes according to the install https://kb.vshn.ch/oc4/index.html[instructions for your cloud]
 
 === icon:wrench[] Tune
 
-If this alert is non actionable, noisy, or was raised too late you might want to tune it.
+If this alert isn't actionable, noisy, or was raised too late you might want to tune it.
 
 Through the component parameters you have the option modify the alert threshold, change for how long it needs to be firing until you are alerted, or disable it outright.
 In the example below will adapt the rule to only alert after two hours and change the threshold to 128 GB.
@@ -53,11 +53,11 @@ capacityAlerts:
 
 === icon:glasses[] Overview
 
-This alert means that we expect the total sum of memory requests of user workload to soon be close to the capacity of the cluster.
-By default it will fire if the predicted amount of unrequested memory in 3 days is less than the capacity of the largest worker node.
+This alert indicates that we expect the total sum of memory requests of user workload to soon be close to the capacity of the cluster.
+By default, it will fire if the predicted amount of unrequested memory in three days is less than the capacity of the largest worker node.
 
-This means if you receive this alert the cluster may soon not be able to keep all workloads running in case of a worker node failure.
-After verifying the alert you should add more memory capacity in the next days.
+If you receive this alert, the cluster may soon not be able to reschedule all workloads in case of a worker node failure.
+After verifying that the cluster's memory reservations are growing, you should add more memory capacity in the next days.
 
 === icon:search[] Investigate
 
@@ -108,11 +108,11 @@ capacityAlerts:
 
 === icon:glasses[] Overview
 
-This alert means that the total sum of CPU requests of user workload is close to the capacity of the cluster.
-By default it will fire if the amount of unrequested CPU cores is less than the core count of the largest worker node.
+This alert indicates that the total sum of CPU requests of user workloads is close to the capacity of the cluster.
+By default, it will fire if the amount of unrequested CPU cores is less than the core count of the largest worker node.
 
-This means if you receive this alert the cluster likely won’t be able to keep all workloads running in case of a worker node failure.
-After verifying the alert you should add more CPU capacity as soon as possible.
+If you receive this alert, it's likely that the cluster won’t be able to reschedule all workloads in case of a worker node failure.
+After verifying that the cluster's CPU reservation is high, you should add more CPU capacity as soon as possible.
 
 === icon:search[] Investigate
 
@@ -124,14 +124,14 @@ After verifying the alert you should add more CPU capacity as soon as possible.
 kubectl describe node -lnode-role.kubernetes.io/app | grep "Allocated resources" -A 8
 ----
 +
-If not there might be a bug in the alert rule.
-Please disable this alert and open an issue for this component.
+If the allocated resources reported by Kubernetes don't indicate high CPU reservation on the nodes, there might be a bug in the alert rule.
+If that's the case, please disable this alert and open an issue for this component.
 ** Check if there is a sudden increase in resource requests that indicate that this might be temporary.
 * Either add more worker nodes or resize existing worker nodes according to the install https://kb.vshn.ch/oc4/index.html[instructions for your cloud]
 
 === icon:wrench[] Tune
 
-If this alert is non actionable, noisy, or was raised too late you might want to tune it.
+If this alert isn't actionable, noisy, or was raised too late you might want to tune it.
 
 Through the component parameters you have the option modify the alert threshold, change for how long it needs to be firing until you are alerted, or disable it outright.
 In the example below will adapt the rule to only alert after two hours and change the threshold to 4 cores.
@@ -154,11 +154,11 @@ capacityAlerts:
 
 === icon:glasses[] Overview
 
-This alert means that we expect the total sum of CPI requests of user workload to soon be close to the capacity of the cluster.
-By default it will fire if the predicted number of unrequested CPU cores in 3 days is less than the number of cores of the largest worker node.
+This alert indicates that we expect the total sum of CPU requests of user workloads to soon be close to the capacity of the cluster.
+By default, it will fire if the predicted number of unrequested CPU cores in three days is less than the number of cores of the largest worker node.
 
-This means if you receive this alert the cluster may soon not be able to keep all workloads running in case of a worker node failure.
-After verifying the alert you should add more CPU capacity in the next days.
+If you receive this alert, the cluster may soon not be able to reschedule all workloads in case of a worker node failure.
+After verifying that the cluster's CPU reservation is growing, you should add more CPU capacity in the next days.
 
 === icon:search[] Investigate
 
