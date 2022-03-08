@@ -141,7 +141,7 @@ parameters:
               labels: {}
               expr:
                 # How much memory needs to be available to allocate (in bytes)
-                threshold: 'max(kube_node_status_capacity{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
+                threshold: 'max(kube_node_status_allocatable{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
             ExpectTooMuchMemoryRequested:
               enabled: true
               annotations:
@@ -152,7 +152,7 @@ parameters:
               labels: {}
               expr:
                 # How much memory needs to be available to allocate in three days (in bytes)
-                threshold: 'max(kube_node_status_capacity{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
+                threshold: 'max(kube_node_status_allocatable{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
                 # How much of the past to consider for the prediction
                 range: '1d'
                 # How far into the future to predict (in seconds)
@@ -167,7 +167,7 @@ parameters:
               labels: {}
               expr:
                 # How many cpu cores need to be available to allocate
-                threshold: 'max(kube_node_status_capacity{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
+                threshold: 'max(kube_node_status_allocatable{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
             ExpectTooMuchCPURequested:
               enabled: true
               annotations:
@@ -178,7 +178,7 @@ parameters:
               labels: {}
               expr:
                 # How many cpu cores need to be available to allocate in three days
-                threshold: 'max(kube_node_status_capacity{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
+                threshold: 'max(kube_node_status_allocatable{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
                 # How much of the past to consider for the prediction
                 range: '1d'
                 # How far into the future to predict (in seconds)

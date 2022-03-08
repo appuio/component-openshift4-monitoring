@@ -26,13 +26,16 @@ local filterWorkerNodes(metric, workerRole='app', nodeLabel='node') =
   { metric: metric, nodeLabel: nodeLabel, workerRole: workerRole };
 
 local resourceCapacity(resource) = 'sum(%s)' % filterWorkerNodes('kube_node_status_capacity{resource="%s"}' % resource);
+local resourceAllocatable(resource) = 'sum(%s)' % filterWorkerNodes('kube_node_status_allocatable{resource="%s"}' % resource);
 local resourceRequests(resource) = 'sum(%s)' % filterWorkerNodes('kube_pod_resource_request{resource="%s"}' % resource);
 
 local memoryCapacity = resourceCapacity('memory');
+local memoryAllocatable = resourceAllocatable('memory');
 local memoryRequests = resourceRequests('memory');
 local memoryFree = 'sum(%s)' % filterWorkerNodes('node_memory_MemAvailable_bytes', nodeLabel='instance');
 
 local cpuCapacity = resourceCapacity('cpu');
+local cpuAllocatable = resourceAllocatable('cpu');
 local cpuRequests = resourceRequests('cpu');
 local cpuIdle = 'sum(%s)' % filterWorkerNodes('rate(node_cpu_seconds_total{mode="idle"}[15m])', nodeLabel='instance');
 
@@ -43,10 +46,10 @@ local exprMap = {
   TooManyPods: function(arg) '%s - %s < %s' % [ podCapacity, podCount, arg.threshold ],
   ExpectTooManyPods: function(arg) '%s - %s < %s' % [ podCapacity, predict(podCount, range=arg.range, predict=arg.predict), arg.threshold ],
 
-  TooMuchMemoryRequested: function(arg) '%s - %s < %s' % [ memoryCapacity, memoryRequests, arg.threshold ],
-  ExpectTooMuchMemoryRequested: function(arg) '%s - %s < %s' % [ memoryCapacity, predict(memoryRequests, range=arg.range, predict=arg.predict), arg.threshold ],
-  TooMuchCPURequested: function(arg) '%s - %s < %s' % [ cpuCapacity, cpuRequests, arg.threshold ],
-  ExpectTooMuchCPURequested: function(arg) '%s - %s < %s' % [ cpuCapacity, predict(cpuRequests, range=arg.range, predict=arg.predict), arg.threshold ],
+  TooMuchMemoryRequested: function(arg) '%s - %s < %s' % [ memoryAllocatable, memoryRequests, arg.threshold ],
+  ExpectTooMuchMemoryRequested: function(arg) '%s - %s < %s' % [ memoryAllocatable, predict(memoryRequests, range=arg.range, predict=arg.predict), arg.threshold ],
+  TooMuchCPURequested: function(arg) '%s - %s < %s' % [ cpuAllocatable, cpuRequests, arg.threshold ],
+  ExpectTooMuchCPURequested: function(arg) '%s - %s < %s' % [ cpuAllocatable, predict(cpuRequests, range=arg.range, predict=arg.predict), arg.threshold ],
 
   ClusterLowOnMemory: function(arg) '%s < %s' % [ memoryFree, arg.threshold ],
   ExpectClusterLowOnMemory: function(arg) '%s < %s' % [ predict(memoryFree, range=arg.range, predict=arg.predict), arg.threshold ],

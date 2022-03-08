@@ -75,9 +75,9 @@ They alert if there isn't enough CPU or memory capacity if the largest worker no
 
 .**Too much memory requested**
 ```
-// The memory capacity of all worker nodes
+// The allocatable memory on all worker nodes
 sum(
-  kube_node_status_capacity{resource="memory"}
+  kube_node_status_allocatable{resource="memory"}
     * on(node) group_left kube_node_role{role="app"}
 )
 -
@@ -87,17 +87,17 @@ sum(
     * on(node) group_left kube_node_role{role="app"}
 )
 <
-// The memory capacity of the largest worker node
+// The allocatable memory on the largest worker node
 max(
-  kube_node_status_capacity{resource="memory"}
+  kube_node_status_allocatable{resource="memory"}
     * on(node) group_left kube_node_role{role="app"}
 )
 ```
 .**Expect too much memory to be requested**
 ```
-// The memory capacity of all worker nodes
+// The allocatable memory on all worker nodes
 sum(
-  kube_node_status_capacity{resource="memory"}
+  kube_node_status_allocatable{resource="memory"}
     * on(node) group_left kube_node_role{role="app"}
 )
 -
@@ -111,18 +111,18 @@ predict_linear(
   )[1d:1h],
 3*24*60*60)
 <
-// The memory capacity of the largest worker node
+// The allocatable memory on the largest worker node
 max(
-  kube_node_status_capacity{resource="memory"}
+  kube_node_status_allocatable{resource="memory"}
     * on(node) group_left kube_node_role{role="app"}
 )
 ```
 
 .**Too much CPU requested**
 ```
-// The CPU capacity of all worker nodes
+// The allocatable CPU cores on all worker nodes
 sum(
-  kube_node_status_capacity{resource="cpu"}
+  kube_node_status_allocatable{resource="cpu"}
     * on(node) group_left kube_node_role{role="app"}
 )
 -
@@ -132,17 +132,17 @@ sum(
     * on(node) group_left kube_node_role{role="app"}
 )
 <
-// The CPU capacity of the largest worker node
+// The allocatable CPU cores on largest worker node
 max(
-  kube_node_status_capacity{resource="cpu"}
+  kube_node_status_allocatable{resource="cpu"}
     * on(node) group_left kube_node_role{role="app"}
 )
 ```
 .**Expect too much CPU to be requested**
 ```
-// The CPU capacity of all worker nodes
+// The allocatable CPU cores on all worker nodes
 sum(
-  kube_node_status_capacity{resource="cpu"}
+  kube_node_status_allocatable{resource="cpu"}
     * on(node) group_left kube_node_role{role="app"}
 )
 -
@@ -156,9 +156,9 @@ predict_linear(
   )[1d:1h],
 3*24*60*60)
 <
-// The CPU capacity of the largest worker node
+// The allocatable CPU cores on largest worker node
 max(
-  kube_node_status_capacity{resource="cpu"}
+  kube_node_status_allocatable{resource="cpu"}
     * on(node) group_left kube_node_role{role="app"}
 )
 ```
