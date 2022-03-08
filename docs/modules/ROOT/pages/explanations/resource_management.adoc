@@ -1,0 +1,289 @@
+= Resource Management
+
+This component can introduce multiple alerts that should notify you if the cluster is about to run out of resources and needs to be resized.
+The provided alerts only focus on worker nodes and aim to always be actionable.
+
+== Indicators
+
+=== Pod Count
+
+A high pod count is a good indicator that we need to add more worker nodes.
+It's only recommended to run up to 110 pods per node.
+Additional pods are unable to be scheduled.
+
+The component provides two pod count related alerts:
+
+.**Too many pods**
+
+We alert if we're unable to run all currently running pods if the largest worker node crashes.
+
+```
+// The pod capacity of all worker nodes
+sum(
+  kube_node_status_capacity{resource="pods"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+-
+// The number of running pods on all worker nodes
+sum(
+  kubelet_running_pods
+    * on(node) group_left kube_node_role{role="app"},
+)
+<
+// The pod capacity of the largest worker node
+max(
+  kube_node_status_capacity{resource="pods"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+
+.**Expect too many pods**
+
+We alert if we predict that we'll be unable to run all pods if the largest worker node crashes in three days, assuming linear growth of running pods based on the change in running pods over the last 24 hours.
+```
+// The pod capacity of all worker nodes
+sum(
+  kube_node_status_capacity{resource="pods"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+-
+// The predicted number of running pods on all worker nodes in 3 days
+predict_linear(
+  // Take the moving average over a day to prevent flapping alerts
+  avg_over_time(
+    sum(
+      kubelet_running_pods
+        * on(node) group_left kube_node_role{role="app"},
+    )[1d:1h]
+  )[1d:1h],
+3*24*60*60)
+<
+// The pod capacity of the largest worker node
+max(
+  kube_node_status_capacity{resource="pods"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+
+=== Memory/CPU requests
+
+The combined memory and CPU requests of all workloads is another good indicator.
+If the combined requests are higher than the actual resources, some workloads will no be scheduled.
+
+The component provides four resource request related alerts.
+They alert if there isn't enough CPU or memory capacity if the largest worker node disappears or if we predict that the cluster will exceed this threshold in three days.
+
+.**Too much memory requested**
+```
+// The allocatable memory on all worker nodes
+sum(
+  kube_node_status_allocatable{resource="memory"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+-
+// The memory requests on all worker nodes
+sum(
+  kube_pod_resource_request{resource="memory"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+<
+// The allocatable memory on the largest worker node
+max(
+  kube_node_status_allocatable{resource="memory"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+.**Expect too much memory to be requested**
+```
+// The allocatable memory on all worker nodes
+sum(
+  kube_node_status_allocatable{resource="memory"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+-
+// The predicted memory requests on all worker nodes in three days
+predict_linear(
+  avg_over_time(
+    sum(
+      kube_pod_resource_request{resource="memory"}
+        * on(node) group_left kube_node_role{role="app"}
+    )[1d:1h]
+  )[1d:1h],
+3*24*60*60)
+<
+// The allocatable memory on the largest worker node
+max(
+  kube_node_status_allocatable{resource="memory"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+
+.**Too much CPU requested**
+```
+// The allocatable CPU cores on all worker nodes
+sum(
+  kube_node_status_allocatable{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+-
+// The CPU requests on all worker nodes
+sum(
+  kube_pod_resource_request{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+<
+// The allocatable CPU cores on largest worker node
+max(
+  kube_node_status_allocatable{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+.**Expect too much CPU to be requested**
+```
+// The allocatable CPU cores on all worker nodes
+sum(
+  kube_node_status_allocatable{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+-
+// The predicted CPU requests on all worker nodes in three days
+predict_linear(
+  avg_over_time(
+    sum(
+      kube_pod_resource_request{resource="cpu"}
+        * on(node) group_left kube_node_role{role="app"}
+    )[1d:1h]
+  )[1d:1h],
+3*24*60*60)
+<
+// The allocatable CPU cores on largest worker node
+max(
+  kube_node_status_allocatable{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+
+=== Memory Usage
+
+Low available memory is a good indicator that the cluster needs to be resized.
+If there is no available memory, the cluster won't be able to schedule new workload and will eventually start to OOM kill workloads
+
+The component provides two memory usage related alerts:
+
+.**Workers low on memory memory**
+
+We alert if there is less memory available than the largest worker node.
+
+```
+sum(
+  // The unused memory for every node with role "app"
+  node_memory_MemAvailable_bytes
+    * on(instance) group_left label_replace(kube_node_role{role="app"}, "instance", "$1", "node", "(.+)")
+)
+<
+// The capacity of the largest worker node
+max(kube_node_status_capacity{resource="memory"}
+  * on(node) group_left kube_node_role{role="app"})
+```
+
+.**Workers expected run out of memory**
+
+We alert if we expect that in three days less memory will be available than the largest worker node.
+
+```
+
+// Predict in 3 days
+predict_linear(
+  // Take the moving average over a day to prevent flapping alerts
+  avg_over_time(
+    sum(
+      // The unused memory for every node with role "app"
+      node_memory_MemAvailable_bytes *
+          on(instance) group_left label_replace(kube_node_role{role="app"}, "instance", "$1", "node", "(.+)")
+    )[1d:1h]
+  )[1d:1h],
+3*24*60*60)
+<
+// The capacity of the largest worker node
+max(
+  kube_node_status_capacity{resource="memory"}
+    * on(node) group_left kube_node_role{role="app"}
+  )
+```
+
+
+=== CPU Usage
+
+High CPU usage can also be an indicator that the cluster is too small.
+
+The component provides two CPU usage related alerts:
+
+.**Workers CPU usage high**
+We alert if there is fewer idle CPU cores than the largest worker node has.
+```
+sum(
+  // The average number of idle CPUs over 15 minutes for all worker nodes
+  rate(node_cpu_seconds_total{mode="idle"}[15m])
+    * on(instance) group_left label_replace(kube_node_role{role="app"}, "instance", "$1", "node", "(.+)"))
+<
+// The capacity of the largest worker node
+max(
+  kube_node_status_capacity{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+
+.**Workers CPU usage expected to be high**
+We alert if we predict to have fewer idle CPU cores than the largest worker node has in three days.
+```
+// The predicted number idle CPUs for all worker nodes in 3 days
+predict_linear(
+  // Take the moving average over a day to prevent flapping alerts
+  avg_over_time(
+    sum(
+      rate(node_cpu_seconds_total{mode="idle"}[15m])
+        * on(instance) group_left label_replace(kube_node_role{role="app"}, "instance", "$1", "node", "(.+)")
+    )[1d:1h]
+  )[1d:1h],
+3*24*60*60)
+<
+// The capacity of the largest worker node
+max(
+  kube_node_status_capacity{resource="cpu"}
+    * on(node) group_left kube_node_role{role="app"}
+)
+```
+
+[NOTE]
+====
+By default, we use the one day moving average over one day for queries which predict three days into the future.
+Without the moving average the prediction is influenced too much by temporary changes.
+
+For example, if an environment is updated using a blue-green deployment, without the moving average the alert will see this sudden increase in resource usage, extrapolate the increase over three days and will fire, generating a false-positive alert.
+The moving average gives us a better indication of the long term trend.
+====
+
+== Non-Indicators
+
+There are some metrics that might be considered as an indicator for cluster capacity, but have intentionally not been added as alert rules, as they're either too noisy or not actionable.
+
+.**Memory/CPU limits**
+
+Similarly to the total memory and CPU requests of workloads one could look at the total memory and CPU limits as an indicator for cluster capacity.
+However in almost all cases the total limits are a lot higher than the actual capacity of the cluster.
+This is normal and this overprovisioning is one of the advantages of Kubernetes.
+It's hard to say what level of overprovisioning is OK and what's not, so observing the actual resource usage is more effective.
+
+.**High Node Usage / System Imbalance**
+
+We also intentionally didn't add alerts on a node level.
+It might sound like a good idea to make an alert if for example the memory of a node is maxed out.
+However such an alert isn't actionable.
+Such a _system imbalance_ can be solved by restarting pods, however Kubernetes will do this on its own eventually.
+
+.**Non Worker Node Alerts**
+
+The capacity alerts are only for the worker nodes running customer workloads.
+Monitoring system nodes is out of scope and should be handled by other alerts.
+
+The rational for this is that resource usage of system components should rarely change on its own and we very rarely should need to add additional master or infrastructure nodes.
