@@ -119,7 +119,7 @@ parameters:
                 message: 'Expected to exceed the threshold of running pods in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/podcapacity.html#SYN_ExpectTooManyPods
                 description: 'The cluster is getting close to the limit of running pods. Soon the cluster might not be able to handle a node failure and might not be able to start new pods. Consider adding new nodes.'
-              for: 1h
+              for: 3h
               labels: {}
               expr:
                 # How many more pods need to be schedulable in three days
@@ -148,7 +148,7 @@ parameters:
                 message: 'Expected to exceed the threshold of requested memory in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_ExpectTooMuchMemoryRequested
                 description: 'The cluster is getting close to asigning all memory to running pods. Soon the cluster might not be able to handle a node failure and might not be able to start new pods. Consider adding new nodes.'
-              for: 1h
+              for: 3h
               labels: {}
               expr:
                 # How much memory needs to be available to allocate in three days (in bytes)
@@ -174,7 +174,7 @@ parameters:
                 message: 'Expected to exceed the threshold of requested CPU resources in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_ExpectTooMuchCPURequested
                 description: 'The cluster is getting close to asigning all CPU cores to running pods. Soon the cluster might not be able to handle a node failure and might not be able to start new pods. Consider adding new nodes.'
-              for: 1h
+              for: 3h
               labels: {}
               expr:
                 # How many cpu cores need to be available to allocate in three days
@@ -203,7 +203,7 @@ parameters:
                 message: 'Cluster expected to run low on memory in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/memorycapacity.html#SYN_ExpectClusterMemoryUsageHigh
                 description: 'The cluster is getting close to using all of its memory. Soon the cluster might not be able to handle a node failure or load spikes. Consider adding new nodes.'
-              for: 1h
+              for: 3h
               labels: {}
               expr:
                 # How much memory needs to be over all worker nodes in three days (in bytes)
@@ -221,7 +221,7 @@ parameters:
                 message: 'Only {{ $value }} idle cpu cores accross cluster.'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/cpucapacity.html#SYN_ClusterCpuUsageHigh
                 description: 'The cluster is close to using up all CPU resources. The cluster might not be able to handle a node failure or load spikes. Consider adding new nodes.'
-              for: 2h
+              for: 30m
               labels: {}
               expr:
                 # How many cpu cores need to be available to allocate
@@ -233,7 +233,7 @@ parameters:
                 message: 'Cluster expected to run low on available CPU resources in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/cpucapacity.html#SYN_ExpectClusterCpuUsageHigh
                 description: 'The cluster is getting close to using up all CPU resources. The cluster might soon not be able to handle a node failure or load spikes. Consider adding new nodes.'
-              for: 2h
+              for: 3h
               labels: {}
               expr:
                 # How many cpu cores need to be idle
