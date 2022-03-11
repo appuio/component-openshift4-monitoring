@@ -17,7 +17,7 @@ local alertLabels = {
   severity: 'warning',
 };
 
-local predict(indicator, range='1d', resolution='1h', predict='3*24*60*60') =
+local predict(indicator, range='1d', resolution='5m', predict='3*24*60*60') =
   'predict_linear(avg_over_time(%(indicator)s[%(range)s:%(resolution)s])[%(range)s:%(resolution)s], %(predict)s)' %
   { indicator: indicator, range: range, resolution: resolution, predict: predict };
 
