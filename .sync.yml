@@ -1,5 +1,11 @@
 :global:
   componentName: openshift4-monitoring
+  testMatrix:
+    key: instance
+    entries:
+      - release-4.7
+      - release-4.8
+      - release-4.9
 
 docs/antora.yml:
   name: openshift4-monitoring
@@ -13,9 +19,3 @@ docs/antora.yml:
 .github/workflows/test.yaml:
   goldenTest_makeTarget: golden-diff -e instance=${{ matrix.instance }}
   makeTarget: test -e instance=${{ matrix.instance }}
-  matrix:
-    key: instance
-    entries:
-      - release-4.7
-      - release-4.8
-      - release-4.9
