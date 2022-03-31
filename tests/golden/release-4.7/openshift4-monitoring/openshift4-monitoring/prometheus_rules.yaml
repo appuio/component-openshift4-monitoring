@@ -1,0 +1,2263 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+  name: syn-k8s-rules
+  namespace: openshift-monitoring
+spec:
+  groups:
+    - name: syn-CloudCredentialOperator
+      rules:
+        - alert: SYN_CloudCredentialOperatorDeprovisioningFailed
+          annotations:
+            message: CredentialsRequest(s) unable to be cleaned up
+            syn_component: openshift4-monitoring
+          expr: cco_credentials_requests_conditions{condition="CredentialsDeprovisionFailure"}
+            > 0
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_CloudCredentialOperatorInsufficientCloudCreds
+          annotations:
+            message: Cluster's cloud credentials insufficient for minting or passthrough
+            syn_component: openshift4-monitoring
+          expr: cco_credentials_requests_conditions{condition="InsufficientCloudCreds"}
+            > 0
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_CloudCredentialOperatorProvisioningFailed
+          annotations:
+            message: CredentialsRequest(s) unable to be fulfilled
+            syn_component: openshift4-monitoring
+          expr: cco_credentials_requests_conditions{condition="CredentialsProvisionFailure"}
+            > 0
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_CloudCredentialOperatorTargetNamespaceMissing
+          annotations:
+            message: CredentialsRequest(s) pointing to non-existent namespace
+            syn_component: openshift4-monitoring
+          expr: cco_credentials_requests_conditions{condition="MissingTargetNamespace"}
+            > 0
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-ImageRegistryOperator
+      rules:
+        - alert: SYN_ImageRegistryStorageReconfigured
+          annotations:
+            message: 'Image Registry Storage configuration has changed in the last
+              30
+
+              minutes. This change may have caused data loss.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: increase(image_registry_operator_storage_reconfigured_total[30m])
+            > 0
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-SamplesOperator
+      rules:
+        - alert: SYN_SamplesDegraded
+          annotations:
+            message: 'Samples could not be deployed and the operator is degraded.
+              Review the "openshift-samples" ClusterOperator object for further details.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: openshift_samples_degraded_info == 1
+          for: 2h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SamplesImagestreamImportFailing
+          annotations:
+            message: "Samples operator is detecting problems with imagestream image\
+              \ imports.  You can look at the \"openshift-samples\"\nClusterOperator\
+              \ object for details. Most likely there are issues with the external\
+              \ image registry hosting\nthe images that needs to be investigated.\
+              \  Or you can consider marking samples opertaor Removed if you do not\n\
+              care about having sample imagestreams available.  The list of ImageStreams\
+              \ for which samples operator is\nretrying imports:\n{{ range query \"\
+              openshift_samples_retry_imagestream_import_total > 0\" }}\n   {{ .Labels.imagestreamname\
+              \ }}\n{{ end }}\n"
+            syn_component: openshift4-monitoring
+          expr: sum(openshift_samples_retry_imagestream_import_total) - sum(openshift_samples_retry_imagestream_import_total
+            offset 30m) > sum(openshift_samples_failed_imagestream_import_info)
+          for: 2h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SamplesInvalidConfig
+          annotations:
+            message: 'Samples operator has been given an invalid configuration.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: openshift_samples_invalidconfig_info == 1
+          for: 2h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SamplesMissingSecret
+          annotations:
+            message: 'Samples operator cannot find the samples pull secret in the
+              openshift namespace.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: openshift_samples_invalidsecret_info{reason="missing_secret"} == 1
+          for: 2h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SamplesMissingTBRCredential
+          annotations:
+            message: 'The samples operator cannot find credentials for ''registry.redhat.io''.
+              Many of the sample ImageStreams will fail to import unless the ''samplesRegistry''
+              in the operator configuration is changed.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: openshift_samples_invalidsecret_info{reason="missing_tbr_credential"}
+            == 1
+          for: 2h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SamplesRetriesMissingOnImagestreamImportFailing
+          annotations:
+            message: "Samples operator is detecting problems with imagestream image\
+              \ imports, and the periodic retries of those\nimports are not occurring.\
+              \  Contact support.  You can look at the \"openshift-samples\" ClusterOperator\
+              \ object\nfor details. Most likely there are issues with the external\
+              \ image registry hosting the images that need to\nbe investigated. \
+              \ The list of ImageStreams that have failing imports are:\n{{ range\
+              \ query \"openshift_samples_failed_imagestream_import_info > 0\" }}\n\
+              \  {{ .Labels.name }}\n{{ end }}\nHowever, the list of ImageStreams\
+              \ for which samples operator is retrying imports is:\nretrying imports:\n\
+              {{ range query \"openshift_samples_retry_imagestream_import_total >\
+              \ 0\" }}\n   {{ .Labels.imagestreamname }}\n{{ end }}\n"
+            syn_component: openshift4-monitoring
+          expr: sum(openshift_samples_failed_imagestream_import_info) > sum(openshift_samples_retry_imagestream_import_total)
+            - sum(openshift_samples_retry_imagestream_import_total offset 30m)
+          for: 2h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SamplesTBRInaccessibleOnBoot
+          annotations:
+            message: 'Samples operator could not access ''registry.redhat.io'' during
+              its initial installation and it bootstrapped as removed.
+
+              If this is expected, and stems from installing in a restricted network
+              environment, please note that if you
+
+              plan on mirroring images associated with sample imagestreams into a
+              registry available in your restricted
+
+              network environment, and subsequently moving samples operator back to
+              ''Managed'' state, a list of the images
+
+              associated with each image stream tag from the samples catalog is
+
+              provided in the ''imagestreamtag-to-image'' config map in the ''openshift-cluster-samples-operator''
+              namespace to
+
+              assist the mirroring process.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: openshift_samples_tbr_inaccessible_info == 1
+          for: 2d
+          labels:
+            severity: info
+            syn: 'true'
+    - name: syn-alertmanager.rules
+      rules:
+        - alert: SYN_AlertmanagerConfigInconsistent
+          annotations:
+            message: 'The configuration of the instances of the Alertmanager cluster
+              `{{ $labels.namespace }}/{{ $labels.service }}` are out of sync.
+
+              {{ range printf "alertmanager_config_hash{namespace=\"%s\",service=\"%s\"}"
+              $labels.namespace $labels.service | query }}
+
+              Configuration hash for pod {{ .Labels.pod }} is "{{ printf "%.f" .Value
+              }}"
+
+              {{ end }}
+
+              '
+            syn_component: openshift4-monitoring
+          expr: 'count by(namespace,service) (count_values by(namespace,service) ("config_hash",
+            alertmanager_config_hash{job="alertmanager-main",namespace="openshift-monitoring"}))
+            != 1
+
+            '
+          for: 5m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_AlertmanagerFailedReload
+          annotations:
+            message: Reloading Alertmanager's configuration has failed for {{ $labels.namespace
+              }}/{{ $labels.pod}}.
+            syn_component: openshift4-monitoring
+          expr: 'alertmanager_config_last_reload_successful{job="alertmanager-main",namespace="openshift-monitoring"}
+            == 0
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_AlertmanagerMembersInconsistent
+          annotations:
+            message: Alertmanager has not found all other members of the cluster.
+            syn_component: openshift4-monitoring
+          expr: "alertmanager_cluster_members{job=\"alertmanager-main\",namespace=\"\
+            openshift-monitoring\"}\n  != on (service) GROUP_LEFT()\ncount by (service)\
+            \ (alertmanager_cluster_members{job=\"alertmanager-main\",namespace=\"\
+            openshift-monitoring\"})\n"
+          for: 5m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-apiserver-requests-in-flight
+      rules: []
+    - name: syn-cluster-machine-approver.rules
+      rules:
+        - alert: SYN_ClusterMachineApproverDown
+          annotations:
+            message: ClusterMachineApprover has disappeared from Prometheus target
+              discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="machine-approver"} == 1)
+
+            '
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_MachineApproverMaxPendingCSRsReached
+          annotations:
+            message: max pending CSRs threshold reached.
+            syn_component: openshift4-monitoring
+          expr: 'mapi_current_pending_csr > mapi_max_pending_csr
+
+            '
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-cluster-network-operator-sdn.rules
+      rules:
+        - alert: SYN_ClusterProxyApplySlow
+          annotations:
+            message: The cluster is taking too long, on average, to apply kubernetes
+              service rules to iptables.
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.95, sum(rate(kubeproxy_sync_proxy_rules_duration_seconds_bucket[5m]))
+            by (le)) > 10
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeProxyApplySlow
+          annotations:
+            message: SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}} $labels.node
+              {{"}}"}} is taking too long, on average, to apply kubernetes service
+              rules to iptables.
+            syn_component: openshift4-monitoring
+          expr: "histogram_quantile(.95, kubeproxy_sync_proxy_rules_duration_seconds_bucket)\
+            \ \n* on(namespace, pod) group_right topk by (namespace, pod) (1, kube_pod_info{namespace=\"\
+            openshift-sdn\",  pod=~\"sdn-[^-]*\"}) > 15\n"
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeProxyApplyStale
+          annotations:
+            message: SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}} $labels.node
+              {{"}}"}} has stale kubernetes service rules in iptables.
+            syn_component: openshift4-monitoring
+          expr: '(kubeproxy_sync_proxy_rules_last_queued_timestamp_seconds - kubeproxy_sync_proxy_rules_last_timestamp_seconds)
+
+            * on(namespace, pod) group_right() topk by (namespace, pod) (1, kube_pod_info{namespace="openshift-sdn",pod=~"sdn-[^-]*"})
+
+            > 30
+
+            '
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeWithoutSDNPod
+          annotations:
+            message: 'All nodes should be running an sdn pod, {{"{{"}} $labels.node
+              {{"}}"}} is not.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: '(kube_node_info unless on(node) topk by (node) (1, kube_pod_info{namespace="openshift-sdn",  pod=~"sdn.*"}))
+            > 0
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_SDNPodNotReady
+          annotations:
+            message: SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}} $labels.node
+              {{"}}"}} is not ready.
+            syn_component: openshift4-monitoring
+          expr: 'kube_pod_status_ready{namespace=''openshift-sdn'', condition=''true''}
+            == 0
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-cluster-operators
+      rules:
+        - alert: SYN_ClusterNotUpgradeable
+          annotations:
+            message: One or more cluster operators have been blocking minor version
+              cluster upgrades for at least an hour for reason {{ with $cluster_operator_conditions
+              := "cluster_operator_conditions" | query}}{{range $value := .}}{{if
+              and (eq (label "name" $value) "version") (eq (label "condition" $value)
+              "Upgradeable") (eq (label "endpoint" $value) "metrics") (eq (value $value)
+              0.0) (ne (len (label "reason" $value)) 0) }}{{label "reason" $value}}.{{end}}{{end}}{{end}}
+              {{ with $console_url := "console_url" | query }}{{ if ne (len (label
+              "url" (first $console_url ) ) ) 0}} For more information refer to {{
+              label "url" (first $console_url ) }}/settings/cluster/.{{ end }}{{ end
+              }}
+            syn_component: openshift4-monitoring
+          expr: 'max by (name, condition, endpoint) (cluster_operator_conditions{name="version",
+            condition="Upgradeable", endpoint="metrics"} == 0)
+
+            '
+          for: 60m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ClusterOperatorDegraded
+          annotations:
+            message: Cluster operator {{ $labels.name }} has been degraded for 30
+              minutes. Operator is degraded because {{ $labels.reason }} and cluster
+              upgrades will be unstable.
+            syn_component: openshift4-monitoring
+          expr: "(\n  cluster_operator_conditions{job=\"cluster-version-operator\"\
+            , condition=\"Degraded\"}\n  or on (name)\n  group by (name) (cluster_operator_up{job=\"\
+            cluster-version-operator\"})\n) == 1\n"
+          for: 30m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ClusterOperatorDown
+          annotations:
+            message: Cluster operator {{ $labels.name }} has not been available for
+              10 minutes. Operator may be down or disabled, cluster will not be kept
+              up to date and upgrades will not be possible.
+            syn_component: openshift4-monitoring
+          expr: 'cluster_operator_up{job="cluster-version-operator"} == 0
+
+            '
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_ClusterOperatorFlapping
+          annotations:
+            message: Cluster operator {{ $labels.name }} up status is changing often.
+              This might cause upgrades to be unstable.
+            syn_component: openshift4-monitoring
+          expr: 'changes(cluster_operator_up{job="cluster-version-operator"}[2m])
+            > 2
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-cluster-version
+      rules:
+        - alert: SYN_CannotRetrieveUpdates
+          annotations:
+            message: Cluster version operator has not retrieved updates in {{ $value
+              | humanizeDuration }}. Failure reason {{ with $cluster_operator_conditions
+              := "cluster_operator_conditions" | query}}{{range $value := .}}{{if
+              and (eq (label "name" $value) "version") (eq (label "condition" $value)
+              "RetrievedUpdates") (eq (label "endpoint" $value) "metrics") (eq (value
+              $value) 0.0)}}{{label "reason" $value}} {{end}}{{end}}{{end}}. {{ with
+              $console_url := "console_url" | query }}{{ if ne (len (label "url" (first
+              $console_url ) ) ) 0}} For more information refer to {{ label "url"
+              (first $console_url ) }}/settings/cluster/.{{ end }}{{ end }}
+            syn_component: openshift4-monitoring
+          expr: '(time()-cluster_version_operator_update_retrieval_timestamp_seconds)
+            >= 3600 and ignoring(condition, name, reason) cluster_operator_conditions{name="version",
+            condition="RetrievedUpdates", endpoint="metrics", reason!="NoChannel"}
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ClusterVersionOperatorDown
+          annotations:
+            message: Cluster version operator has disappeared from Prometheus target
+              discovery. Operator may be down or disabled, cluster will not be kept
+              up to date and upgrades will not be possible.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="cluster-version-operator"} == 1)
+
+            '
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubeControllerManagerDown
+          annotations:
+            message: KubeControllerManager has disappeared from Prometheus target
+              discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="kube-controller-manager"} == 1)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubeSchedulerDown
+          annotations:
+            message: KubeScheduler has disappeared from Prometheus target discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="scheduler"} == 1)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_PodDisruptionBudgetAtLimit
+          annotations:
+            message: The pod disruption budget is preventing further disruption to
+              pods because it is at the minimum allowed level.
+            syn_component: openshift4-monitoring
+          expr: 'max by(namespace, poddisruptionbudget) (kube_poddisruptionbudget_status_expected_pods
+            == kube_poddisruptionbudget_status_desired_healthy)
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PodDisruptionBudgetLimit
+          annotations:
+            message: The pod disruption budget is below the minimum number allowed
+              pods.
+            syn_component: openshift4-monitoring
+          expr: 'max by (namespace, poddisruptionbudget) (kube_poddisruptionbudget_status_expected_pods
+            < kube_poddisruptionbudget_status_desired_healthy)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_TechPreviewNoUpgrade
+          annotations:
+            message: Cluster has enabled tech preview features that will prevent upgrades.
+            syn_component: openshift4-monitoring
+          expr: 'cluster_feature_set{name!="", namespace="openshift-kube-apiserver-operator"}
+            == 0
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_UpdateAvailable
+          annotations:
+            message: Your upstream update recommendation service recommends you update
+              your cluster.  For more information refer to 'oc adm upgrade'{{ with
+              $console_url := "console_url" | query }}{{ if ne (len (label "url" (first
+              $console_url ) ) ) 0}} or {{ label "url" (first $console_url ) }}/settings/cluster/{{
+              end }}{{ end }}.
+            syn_component: openshift4-monitoring
+          expr: 'cluster_version_available_updates > 0
+
+            '
+          labels:
+            severity: info
+            syn: 'true'
+    - name: syn-etcd
+      rules:
+        - alert: SYN_etcdGRPCRequestsSlow
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": gRPC requests to {{ $labels.grpc_method
+              }} are taking {{ $value }}s on etcd instance {{ $labels.instance }}.'
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job=~".*etcd.*",
+            grpc_type="unary"}[5m])) by (job, instance, grpc_service, grpc_method,
+            le))
+
+            > 0.15
+
+            '
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_etcdHTTPRequestsSlow
+          annotations:
+            message: etcd instance {{ $labels.instance }} HTTP requests to {{ $labels.method
+              }} are slow.
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.99, rate(etcd_http_successful_duration_seconds_bucket[5m]))
+
+            > 0.15
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdHighCommitDurations
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": 99th percentile commit durations
+              {{ $value }}s on etcd instance {{ $labels.instance }}.'
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{job=~".*etcd.*"}[5m]))
+
+            > 0.25
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdHighFsyncDurations
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": 99th percentile fync durations
+              are {{ $value }}s on etcd instance {{ $labels.instance }}.'
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m]))
+
+            > 0.5
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdHighNumberOfFailedHTTPRequests
+          annotations:
+            message: '{{ $value }}% of requests for {{ $labels.method }} failed on
+              etcd instance {{ $labels.instance }}'
+            syn_component: openshift4-monitoring
+          expr: 'sum(rate(etcd_http_failed_total{job=~".*etcd.*", code!="404"}[5m]))
+            BY (method) / sum(rate(etcd_http_received_total{job=~".*etcd.*"}[5m]))
+
+            BY (method) > 0.01
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdHighNumberOfFailedHTTPRequests
+          annotations:
+            message: '{{ $value }}% of requests for {{ $labels.method }} failed on
+              etcd instance {{ $labels.instance }}.'
+            syn_component: openshift4-monitoring
+          expr: 'sum(rate(etcd_http_failed_total{job=~".*etcd.*", code!="404"}[5m]))
+            BY (method) / sum(rate(etcd_http_received_total{job=~".*etcd.*"}[5m]))
+
+            BY (method) > 0.05
+
+            '
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_etcdHighNumberOfFailedProposals
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": {{ $value }} proposal failures
+              within the last 30 minutes on etcd instance {{ $labels.instance }}.'
+            syn_component: openshift4-monitoring
+          expr: 'rate(etcd_server_proposals_failed_total{job=~".*etcd.*"}[15m]) >
+            5
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdHighNumberOfLeaderChanges
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": instance {{ $labels.instance
+              }} has seen {{ $value }} leader changes within the last 30 minutes.'
+            syn_component: openshift4-monitoring
+          expr: 'rate(etcd_server_leader_changes_seen_total{job=~".*etcd.*"}[15m])
+            > 3
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdInsufficientMembers
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": insufficient members ({{ $value
+              }}).'
+            syn_component: openshift4-monitoring
+          expr: 'sum(up{job=~".*etcd.*"} == bool 1) by (job) < ((count(up{job=~".*etcd.*"})
+            by (job) + 1) / 2)
+
+            '
+          for: 3m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_etcdMemberCommunicationSlow
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": member communication with
+              {{ $labels.To }} is taking {{ $value }}s on etcd instance {{ $labels.instance
+              }}.'
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{job=~".*etcd.*"}[5m]))
+
+            > 0.15
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_etcdMembersDown
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": members are down ({{ $value
+              }}).'
+            syn_component: openshift4-monitoring
+          expr: "max by (job) (\n  sum by (job) (up{job=~\".*etcd.*\"} == bool 0)\n\
+            or\n  count by (job,endpoint) (\n    sum by (job,endpoint,To) (rate(etcd_network_peer_sent_failures_total{job=~\"\
+            .*etcd.*\"}[3m])) > 0.01\n  )\n)\n> 0\n"
+          for: 3m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_etcdNoLeader
+          annotations:
+            message: 'etcd cluster "{{ $labels.job }}": member {{ $labels.instance
+              }} has no leader.'
+            syn_component: openshift4-monitoring
+          expr: 'etcd_server_has_leader{job=~".*etcd.*"} == 0
+
+            '
+          for: 1m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-general.rules
+      rules:
+        - alert: SYN_TargetDown
+          annotations:
+            message: '{{ printf "%.4g" $value }}% of the {{ $labels.job }}/{{ $labels.service
+              }} targets in {{ $labels.namespace }} namespace are down.'
+            syn_component: openshift4-monitoring
+          expr: 100 * (count(up == 0) BY (job, namespace, service) / count(up) BY
+            (job, namespace, service)) > 10
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: Watchdog
+          annotations:
+            message: 'This is an alert meant to ensure that the entire alerting pipeline
+              is functional.
+
+              This alert is always firing, therefore it should always be firing in
+              Alertmanager
+
+              and always fire against a receiver. There are integrations with various
+              notification
+
+              mechanisms that send a notification when this alert is not firing. For
+              example the
+
+              "DeadMansSnitch" integration in PagerDuty.
+
+              '
+            syn_component: openshift4-monitoring
+          expr: vector(1)
+          labels:
+            severity: none
+            syn: 'true'
+    - name: syn-k8s.rules
+      rules: []
+    - name: syn-kube-apiserver-availability.rules
+      rules: []
+    - name: syn-kube-apiserver-slos
+      rules:
+        - alert: SYN_KubeAPIErrorBudgetBurn
+          annotations:
+            message: The API server is burning too much error budget
+            syn_component: openshift4-monitoring
+          expr: 'sum(apiserver_request:burnrate1h) > (14.40 * 0.01000)
+
+            and
+
+            sum(apiserver_request:burnrate5m) > (14.40 * 0.01000)
+
+            '
+          for: 2m
+          labels:
+            long: 1h
+            severity: critical
+            short: 5m
+            syn: 'true'
+        - alert: SYN_KubeAPIErrorBudgetBurn
+          annotations:
+            message: The API server is burning too much error budget
+            syn_component: openshift4-monitoring
+          expr: 'sum(apiserver_request:burnrate6h) > (6.00 * 0.01000)
+
+            and
+
+            sum(apiserver_request:burnrate30m) > (6.00 * 0.01000)
+
+            '
+          for: 15m
+          labels:
+            long: 6h
+            severity: critical
+            short: 30m
+            syn: 'true'
+        - alert: SYN_KubeAPIErrorBudgetBurn
+          annotations:
+            message: The API server is burning too much error budget
+            syn_component: openshift4-monitoring
+          expr: 'sum(apiserver_request:burnrate1d) > (3.00 * 0.01000)
+
+            and
+
+            sum(apiserver_request:burnrate2h) > (3.00 * 0.01000)
+
+            '
+          for: 1h
+          labels:
+            long: 1d
+            severity: warning
+            short: 2h
+            syn: 'true'
+        - alert: SYN_KubeAPIErrorBudgetBurn
+          annotations:
+            message: The API server is burning too much error budget
+            syn_component: openshift4-monitoring
+          expr: 'sum(apiserver_request:burnrate3d) > (1.00 * 0.01000)
+
+            and
+
+            sum(apiserver_request:burnrate6h) > (1.00 * 0.01000)
+
+            '
+          for: 3h
+          labels:
+            long: 3d
+            severity: warning
+            short: 6h
+            syn: 'true'
+    - name: syn-kube-apiserver.rules
+      rules: []
+    - name: syn-kube-prometheus-general.rules
+      rules: []
+    - name: syn-kube-prometheus-node-recording.rules
+      rules: []
+    - name: syn-kube-scheduler.rules
+      rules: []
+    - name: syn-kube-state-metrics
+      rules:
+        - alert: SYN_KubeStateMetricsListErrors
+          annotations:
+            message: kube-state-metrics is experiencing errors at an elevated rate
+              in list operations. This is likely causing it to not be able to expose
+              metrics about Kubernetes objects correctly or at all.
+            syn_component: openshift4-monitoring
+          expr: "(sum(rate(kube_state_metrics_list_total{job=\"kube-state-metrics\"\
+            ,result=\"error\"}[5m]))\n  /\nsum(rate(kube_state_metrics_list_total{job=\"\
+            kube-state-metrics\"}[5m])))\n> 0.01\n"
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubeStateMetricsWatchErrors
+          annotations:
+            message: kube-state-metrics is experiencing errors at an elevated rate
+              in watch operations. This is likely causing it to not be able to expose
+              metrics about Kubernetes objects correctly or at all.
+            syn_component: openshift4-monitoring
+          expr: "(sum(rate(kube_state_metrics_watch_total{job=\"kube-state-metrics\"\
+            ,result=\"error\"}[5m]))\n  /\nsum(rate(kube_state_metrics_watch_total{job=\"\
+            kube-state-metrics\"}[5m])))\n> 0.01\n"
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-kubelet.rules
+      rules: []
+    - name: syn-kubernetes-apps
+      rules:
+        - alert: SYN_KubeContainerWaiting
+          annotations:
+            message: Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container}}
+              has been in waiting state for longer than 1 hour.
+            syn_component: openshift4-monitoring
+          expr: 'sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"})
+            > 0
+
+            '
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeCronJobRunning
+          annotations:
+            message: CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is taking
+              more than 1h to complete.
+            syn_component: openshift4-monitoring
+          expr: 'time() - kube_cronjob_next_schedule_time{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}
+            > 3600
+
+            '
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeDaemonSetMisScheduled
+          annotations:
+            message: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset
+              }} are running where they are not supposed to run.'
+            syn_component: openshift4-monitoring
+          expr: 'kube_daemonset_status_number_misscheduled{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}
+            > 0
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeDaemonSetNotScheduled
+          annotations:
+            message: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset
+              }} are not scheduled.'
+            syn_component: openshift4-monitoring
+          expr: "kube_daemonset_status_desired_number_scheduled{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n  -\nkube_daemonset_status_current_number_scheduled{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"} >\
+            \ 0\n"
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeDaemonSetRolloutStuck
+          annotations:
+            message: Only {{ $value | humanizePercentage }} of the desired Pods of
+              DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are scheduled
+              and ready.
+            syn_component: openshift4-monitoring
+          expr: "kube_daemonset_status_number_ready{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n  /\nkube_daemonset_status_desired_number_scheduled{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"} <\
+            \ 1.00\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeDeploymentGenerationMismatch
+          annotations:
+            message: Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment
+              }} does not match, this indicates that the Deployment has failed but
+              has not been rolled back.
+            syn_component: openshift4-monitoring
+          expr: "kube_deployment_status_observed_generation{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n  !=\nkube_deployment_metadata_generation{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeDeploymentReplicasMismatch
+          annotations:
+            message: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has
+              not matched the expected number of replicas for longer than 15 minutes.
+            syn_component: openshift4-monitoring
+          expr: "(\n  kube_deployment_spec_replicas{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n    !=\n  kube_deployment_status_replicas_available{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n\
+            ) and (\n  changes(kube_deployment_status_replicas_updated{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}[5m])\n\
+            \    ==\n  0\n)\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeHpaMaxedOut
+          annotations:
+            message: HPA {{ $labels.namespace }}/{{ $labels.hpa }} has been running
+              at max replicas for longer than 15 minutes.
+            syn_component: openshift4-monitoring
+          expr: "kube_hpa_status_current_replicas{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n  ==\nkube_hpa_spec_max_replicas{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeHpaReplicasMismatch
+          annotations:
+            message: HPA {{ $labels.namespace }}/{{ $labels.hpa }} has not matched
+              the desired number of replicas for longer than 15 minutes.
+            syn_component: openshift4-monitoring
+          expr: "(kube_hpa_status_desired_replicas{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n  !=\nkube_hpa_status_current_replicas{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"})\n\
+            \  and\nchanges(kube_hpa_status_current_replicas[15m]) == 0\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeJobCompletion
+          annotations:
+            message: Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking
+              more than 12 hours to complete.
+            syn_component: openshift4-monitoring
+          expr: 'kube_job_spec_completions{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}
+            - kube_job_status_succeeded{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}  >
+            0
+
+            '
+          for: 12h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeJobFailed
+          annotations:
+            message: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed to
+              complete.
+            syn_component: openshift4-monitoring
+          expr: 'kube_job_failed{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}  >
+            0
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubePodCrashLooping
+          annotations:
+            message: Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
+              }}) is restarting {{ printf "%.2f" $value }} times / 5 minutes.
+            syn_component: openshift4-monitoring
+          expr: 'rate(kube_pod_container_status_restarts_total{namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}[5m])
+            * 60 * 5 > 0
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubePodNotReady
+          annotations:
+            message: Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready
+              state for longer than 15 minutes.
+            syn_component: openshift4-monitoring
+          expr: "sum by (namespace, pod) (\n  max by(namespace, pod) (\n    kube_pod_status_phase{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\", phase=~\"\
+            Pending|Unknown\"}\n  ) * on(namespace, pod) group_left(owner_kind) topk\
+            \ by(namespace, pod) (\n    1, max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!=\"\
+            Job\"})\n  )\n) > 0\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeStatefulSetGenerationMismatch
+          annotations:
+            message: StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset
+              }} does not match, this indicates that the StatefulSet has failed but
+              has not been rolled back.
+            syn_component: openshift4-monitoring
+          expr: "kube_statefulset_status_observed_generation{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n  !=\nkube_statefulset_metadata_generation{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeStatefulSetReplicasMismatch
+          annotations:
+            message: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}
+              has not matched the expected number of replicas for longer than 15 minutes.
+            syn_component: openshift4-monitoring
+          expr: "(\n  kube_statefulset_status_replicas_ready{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n    !=\n  kube_statefulset_status_replicas{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n\
+            ) and (\n  changes(kube_statefulset_status_replicas_updated{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}[5m])\n\
+            \    ==\n  0\n)\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeStatefulSetUpdateNotRolledOut
+          annotations:
+            message: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }}
+              update has not been rolled out.
+            syn_component: openshift4-monitoring
+          expr: "max without (revision) (\n  kube_statefulset_status_current_revision{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n\
+            \    unless\n  kube_statefulset_status_update_revision{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n)\n  *\n(\n  kube_statefulset_replicas{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kube-state-metrics\"}\n\
+            \    !=\n  kube_statefulset_status_replicas_updated{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\"}\n)\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-kubernetes-resources
+      rules:
+        - alert: SYN_CPUThrottlingHigh
+          annotations:
+            message: '{{ $value | humanizePercentage }} throttling of CPU in namespace
+              {{ $labels.namespace }} for container {{ $labels.container }} in pod
+              {{ $labels.pod }}.'
+            syn_component: openshift4-monitoring
+          expr: "sum(increase(container_cpu_cfs_throttled_periods_total{container!=\"\
+            \", namespace=~\"(openshift-.*|kube-.*|default|logging)\"}[5m])) by (container,\
+            \ pod, namespace)\n  /\nsum(increase(container_cpu_cfs_periods_total{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\"}[5m])) by (container, pod, namespace)\n\
+            \  > ( 25 / 100 )\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeCPUOvercommit
+          annotations:
+            message: Cluster has overcommitted CPU resource requests for Pods and
+              cannot tolerate node failure.
+            syn_component: openshift4-monitoring
+          expr: "sum(namespace:kube_pod_container_resource_requests_cpu_cores:sum{})\n\
+            \  /\nsum(kube_node_status_allocatable_cpu_cores)\n  >\n(count(kube_node_status_allocatable_cpu_cores)-1)\
+            \ / count(kube_node_status_allocatable_cpu_cores)\n"
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeCPUQuotaOvercommit
+          annotations:
+            message: Cluster has overcommitted CPU resource requests for Namespaces.
+            syn_component: openshift4-monitoring
+          expr: "sum(kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"hard\", resource=\"cpu\"})\n  /\n\
+            sum(kube_node_status_allocatable_cpu_cores)\n  > 1.5\n"
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeMemoryOvercommit
+          annotations:
+            message: Cluster has overcommitted memory resource requests for Pods and
+              cannot tolerate node failure.
+            syn_component: openshift4-monitoring
+          expr: "sum(namespace:kube_pod_container_resource_requests_memory_bytes:sum{})\n\
+            \  /\nsum(kube_node_status_allocatable_memory_bytes)\n  >\n(count(kube_node_status_allocatable_memory_bytes)-1)\n\
+            \  /\ncount(kube_node_status_allocatable_memory_bytes)\n"
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeMemoryQuotaOvercommit
+          annotations:
+            message: Cluster has overcommitted memory resource requests for Namespaces.
+            syn_component: openshift4-monitoring
+          expr: "sum(kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"hard\", resource=\"memory\"})\n  /\n\
+            sum(kube_node_status_allocatable_memory_bytes{job=\"node-exporter\"})\n\
+            \  > 1.5\n"
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeQuotaAlmostFull
+          annotations:
+            description: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage
+              }} of its {{ $labels.resource }} quota.
+            summary: Namespace quota is going to be full.
+            syn_component: openshift4-monitoring
+          expr: "kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"used\"}\n  / ignoring(instance, job,\
+            \ type)\n(kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"hard\"} > 0)\n  > 0.9 < 1\n"
+          for: 15m
+          labels:
+            severity: info
+            syn: 'true'
+        - alert: SYN_KubeQuotaExceeded
+          annotations:
+            description: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage
+              }} of its {{ $labels.resource }} quota.
+            summary: Namespace quota has exceeded the limits.
+            syn_component: openshift4-monitoring
+          expr: "kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"used\"}\n  / ignoring(instance, job,\
+            \ type)\n(kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"hard\"} > 0)\n  > 1\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeQuotaFullyUsed
+          annotations:
+            message: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage
+              }} of its {{ $labels.resource }} quota.
+            syn_component: openshift4-monitoring
+          expr: "kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"used\"}\n  / ignoring(instance, job,\
+            \ type)\n(kube_resourcequota{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kube-state-metrics\", type=\"hard\"} > 0)\n  == 1\n"
+          for: 15m
+          labels:
+            severity: info
+            syn: 'true'
+    - name: syn-kubernetes-storage
+      rules:
+        - alert: SYN_KubePersistentVolumeErrors
+          annotations:
+            message: The persistent volume {{ $labels.persistentvolume }} has status
+              {{ $labels.phase }}.
+            syn_component: openshift4-monitoring
+          expr: 'kube_persistentvolume_status_phase{phase=~"Failed|Pending",namespace=~"(openshift-.*|kube-.*|default|logging)",job="kube-state-metrics"}
+            > 0
+
+            '
+          for: 5m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubePersistentVolumeFillingUp
+          annotations:
+            message: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
+              }} in Namespace {{ $labels.namespace }} is only {{ $value | humanizePercentage
+              }} free.
+            syn_component: openshift4-monitoring
+          expr: "kubelet_volume_stats_available_bytes{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kubelet\", metrics_path=\"/metrics\"}\n  /\nkubelet_volume_stats_capacity_bytes{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kubelet\", metrics_path=\"\
+            /metrics\"}\n  < 0.03\n"
+          for: 1m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubePersistentVolumeFillingUp
+          annotations:
+            message: Based on recent sampling, the PersistentVolume claimed by {{
+              $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }}
+              is expected to fill up within four days. Currently {{ $value | humanizePercentage
+              }} is available.
+            syn_component: openshift4-monitoring
+          expr: "(\n  kubelet_volume_stats_available_bytes{namespace=~\"(openshift-.*|kube-.*|default|logging)\"\
+            ,job=\"kubelet\", metrics_path=\"/metrics\"}\n    /\n  kubelet_volume_stats_capacity_bytes{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kubelet\", metrics_path=\"\
+            /metrics\"}\n) < 0.15\nand\npredict_linear(kubelet_volume_stats_available_bytes{namespace=~\"\
+            (openshift-.*|kube-.*|default|logging)\",job=\"kubelet\", metrics_path=\"\
+            /metrics\"}[6h], 4 * 24 * 3600) < 0\n"
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-kubernetes-system
+      rules:
+        - alert: SYN_KubeClientErrors
+          annotations:
+            message: Kubernetes API server client '{{ $labels.job }}/{{ $labels.instance
+              }}' is experiencing {{ $value | humanizePercentage }} errors.'
+            syn_component: openshift4-monitoring
+          expr: "(sum(rate(rest_client_requests_total{code=~\"5..\"}[5m])) by (instance,\
+            \ job)\n  /\nsum(rate(rest_client_requests_total[5m])) by (instance, job))\n\
+            > 0.01\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-kubernetes-system-apiserver
+      rules:
+        - alert: SYN_AggregatedAPIDown
+          annotations:
+            message: An aggregated API {{ $labels.name }}/{{ $labels.namespace }}
+              is down. It has not been available at least for the past five minutes.
+            syn_component: openshift4-monitoring
+          expr: 'sum by(name, namespace)(sum_over_time(aggregator_unavailable_apiservice[5m]))
+            > 0
+
+            '
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_AggregatedAPIErrors
+          annotations:
+            message: An aggregated API {{ $labels.name }}/{{ $labels.namespace }}
+              has reported errors. The number of errors have increased for it in the
+              past five minutes. High values indicate that the availability of the
+              service changes too often.
+            syn_component: openshift4-monitoring
+          expr: 'sum by(name, namespace)(increase(aggregator_unavailable_apiservice_count[5m]))
+            > 2
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeAPIDown
+          annotations:
+            message: KubeAPI has disappeared from Prometheus target discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="apiserver"} == 1)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubeAPIErrorsHigh
+          annotations:
+            message: API server is returning errors for {{ $value | humanizePercentage
+              }} of requests for {{ $labels.verb }} {{ $labels.resource }} {{ $labels.subresource
+              }}.
+            syn_component: openshift4-monitoring
+          expr: "sum(rate(apiserver_request_total{job=\"apiserver\",code=~\"5..\"\
+            }[5m])) by (resource,subresource,verb)\n  /\nsum(rate(apiserver_request_total{job=\"\
+            apiserver\"}[5m])) by (resource,subresource,verb) > 0.05\n"
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeAPILatencyHigh
+          annotations:
+            message: The API server has an abnormal latency of {{ $value }} seconds
+              for {{ $labels.verb }} {{ $labels.resource }}.
+            syn_component: openshift4-monitoring
+          expr: "cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job=\"\
+            apiserver\",quantile=\"0.99\"}\n>\n1\nand on (verb,resource)\n(\n  cluster:apiserver_request_duration_seconds:mean5m{job=\"\
+            apiserver\"}\n  >\n  on (verb) group_left()\n  (\n    avg by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job=\"\
+            apiserver\"} >= 0)\n    +\n    2*stddev by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job=\"\
+            apiserver\"} >= 0)\n  )\n) > on (verb) group_left()\n1.2 * avg by (verb)\
+            \ (cluster:apiserver_request_duration_seconds:mean5m{job=\"apiserver\"\
+            } >= 0)\n"
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeClientCertificateExpiration
+          annotations:
+            message: A client certificate used to authenticate to the apiserver is
+              expiring in less than 1.5 hours.
+            syn_component: openshift4-monitoring
+          expr: 'apiserver_client_certificate_expiration_seconds_count{job="apiserver"}
+            > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="apiserver"}[5m])))
+            < 5400
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeClientCertificateExpiration
+          annotations:
+            message: A client certificate used to authenticate to the apiserver is
+              expiring in less than 1.0 hours.
+            syn_component: openshift4-monitoring
+          expr: 'apiserver_client_certificate_expiration_seconds_count{job="apiserver"}
+            > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="apiserver"}[5m])))
+            < 3600
+
+            '
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-kubernetes-system-controller-manager
+      rules:
+        - alert: SYN_KubeControllerManagerDown
+          annotations:
+            message: KubeControllerManager has disappeared from Prometheus target
+              discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="kube-controller-manager"} == 1)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-kubernetes-system-kubelet
+      rules:
+        - alert: SYN_KubeNodeNotReady
+          annotations:
+            message: '{{ $labels.node }} has been unready for more than 15 minutes.'
+            syn_component: openshift4-monitoring
+          expr: 'kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"}
+            == 0
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeNodeReadinessFlapping
+          annotations:
+            message: The readiness status of node {{ $labels.node }} has changed {{
+              $value }} times in the last 15 minutes.
+            syn_component: openshift4-monitoring
+          expr: 'sum(changes(kube_node_status_condition{status="true",condition="Ready"}[15m]))
+            by (node) > 2
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeNodeUnreachable
+          annotations:
+            message: '{{ $labels.node }} is unreachable and some workloads may be
+              rescheduled.'
+            syn_component: openshift4-monitoring
+          expr: 'kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"}
+            == 1
+
+            '
+          for: 2m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeletDown
+          annotations:
+            message: Kubelet has disappeared from Prometheus target discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="kubelet", metrics_path="/metrics"} == 1)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_KubeletPlegDurationHigh
+          annotations:
+            message: The Kubelet Pod Lifecycle Event Generator has a 99th percentile
+              duration of {{ $value }} seconds on node {{ $labels.node }}.
+            syn_component: openshift4-monitoring
+          expr: 'node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile{quantile="0.99"}
+            >= 10
+
+            '
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeletPodStartUpLatencyHigh
+          annotations:
+            message: Kubelet Pod startup 99th percentile latency is {{ $value }} seconds
+              on node {{ $labels.node }}.
+            syn_component: openshift4-monitoring
+          expr: 'histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet",
+            metrics_path="/metrics"}[5m])) by (instance, le)) * on(instance) group_left(node)
+            kubelet_node_name{job="kubelet", metrics_path="/metrics"} > 60
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_KubeletTooManyPods
+          annotations:
+            message: Kubelet '{{ $labels.node }}' is running at {{ $value | humanizePercentage
+              }} of its Pod capacity.
+            syn_component: openshift4-monitoring
+          expr: 'max(max(kubelet_running_pod_count{job="kubelet", metrics_path="/metrics"})
+            by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubelet",
+            metrics_path="/metrics"}) by(node) / max(kube_node_status_capacity_pods{job="kube-state-metrics"}
+            != 1) by(node) > 0.95
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-kubernetes-system-scheduler
+      rules:
+        - alert: SYN_KubeSchedulerDown
+          annotations:
+            message: KubeScheduler has disappeared from Prometheus target discovery.
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="scheduler"} == 1)
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-kubernetes.rules
+      rules:
+        - alert: SYN_AlertmanagerReceiversNotConfigured
+          annotations:
+            message: Alerts are not configured to be sent to a notification system,
+              meaning that you may not be notified in a timely fashion when important
+              failures occur. Check the OpenShift documentation to learn how to configure
+              notifications with Alertmanager.
+            syn_component: openshift4-monitoring
+          expr: cluster:alertmanager_routing_enabled:max == 0
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ClusterMonitoringOperatorReconciliationErrors
+          annotations:
+            message: Cluster Monitoring Operator is experiencing reconciliation error
+              rate of {{ printf "%0.0f" $value }}%.
+            syn_component: openshift4-monitoring
+          expr: rate(cluster_monitoring_operator_reconcile_errors_total[15m]) * 100
+            / rate(cluster_monitoring_operator_reconcile_attempts_total[15m]) > 10
+          for: 30m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_MultipleContainersOOMKilled
+          annotations:
+            message: Multiple containers were out of memory killed within the past
+              15 minutes.
+            syn_component: openshift4-monitoring
+          expr: sum(max by(namespace, container, pod) (increase(kube_pod_container_status_restarts_total[12m]))
+            and max by(namespace, container, pod) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"})
+            == 1) > 5
+          for: 15m
+          labels:
+            severity: info
+            syn: 'true'
+    - name: syn-logging_elasticsearch.alerts
+      rules:
+        - alert: SYN_AggregatedLoggingSystemCPUHigh
+          annotations:
+            message: System CPU usage on the node {{ $labels.node }} in {{ $labels.cluster
+              }} cluster is {{ $value }}%
+            summary: System CPU usage is high
+            syn_component: openshift4-monitoring
+          expr: 'sum by (cluster, instance, node) (es_os_cpu_percent) > 90
+
+            '
+          for: 1m
+          labels:
+            severity: alert
+            syn: 'true'
+        - alert: SYN_ElasticsearchBulkRequestsRejectionJumps
+          annotations:
+            message: High Bulk Rejection Ratio at {{ $labels.node }} node in {{ $labels.cluster
+              }} cluster. This node may not be keeping up with the indexing speed.
+            summary: High Bulk Rejection Ratio - {{ $value }}%
+            syn_component: openshift4-monitoring
+          expr: 'round( bulk:reject_ratio:rate2m * 100, 0.001 ) > 5
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ElasticsearchClusterNotHealthy
+          annotations:
+            message: Cluster {{ $labels.cluster }} health status has been RED for
+              at least 2m. Cluster does not accept writes, shards may be missing or
+              master node hasn't been elected yet.
+            summary: Cluster health status is RED
+            syn_component: openshift4-monitoring
+          expr: 'sum by (cluster) (es_cluster_status == 2)
+
+            '
+          for: 2m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_ElasticsearchClusterNotHealthy
+          annotations:
+            message: Cluster {{ $labels.cluster }} health status has been YELLOW for
+              at least 20m. Some shard replicas are not allocated.
+            summary: Cluster health status is YELLOW
+            syn_component: openshift4-monitoring
+          expr: 'sum by (cluster) (es_cluster_status == 1)
+
+            '
+          for: 20m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ElasticsearchJVMHeapUseHigh
+          annotations:
+            message: JVM Heap usage on the node {{ $labels.node }} in {{ $labels.cluster
+              }} cluster is {{ $value }}%.
+            summary: JVM Heap usage on the node is high
+            syn_component: openshift4-monitoring
+          expr: 'sum by (cluster, instance, node) (es_jvm_mem_heap_used_percent) >
+            75
+
+            '
+          for: 10m
+          labels:
+            severity: alert
+            syn: 'true'
+        - alert: SYN_ElasticsearchNodeDiskLowForSegmentMerges
+          annotations:
+            message: Free disk at {{ $labels.node }} node in {{ $labels.cluster }}
+              cluster may be low for optimal segment merges
+            summary: Free disk may be low for optimal segment merges
+            syn_component: openshift4-monitoring
+          expr: 'sum by (cluster, instance, node) (es_fs_path_free_bytes) /
+
+            sum by (cluster, instance, node) (es_indices_store_size_bytes)
+
+            < 0.5
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ElasticsearchNodeDiskWatermarkReached
+          annotations:
+            message: Disk Low Watermark Reached at {{ $labels.node }} node in {{ $labels.cluster
+              }} cluster. Shards can not be allocated to this node anymore. You should
+              consider adding more disk to the node.
+            summary: Disk Low Watermark Reached - disk saturation is {{ $value }}%
+            syn_component: openshift4-monitoring
+          expr: "sum by (cluster, instance, node) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
+            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > 85\n"
+          for: 5m
+          labels:
+            severity: alert
+            syn: 'true'
+        - alert: SYN_ElasticsearchNodeDiskWatermarkReached
+          annotations:
+            message: Disk High Watermark Reached at {{ $labels.node }} node in {{
+              $labels.cluster }} cluster. Some shards will be re-allocated to different
+              nodes if possible. Make sure more disk space is added to the node or
+              drop old indices allocated to this node.
+            summary: Disk High Watermark Reached - disk saturation is {{ $value }}%
+            syn_component: openshift4-monitoring
+          expr: "sum by (cluster, instance, node) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
+            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > 90\n"
+          for: 5m
+          labels:
+            severity: high
+            syn: 'true'
+        - alert: SYN_ElasticsearchProcessCPUHigh
+          annotations:
+            message: ES process CPU usage on the node {{ $labels.node }} in {{ $labels.cluster
+              }} cluster is {{ $value }}%
+            summary: ES process CPU usage is high
+            syn_component: openshift4-monitoring
+          expr: 'sum by (cluster, instance, node) (es_process_cpu_percent) > 90
+
+            '
+          for: 1m
+          labels:
+            severity: alert
+            syn: 'true'
+    - name: syn-logging_elasticsearch.rules
+      rules: []
+    - name: syn-machine-api-operator-down
+      rules:
+        - alert: SYN_MachineAPIOperatorDown
+          annotations:
+            message: machine api operator is down
+            syn_component: openshift4-monitoring
+          expr: 'absent(up{job="machine-api-operator"} == 1)
+
+            '
+          for: 5m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-machine-api-operator-metrics-collector-up
+      rules:
+        - alert: SYN_MachineAPIOperatorMetricsCollectionFailing
+          annotations:
+            message: 'machine api operator metrics collection is failing. For more
+              details:  oc logs <machine-api-operator-pod-name> -n openshift-machine-api'
+            syn_component: openshift4-monitoring
+          expr: 'mapi_mao_collector_up == 0
+
+            '
+          for: 5m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-machine-not-yet-deleted
+      rules:
+        - alert: SYN_MachineNotYetDeleted
+          annotations:
+            message: machine {{ $labels.name }} has been in Deleting phase for more
+              than 6 hours
+            syn_component: openshift4-monitoring
+          expr: '(mapi_machine_created_timestamp_seconds{phase="Deleting"}) > 0
+
+            '
+          for: 360m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-machine-with-no-running-phase
+      rules:
+        - alert: SYN_MachineWithNoRunningPhase
+          annotations:
+            message: 'machine {{ $labels.name }} is in phase: {{ $labels.phase }}'
+            syn_component: openshift4-monitoring
+          expr: '(mapi_machine_created_timestamp_seconds{phase!~"Running|Deleting"})
+            > 0
+
+            '
+          for: 60m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-machine-without-valid-node-ref
+      rules:
+        - alert: SYN_MachineWithoutValidNode
+          annotations:
+            message: machine {{ $labels.name }} does not have valid node reference
+            syn_component: openshift4-monitoring
+          expr: '(mapi_machine_created_timestamp_seconds unless on(node) kube_node_info)
+            > 0
+
+            '
+          for: 60m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-mcd-drain-error
+      rules:
+        - alert: SYN_MCDDrainError
+          annotations:
+            message: 'Drain failed on {{ $labels.node }} , updates may be blocked.
+              For more details:  oc logs -f -n openshift-machine-config-operator machine-config-daemon-<hash>
+              -c machine-config-daemon'
+            syn_component: openshift4-monitoring
+          expr: 'mcd_drain_err > 0
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-mcd-kubelet-health-state-error
+      rules:
+        - alert: SYN_KubeletHealthState
+          annotations:
+            message: Kubelet health failure threshold reached
+            syn_component: openshift4-monitoring
+          expr: 'mcd_kubelet_state > 2
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-mcd-pivot-error
+      rules:
+        - alert: SYN_MCDPivotError
+          annotations:
+            message: 'Error detected in pivot logs on {{ $labels.node }} '
+            syn_component: openshift4-monitoring
+          expr: 'mcd_pivot_err > 0
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-mcd-reboot-error
+      rules:
+        - alert: SYN_MCDRebootError
+          annotations:
+            message: Reboot failed on {{ $labels.node }} , update may be blocked
+            syn_component: openshift4-monitoring
+          expr: 'mcd_reboot_err > 0
+
+            '
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-node-exporter
+      rules:
+        - alert: SYN_NodeClockNotSynchronising
+          annotations:
+            message: Clock on {{ $labels.instance }} is not synchronising. Ensure
+              NTP is configured on this host.
+            summary: Clock not synchronising.
+            syn_component: openshift4-monitoring
+          expr: 'min_over_time(node_timex_sync_status[5m]) == 0
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeClockSkewDetected
+          annotations:
+            message: Clock on {{ $labels.instance }} is out of sync by more than 300s.
+              Ensure NTP is configured correctly on this host.
+            summary: Clock skew detected.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_timex_offset_seconds > 0.05\nand\n  deriv(node_timex_offset_seconds[5m])\
+            \ >= 0\n)\nor\n(\n  node_timex_offset_seconds < -0.05\nand\n  deriv(node_timex_offset_seconds[5m])\
+            \ <= 0\n)\n"
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeFilesystemAlmostOutOfFiles
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available inodes left.
+            summary: Filesystem has less than 5% inodes left.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_files_free{job=\"node-exporter\",fstype!=\"\"\
+            } / node_filesystem_files{job=\"node-exporter\",fstype!=\"\"} * 100 <\
+            \ 5\nand\n  node_filesystem_readonly{job=\"node-exporter\",fstype!=\"\"\
+            } == 0\n)\n"
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeFilesystemAlmostOutOfFiles
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available inodes left.
+            summary: Filesystem has less than 3% inodes left.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_files_free{job=\"node-exporter\",fstype!=\"\"\
+            } / node_filesystem_files{job=\"node-exporter\",fstype!=\"\"} * 100 <\
+            \ 3\nand\n  node_filesystem_readonly{job=\"node-exporter\",fstype!=\"\"\
+            } == 0\n)\n"
+          for: 1h
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_NodeFilesystemAlmostOutOfSpace
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available space left.
+            summary: Filesystem has less than 5% space left.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_avail_bytes{job=\"node-exporter\",fstype!=\"\
+            \"} / node_filesystem_size_bytes{job=\"node-exporter\",fstype!=\"\"} *\
+            \ 100 < 5\nand\n  node_filesystem_readonly{job=\"node-exporter\",fstype!=\"\
+            \"} == 0\n)\n"
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeFilesystemAlmostOutOfSpace
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available space left.
+            summary: Filesystem has less than 3% space left.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_avail_bytes{job=\"node-exporter\",fstype!=\"\
+            \"} / node_filesystem_size_bytes{job=\"node-exporter\",fstype!=\"\"} *\
+            \ 100 < 3\nand\n  node_filesystem_readonly{job=\"node-exporter\",fstype!=\"\
+            \"} == 0\n)\n"
+          for: 1h
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_NodeFilesystemFilesFillingUp
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available inodes left and is
+              filling up.
+            summary: Filesystem is predicted to run out of inodes within the next
+              24 hours.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_files_free{job=\"node-exporter\",fstype!=\"\"\
+            } / node_filesystem_files{job=\"node-exporter\",fstype!=\"\"} * 100 <\
+            \ 40\nand\n  predict_linear(node_filesystem_files_free{job=\"node-exporter\"\
+            ,fstype!=\"\"}[6h], 24*60*60) < 0\nand\n  node_filesystem_readonly{job=\"\
+            node-exporter\",fstype!=\"\"} == 0\n)\n"
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeFilesystemFilesFillingUp
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available inodes left and is
+              filling up fast.
+            summary: Filesystem is predicted to run out of inodes within the next
+              4 hours.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_files_free{job=\"node-exporter\",fstype!=\"\"\
+            } / node_filesystem_files{job=\"node-exporter\",fstype!=\"\"} * 100 <\
+            \ 20\nand\n  predict_linear(node_filesystem_files_free{job=\"node-exporter\"\
+            ,fstype!=\"\"}[6h], 4*60*60) < 0\nand\n  node_filesystem_readonly{job=\"\
+            node-exporter\",fstype!=\"\"} == 0\n)\n"
+          for: 1h
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_NodeFilesystemSpaceFillingUp
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available space left and is
+              filling up.
+            summary: Filesystem is predicted to run out of space within the next 24
+              hours.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_avail_bytes{job=\"node-exporter\",fstype!=\"\
+            \"} / node_filesystem_size_bytes{job=\"node-exporter\",fstype!=\"\"} *\
+            \ 100 < 40\nand\n  predict_linear(node_filesystem_avail_bytes{job=\"node-exporter\"\
+            ,fstype!=\"\"}[6h], 24*60*60) < 0\nand\n  node_filesystem_readonly{job=\"\
+            node-exporter\",fstype!=\"\"} == 0\n)\n"
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeFilesystemSpaceFillingUp
+          annotations:
+            description: Filesystem on {{ $labels.device }} at {{ $labels.instance
+              }} has only {{ printf "%.2f" $value }}% available space left and is
+              filling up fast.
+            summary: Filesystem is predicted to run out of space within the next 4
+              hours.
+            syn_component: openshift4-monitoring
+          expr: "(\n  node_filesystem_avail_bytes{job=\"node-exporter\",fstype!=\"\
+            \"} / node_filesystem_size_bytes{job=\"node-exporter\",fstype!=\"\"} *\
+            \ 100 < 15\nand\n  predict_linear(node_filesystem_avail_bytes{job=\"node-exporter\"\
+            ,fstype!=\"\"}[6h], 4*60*60) < 0\nand\n  node_filesystem_readonly{job=\"\
+            node-exporter\",fstype!=\"\"} == 0\n)\n"
+          for: 1h
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_NodeHighNumberConntrackEntriesUsed
+          annotations:
+            description: '{{ $value | humanizePercentage }} of conntrack entries are
+              used'
+            summary: Number of conntrack are getting close to the limit
+            syn_component: openshift4-monitoring
+          expr: '(node_nf_conntrack_entries / node_nf_conntrack_entries_limit) > 0.75
+
+            '
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeNetworkReceiveErrs
+          annotations:
+            description: '{{ $labels.instance }} interface {{ $labels.device }} has
+              encountered {{ printf "%.0f" $value }} receive errors in the last two
+              minutes.'
+            summary: Network interface is reporting many receive errors.
+            syn_component: openshift4-monitoring
+          expr: 'increase(node_network_receive_errs_total[2m]) > 10
+
+            '
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_NodeNetworkTransmitErrs
+          annotations:
+            description: '{{ $labels.instance }} interface {{ $labels.device }} has
+              encountered {{ printf "%.0f" $value }} transmit errors in the last two
+              minutes.'
+            summary: Network interface is reporting many transmit errors.
+            syn_component: openshift4-monitoring
+          expr: 'increase(node_network_transmit_errs_total[2m]) > 10
+
+            '
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-node-exporter.rules
+      rules: []
+    - name: syn-node-network
+      rules:
+        - alert: SYN_NodeNetworkInterfaceFlapping
+          annotations:
+            message: Network interface "{{ $labels.device }}" changing it's up status
+              often on node-exporter {{ $labels.namespace }}/{{ $labels.pod }}"
+            syn_component: openshift4-monitoring
+          expr: 'changes(node_network_up{job="node-exporter",device!~"veth.+"}[2m])
+            > 2
+
+            '
+          for: 2m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-node-utilization
+      rules:
+        - alert: SYN_node_cpu_load5
+          annotations:
+            message: '{{ $labels.instance }}: Load higher than 2 (current value is:
+              {{ $value }})'
+            syn_component: openshift4-monitoring
+          expr: max by(instance) (node_load5) / count by(instance) (node_cpu_info)
+            > 2
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_node_memory_free_percent
+          annotations:
+            message: '{{ $labels.node }}: Memory usage more than 97% (current value
+              is: {{ $value | humanizePercentage }})%'
+            syn_component: openshift4-monitoring
+          expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes
+            > 0.97
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+    - name: syn-node.rules
+      rules: []
+    - name: syn-olm.failing_operators.rules
+      rules:
+        - alert: SYN_FailingOperator
+          annotations:
+            message: Failed to install Operator {{ $labels.name }} version {{ $labels.version
+              }}. Reason-{{ $labels.reason }}
+            syn_component: openshift4-monitoring
+          expr: csv_abnormal{phase="Failed"}
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-openshift-build.rules
+      rules: []
+    - name: syn-openshift-ingress.rules
+      rules:
+        - alert: SYN_HAProxyDown
+          annotations:
+            message: HAProxy metrics are reporting that the router is down
+            syn_component: openshift4-monitoring
+          expr: haproxy_up == 0
+          for: 5m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_HAProxyReloadFail
+          annotations:
+            message: HAProxy reloads are failing on {{ $labels.pod }}. Router is not
+              respecting recently created or modified routes
+            syn_component: openshift4-monitoring
+          expr: template_router_reload_failure == 1
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-openshift-sre.rules
+      rules: []
+    - name: syn-prometheus
+      rules:
+        - alert: SYN_PrometheusBadConfig
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
+              to reload its configuration.
+            summary: Failed Prometheus configuration reload.
+            syn_component: openshift4-monitoring
+          expr: '# Without max_over_time, failed scrapes could create false negatives,
+            see
+
+            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0
+            for details.
+
+            max_over_time(prometheus_config_last_reload_successful{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            == 0
+
+            '
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_PrometheusDuplicateTimestamps
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is dropping
+              {{ printf "%.4g" $value  }} samples/s with different values but duplicated
+              timestamp.
+            summary: Prometheus is dropping samples with duplicate timestamps.
+            syn_component: openshift4-monitoring
+          expr: 'rate(prometheus_target_scrapes_sample_duplicate_timestamp_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            > 0
+
+            '
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusErrorSendingAlertsToAnyAlertmanager
+          annotations:
+            description: '{{ printf "%.1f" $value }}% minimum errors while sending
+              alerts from Prometheus {{$labels.namespace}}/{{$labels.pod}} to any
+              Alertmanager.'
+            summary: Prometheus encounters more than 3% errors sending alerts to any
+              Alertmanager.
+            syn_component: openshift4-monitoring
+          expr: "min without(alertmanager) (\n  rate(prometheus_notifications_errors_total{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n/\n  rate(prometheus_notifications_sent_total{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n)\n* 100\n> 3\n"
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_PrometheusErrorSendingAlertsToSomeAlertmanagers
+          annotations:
+            description: '{{ printf "%.1f" $value }}% errors while sending alerts
+              from Prometheus {{$labels.namespace}}/{{$labels.pod}} to Alertmanager
+              {{$labels.alertmanager}}.'
+            summary: Prometheus has encountered more than 1% errors sending alerts
+              to a specific Alertmanager.
+            syn_component: openshift4-monitoring
+          expr: "(\n  rate(prometheus_notifications_errors_total{job=~\"prometheus-k8s|prometheus-user-workload\"\
+            }[5m])\n/\n  rate(prometheus_notifications_sent_total{job=~\"prometheus-k8s|prometheus-user-workload\"\
+            }[5m])\n)\n* 100\n> 1\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusMissingRuleEvaluations
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has missed
+              {{ printf "%.0f" $value }} rule group evaluations in the last 5m.
+            summary: Prometheus is missing rule evaluations due to slow rule group
+              evaluation.
+            syn_component: openshift4-monitoring
+          expr: 'increase(prometheus_rule_group_iterations_missed_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            > 0
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusNotConnectedToAlertmanagers
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is not connected
+              to any Alertmanagers.
+            summary: Prometheus is not connected to any Alertmanagers.
+            syn_component: openshift4-monitoring
+          expr: '# Without max_over_time, failed scrapes could create false negatives,
+            see
+
+            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0
+            for details.
+
+            max_over_time(prometheus_notifications_alertmanagers_discovered{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            < 1
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusNotIngestingSamples
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is not ingesting
+              samples.
+            summary: Prometheus is not ingesting samples.
+            syn_component: openshift4-monitoring
+          expr: 'rate(prometheus_tsdb_head_samples_appended_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            <= 0
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusNotificationQueueRunningFull
+          annotations:
+            description: Alert notification queue of Prometheus {{$labels.namespace}}/{{$labels.pod}}
+              is running full.
+            summary: Prometheus alert notification queue predicted to run full in
+              less than 30m.
+            syn_component: openshift4-monitoring
+          expr: "# Without min_over_time, failed scrapes could create false negatives,\
+            \ see\n# https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0\
+            \ for details.\n(\n  predict_linear(prometheus_notifications_queue_length{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m], 60 * 30)\n>\n  min_over_time(prometheus_notifications_queue_capacity{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n)\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusOutOfOrderTimestamps
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is dropping
+              {{ printf "%.4g" $value  }} samples/s with timestamps arriving out of
+              order.
+            summary: Prometheus drops samples with out-of-order timestamps.
+            syn_component: openshift4-monitoring
+          expr: 'rate(prometheus_target_scrapes_sample_out_of_order_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            > 0
+
+            '
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusRemoteStorageFailures
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} failed to
+              send {{ printf "%.1f" $value }}% of the samples to {{ $labels.remote_name}}:{{
+              $labels.url }}
+            summary: Prometheus fails to send samples to remote storage.
+            syn_component: openshift4-monitoring
+          expr: "(\n  rate(prometheus_remote_storage_failed_samples_total{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n/\n  (\n    rate(prometheus_remote_storage_failed_samples_total{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n  +\n    rate(prometheus_remote_storage_succeeded_samples_total{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n  )\n)\n* 100\n> 1\n"
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_PrometheusRemoteWriteBehind
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} remote write
+              is {{ printf "%.1f" $value }}s behind for {{ $labels.remote_name}}:{{
+              $labels.url }}.
+            summary: Prometheus remote write is behind.
+            syn_component: openshift4-monitoring
+          expr: "# Without max_over_time, failed scrapes could create false negatives,\
+            \ see\n# https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0\
+            \ for details.\n(\n  max_over_time(prometheus_remote_storage_highest_timestamp_in_seconds{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n- on(job, instance) group_right\n\
+            \  max_over_time(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n)\n> 120\n"
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_PrometheusRemoteWriteDesiredShards
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} remote write
+              desired shards calculation wants to run {{ $value }} shards for queue
+              {{ $labels.remote_name}}:{{ $labels.url }}, which is more than the max
+              of {{ printf `prometheus_remote_storage_shards_max{instance="%s",job=~"prometheus-k8s|prometheus-user-workload"}`
+              $labels.instance | query | first | value }}.
+            summary: Prometheus remote write desired shards calculation wants to run
+              more than configured max shards.
+            syn_component: openshift4-monitoring
+          expr: "# Without max_over_time, failed scrapes could create false negatives,\
+            \ see\n# https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0\
+            \ for details.\n(\n  max_over_time(prometheus_remote_storage_shards_desired{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n>\n  max_over_time(prometheus_remote_storage_shards_max{job=~\"\
+            prometheus-k8s|prometheus-user-workload\"}[5m])\n)\n"
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusRuleFailures
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
+              to evaluate {{ printf "%.0f" $value }} rules in the last 5m.
+            summary: Prometheus is failing rule evaluations.
+            syn_component: openshift4-monitoring
+          expr: 'increase(prometheus_rule_evaluation_failures_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m])
+            > 0
+
+            '
+          for: 15m
+          labels:
+            severity: critical
+            syn: 'true'
+        - alert: SYN_PrometheusTSDBCompactionsFailing
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has detected
+              {{$value | humanize}} compaction failures over the last 3h.
+            summary: Prometheus has issues compacting blocks.
+            syn_component: openshift4-monitoring
+          expr: 'increase(prometheus_tsdb_compactions_failed_total{job=~"prometheus-k8s|prometheus-user-workload"}[3h])
+            > 0
+
+            '
+          for: 4h
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusTSDBReloadsFailing
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has detected
+              {{$value | humanize}} reload failures over the last 3h.
+            summary: Prometheus has issues reloading blocks from disk.
+            syn_component: openshift4-monitoring
+          expr: 'increase(prometheus_tsdb_reloads_failures_total{job=~"prometheus-k8s|prometheus-user-workload"}[3h])
+            > 0
+
+            '
+          for: 4h
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-prometheus-operator
+      rules:
+        - alert: SYN_PrometheusOperatorNodeLookupErrors
+          annotations:
+            message: Errors while reconciling Prometheus in {{ $labels.namespace }}
+              Namespace.
+            syn_component: openshift4-monitoring
+          expr: 'rate(prometheus_operator_node_address_lookup_errors_total{job="prometheus-operator",namespace="openshift-monitoring"}[5m])
+            > 0.1
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+        - alert: SYN_PrometheusOperatorReconcileErrors
+          annotations:
+            message: Errors while reconciling {{ $labels.controller }} in {{ $labels.namespace
+              }} Namespace.
+            syn_component: openshift4-monitoring
+          expr: 'rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator",namespace="openshift-monitoring"}[5m])
+            > 0.1
+
+            '
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+    - name: syn-system-memory-exceeds-reservation
+      rules:
+        - alert: SYN_SystemMemoryExceedsReservation
+          annotations:
+            message: System memory usage of {{ $value | humanize }} on {{ $labels.node
+              }} exceeds 95% of the reservation. Reserved memory ensures system processes
+              can function even when the node is fully allocated and protects against
+              workload out of memory events impacting the proper functioning of the
+              node. The default reservation is expected to be sufficient for most
+              configurations and should be increased (https://docs.openshift.com/container-platform/latest/nodes/nodes/nodes-nodes-managing.html)
+              when running nodes with high numbers of pods (either due to rate of
+              change or at steady state).
+            syn_component: openshift4-monitoring
+          expr: 'sum by (node) (container_memory_rss{id="/system.slice"}) > ((sum
+            by (node) (kube_node_status_capacity{resource="memory"} - kube_node_status_allocatable{resource="memory"}))
+            * 0.95)
+
+            '
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
