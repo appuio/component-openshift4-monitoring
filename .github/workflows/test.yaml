@@ -35,6 +35,7 @@ jobs:
           - release-4.7
           - release-4.8
           - release-4.9
+          - release-4.10
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -44,3 +45,21 @@ jobs:
           path: ${{ env.COMPONENT_NAME }}
       - name: Compile component
         run: make test -e instance=${{ matrix.instance }}
+  golden:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance:
+          - release-4.7
+          - release-4.8
+          - release-4.9
+          - release-4.10
+    defaults:
+      run:
+        working-directory: ${{ env.COMPONENT_NAME }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ${{ env.COMPONENT_NAME }}
+      - name: Golden diff
+        run: make golden-diff -e instance=${{ matrix.instance }}
