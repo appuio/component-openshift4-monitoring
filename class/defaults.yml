@@ -1,5 +1,8 @@
 parameters:
   openshift4_monitoring:
+    =_metadata:
+      library_aliases:
+        prom.libsonnet: openshift4-monitoring-prom.libsonnet
     namespace: openshift-monitoring
     # TODO: select based on reported OCP version once we have dynamic facts
     manifests_version: release-4.7
