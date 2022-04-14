@@ -126,7 +126,7 @@ parameters:
                 # Multiply the threshold by this factor
                 factor: 1
             ExpectTooManyPods:
-              enabled: true
+              enabled: false
               annotations:
                 message: 'Expected to exceed the threshold of running pods in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/podcapacity.html#SYN_ExpectTooManyPods
@@ -159,7 +159,7 @@ parameters:
                 # Multiply the threshold by this factor
                 factor: 1
             ExpectTooMuchMemoryRequested:
-              enabled: true
+              enabled: false
               annotations:
                 message: 'Expected to exceed the threshold of requested memory in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_ExpectTooMuchMemoryRequested
@@ -189,7 +189,7 @@ parameters:
                 # Multiply the threshold by this factor
                 factor: 1
             ExpectTooMuchCPURequested:
-              enabled: true
+              enabled: false
               annotations:
                 message: 'Expected to exceed the threshold of requested CPU resources in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_ExpectTooMuchCPURequested
@@ -222,7 +222,7 @@ parameters:
                 # Multiply the threshold by this factor
                 factor: 1
             ExpectClusterLowOnMemory:
-              enabled: true
+              enabled: false
               annotations:
                 message: 'Cluster expected to run low on memory in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/memorycapacity.html#SYN_ExpectClusterMemoryUsageHigh
@@ -256,7 +256,7 @@ parameters:
                 factor: 1
 
             ExpectClusterCpuUsageHigh:
-              enabled: true
+              enabled: false
               annotations:
                 message: 'Cluster expected to run low on available CPU resources in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/cpucapacity.html#SYN_ExpectClusterCpuUsageHigh
