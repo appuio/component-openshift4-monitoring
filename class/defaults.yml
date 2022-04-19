@@ -99,6 +99,8 @@ parameters:
       jobHistoryLimit:
         failed: 3
         successful: 3
+      nodeSelector:
+        node-role.kubernetes.io/infra: ''
 
     rules: {}
     images:

@@ -60,6 +60,7 @@ local cronJob = kube.CronJob('silence') + namespace {
       spec+: {
         template+: {
           spec+: {
+            nodeSelector: params.silence.nodeSelector,
             restartPolicy: 'Never',
             serviceAccountName: params.silence.serviceAccountName,
             containers_+: {
