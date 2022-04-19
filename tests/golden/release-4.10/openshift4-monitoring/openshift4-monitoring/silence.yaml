@@ -65,6 +65,8 @@ spec:
                   readOnly: true
           imagePullSecrets: []
           initContainers: []
+          nodeSelector:
+            node-role.kubernetes.io/infra: ''
           restartPolicy: Never
           serviceAccountName: prometheus-k8s
           terminationGracePeriodSeconds: 30
