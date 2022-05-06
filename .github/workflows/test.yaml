@@ -32,8 +32,6 @@ jobs:
     strategy:
       matrix:
         instance:
-          - release-4.7
-          - release-4.8
           - release-4.9
           - release-4.10
     defaults:
@@ -50,8 +48,6 @@ jobs:
     strategy:
       matrix:
         instance:
-          - release-4.7
-          - release-4.8
           - release-4.9
           - release-4.10
     defaults:

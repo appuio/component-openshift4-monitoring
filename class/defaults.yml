@@ -5,22 +5,14 @@ parameters:
         prom.libsonnet: openshift4-monitoring-prom.libsonnet
     namespace: openshift-monitoring
     # TODO: select based on reported OCP version once we have dynamic facts
-    manifests_version: release-4.7
+    manifests_version: release-4.9
     =_cluster_monitoring_operator_version_map:
-      # For release-4.7 we're using the old legacy commit hash
-      # No idea what this points to exactly, -SG,2021-10-29.
-      release-4.7: 45cb6f2942dff5afe17bbbf46f1eb6d3e7708f51
-      release-4.8: release-4.8
       release-4.9: release-4.9
       release-4.10: release-4.10
     =_etcd_operator_version_map:
-      release-4.7: '' # not required for 4.7 since the cluster-monitoring-operator has the etcd rules
-      release-4.8: release-4.9 # etcd-operator Jsonnet only available for 4.9
       release-4.9: release-4.9
       release-4.10: release-4.10
     =_operator_lifecycle_manager_map:
-      release-4.7: release-4.7
-      release-4.8: release-4.8
       release-4.9: release-4.9
       release-4.10: release-4.9 # no 4.10 release yet
     jsonnetfile_parameters:
@@ -87,10 +79,7 @@ parameters:
     alerts:
       ignoreNames: []
       customAnnotations: {}
-      patchRules:
-        release-4.7:
-          SystemMemoryExceedsReservation:
-            for: 15m
+      patchRules: {}
 
     silence:
       schedule: '0 */4 * * *'

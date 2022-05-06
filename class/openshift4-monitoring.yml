@@ -2,14 +2,6 @@ parameters:
   openshift4_monitoring:
     =_manifest_urls:
       kube-apiserver:
-        release-4.7:
-          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.7/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
-          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.7/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
-          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.7/manifests/0000_90_kube-apiserver-operator_04_servicemonitor-apiserver.yaml
-        release-4.8:
-          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.8/bindata/v4.1.0/alerts/api-usage.yaml
-          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.8/bindata/v4.1.0/alerts/cpu-utilization.yaml
-          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.8/bindata/v4.1.0/alerts/kube-apiserver-slos.yaml
         release-4.9:
           api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.9/bindata/assets/alerts/api-usage.yaml
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.9/bindata/assets/alerts/cpu-utilization.yaml
@@ -19,20 +11,12 @@ parameters:
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.10/bindata/assets/alerts/cpu-utilization.yaml
           slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.10/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
       elasticsearch-operator:
-        release-4.7:
-          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/${openshift4_monitoring:manifests_version}/hack/prometheus-rules.yaml
-        release-4.8:
-          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/${openshift4_monitoring:manifests_version}/hack/prometheus-rules.yaml
         release-4.9:
           # Release 4.9 was forgotten but 5.0 and 4.8 are identical
           prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-4.8/hack/prometheus-rules.yaml
         release-4.10:
           prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-4.8/hack/prometheus-rules.yaml
       machine-api-operator:
-        release-4.7:
-          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/${openshift4_monitoring:manifests_version}/install/0000_90_machine-api-operator_04_alertrules.yaml
-        release-4.8:
-          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/${openshift4_monitoring:manifests_version}/install/0000_90_machine-api-operator_04_alertrules.yaml
         release-4.9:
           # Release 4.9 has typo in manifest
           prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.10/install/0000_90_machine-api-operator_04_alertrules.yaml
