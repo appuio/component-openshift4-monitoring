@@ -6,7 +6,7 @@ The parent key for all of the following parameters is `openshift4_monitoring`.
 
 [horizontal]
 type:: string
-default:: `release-4.7`
+default:: `release-4.9`
 
 Select which version of the upstream alerting (and recording) rules should be used by the component.
 This parameter must be changed to match the cluster's OCP4 minor version.
@@ -63,7 +63,7 @@ Whether the Cluster Samples Operator prometheus rules should be included or not.
 type:: boolean
 default:: false
 
-A parameter to enable https://docs.openshift.com/container-platform/4.7/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
+A parameter to enable https://docs.openshift.com/container-platform/4.9/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
 
 == `configs`
 
@@ -221,7 +221,7 @@ Example:
 [source,yaml]
 ----
 patchRules:
-  release-4.7:
+  release-4.9:
     SystemMemoryExceedsReservation:
       for: 30m
 ----

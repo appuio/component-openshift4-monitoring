@@ -4,8 +4,6 @@
   testMatrix:
     key: instance
     entries:
-      - release-4.7
-      - release-4.8
       - release-4.9
       - release-4.10
 

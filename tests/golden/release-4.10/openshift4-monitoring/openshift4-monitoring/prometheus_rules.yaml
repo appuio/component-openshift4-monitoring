@@ -2513,7 +2513,7 @@ spec:
             summary: Deprecated API that will be removed in the next EUS version is
               being used.
             syn_component: openshift4-monitoring
-          expr: 'group(apiserver_requested_deprecated_apis{removed_release=~"1\\.2[123]"})
+          expr: 'group(apiserver_requested_deprecated_apis{removed_release=~"1\\.2[45]"})
             by (group,version,resource) and (sum by(group,version,resource) (rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])))
             > 0
 
@@ -2534,7 +2534,7 @@ spec:
             summary: Deprecated API that will be removed in the next version is being
               used.
             syn_component: openshift4-monitoring
-          expr: 'group(apiserver_requested_deprecated_apis{removed_release="1.23"})
+          expr: 'group(apiserver_requested_deprecated_apis{removed_release="1.24"})
             by (group,version,resource) and (sum by(group,version,resource) (rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])))
             > 0
 
