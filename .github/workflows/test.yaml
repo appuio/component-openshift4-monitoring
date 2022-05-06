@@ -32,6 +32,7 @@ jobs:
     strategy:
       matrix:
         instance:
+          - capacity-alerts
           - release-4.9
           - release-4.10
     defaults:
@@ -48,6 +49,7 @@ jobs:
     strategy:
       matrix:
         instance:
+          - capacity-alerts
           - release-4.9
           - release-4.10
     defaults:
