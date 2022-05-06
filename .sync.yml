@@ -4,6 +4,7 @@
   testMatrix:
     key: instance
     entries:
+      - capacity-alerts
       - release-4.9
       - release-4.10
 
