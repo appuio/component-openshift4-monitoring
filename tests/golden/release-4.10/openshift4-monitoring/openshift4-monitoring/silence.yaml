@@ -50,7 +50,7 @@ spec:
               command:
                 - /usr/local/bin/silence
               env: []
-              image: quay.io/appuio/oc:v4.6
+              image: quay.io/appuio/oc:v4.9
               imagePullPolicy: IfNotPresent
               name: silence
               ports: []
