@@ -42,6 +42,10 @@ local cpuIdle = 'sum(%s)' % filterWorkerNodes('rate(node_cpu_seconds_total{mode=
 local podCapacity = resourceCapacity('pods');
 local podCount = 'sum(%s)' % filterWorkerNodes('kubelet_running_pods');
 
+local getExpr = function(group, rule) params.capacityAlerts.groups[group].rules[rule].expr;
+local unusedFactor = params.capacityAlerts.groups.UnusedCapacity.rules.ClusterUnusedCapacity.expr.factor;
+
+
 local exprMap = {
   TooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, podCount, arg.factor, arg.threshold ],
   ExpectTooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, predict(podCount, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
@@ -56,6 +60,50 @@ local exprMap = {
 
   ClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ cpuIdle, arg.factor, arg.threshold ],
   ExpectClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ predict(cpuIdle, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
+
+  local unusedFactor = params.capacityAlerts.groups.UnusedCapacity.rules.ClusterUnusedCapacity.expr.reserved,
+  ClusterUnusedCapacity: function(arg)
+    |||
+      (
+        vector(%f)
+      ) and (
+        %s - %s > %f * %s
+      ) and (
+        %s - %s > %f * %s
+      ) and (
+        %s - %s > %f * %s
+      ) and (
+        %s > %f * %s
+      ) and (
+        %s > %f * %s
+      )
+    |||
+    % [
+      unusedFactor,
+
+      podCapacity,
+      podCount,
+      unusedFactor,
+      params.capacityAlerts.groups.PodCapacity.rules.TooManyPods.expr.threshold,
+
+      memoryAllocatable,
+      memoryRequests,
+      unusedFactor,
+      params.capacityAlerts.groups.ResourceRequests.rules.TooMuchMemoryRequested.expr.threshold,
+
+      cpuAllocatable,
+      cpuRequests,
+      unusedFactor,
+      params.capacityAlerts.groups.ResourceRequests.rules.TooMuchCPURequested.expr.threshold,
+
+      memoryFree,
+      unusedFactor,
+      params.capacityAlerts.groups.MemoryCapacity.rules.ClusterLowOnMemory.expr.threshold,
+
+      cpuIdle,
+      unusedFactor,
+      params.capacityAlerts.groups.CpuCapacity.rules.ClusterCpuUsageHigh.expr.threshold,
+    ],
 };
 
 {
