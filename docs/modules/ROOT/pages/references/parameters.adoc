@@ -331,7 +331,7 @@ capacityAlerts:
           enabled: false <6>
     UnusedCapacity:
       rules:
-        ClusterUnusedCapacity:
+        ClusterHasUnusedNodes:
           enabled: false <7>
 ---
 <1> Enables capacity alerts

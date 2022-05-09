@@ -29,12 +29,10 @@ local resourceCapacity(resource) = 'sum(%s)' % filterWorkerNodes('kube_node_stat
 local resourceAllocatable(resource) = 'sum(%s)' % filterWorkerNodes('kube_node_status_allocatable{resource="%s"}' % resource);
 local resourceRequests(resource) = 'sum(%s)' % filterWorkerNodes('kube_pod_resource_request{resource="%s"}' % resource);
 
-local memoryCapacity = resourceCapacity('memory');
 local memoryAllocatable = resourceAllocatable('memory');
 local memoryRequests = resourceRequests('memory');
 local memoryFree = 'sum(%s)' % filterWorkerNodes('node_memory_MemAvailable_bytes', nodeLabel='instance');
 
-local cpuCapacity = resourceCapacity('cpu');
 local cpuAllocatable = resourceAllocatable('cpu');
 local cpuRequests = resourceRequests('cpu');
 local cpuIdle = 'sum(%s)' % filterWorkerNodes('rate(node_cpu_seconds_total{mode="idle"}[15m])', nodeLabel='instance');
@@ -43,7 +41,7 @@ local podCapacity = resourceCapacity('pods');
 local podCount = 'sum(%s)' % filterWorkerNodes('kubelet_running_pods');
 
 local getExpr = function(group, rule) params.capacityAlerts.groups[group].rules[rule].expr;
-local unusedReserved = getExpr('UnusedCapacity', 'ClusterUnusedCapacity').reserved;
+local unusedReserved = getExpr('UnusedCapacity', 'ClusterHasUnusedNodes').reserved;
 
 local exprMap = {
   TooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, podCount, arg.factor, arg.threshold ],
@@ -60,7 +58,7 @@ local exprMap = {
   ClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ cpuIdle, arg.factor, arg.threshold ],
   ExpectClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ predict(cpuIdle, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
 
-  ClusterUnusedCapacity: function(arg)
+  ClusterHasUnusedNodes: function(arg)
     |||
       min(
         (

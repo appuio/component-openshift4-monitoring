@@ -266,11 +266,11 @@ parameters:
 
         UnusedCapacity:
           rules:
-            ClusterUnusedCapacity:
+            ClusterHasUnusedNodes:
               enabled: true
               annotations:
                 message: 'Cluster has unused nodes.'
-                runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/unusedcapacity.html#SYN_ClusterUnusedCapacity
+                runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/unusedcapacity.html#SYN_ClusterHasUnusedNodes
                 description: 'The cluster has {{ $value }} unused nodes. Consider removing unused nodes.'
               for: 8h
               labels: {}

@@ -1,0 +1,50 @@
+= Alert Group: syn-UnusedCapacity
+
+We provide a rule to notice if a cluster has unused nodes.
+The cost of running the cluster may be optimized by removing unused nodes.
+
+== Alert Rule: SYN_ClusterHasUnusedNodes [[SYN_ClusterHasUnusedNodes]]
+
+=== icon:glasses[] Overview
+
+This alert indicated that the cluster is underutilized and nodes might be removed.
+It will fire if *pod count*, *CPU requests*, *CPU usage*, *memory requests* and *memory usage* are lower than the threshold of reserved nodes used for failover and future capacity needs.
+
+Removing the unused nodes could reduce the cost of running this cluster.
+
+=== icon:search[] Investigate
+
+* Verify the alert
+** Verify remaining capacity is high.
++
+[source,shell]
+----
+kubectl top nodes | grep -E "NAME|worker"
+kubectl describe node -lnode-role.kubernetes.io/app | grep "Allocatable:|Allocated resources:" -A 8
+kubectl describe node -lnode-role.kubernetes.io/app | grep "Non-terminated Pods:"
+----
++
+If the allocated resources reported by Kubernetes don't indicate low utilization on the nodes, there might be a bug in the alert rule.
+If that's the case, please disable this alert and open an issue for this component.
+** Check if there is a sudden drop in resource requests that indicate that this might be temporary.
+* Either remove worker nodes or resize existing worker nodes according to the install https://kb.vshn.ch/oc4/index.html[instructions for your cloud]
+
+=== icon:wrench[] Tune
+
+If this alert isn't actionable, noisy, or was raised too early you might want to tune it.
+
+Through the component parameters you have the option modify the amount of reserved nodes, change for how long the alert needs to be firing until you are alerted, or disable it outright.
+In the example below will adapt the rule to only alert after two days and change the reserved nodes to 5.
+
+[source,yaml]
+----
+capacityAlerts:
+  groups:
+    UnusedCapacity:
+      rules:
+        ClusterHasUnusedNodes:
+          enabled: true
+          for: 2d
+          expr:
+            reserved: 5
+----
