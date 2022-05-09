@@ -43,8 +43,7 @@ local podCapacity = resourceCapacity('pods');
 local podCount = 'sum(%s)' % filterWorkerNodes('kubelet_running_pods');
 
 local getExpr = function(group, rule) params.capacityAlerts.groups[group].rules[rule].expr;
-local unusedFactor = params.capacityAlerts.groups.UnusedCapacity.rules.ClusterUnusedCapacity.expr.factor;
-
+local unusedReserved = getExpr('UnusedCapacity', 'ClusterUnusedCapacity').reserved;
 
 local exprMap = {
   TooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, podCount, arg.factor, arg.threshold ],
@@ -61,48 +60,52 @@ local exprMap = {
   ClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ cpuIdle, arg.factor, arg.threshold ],
   ExpectClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ predict(cpuIdle, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
 
-  local unusedFactor = params.capacityAlerts.groups.UnusedCapacity.rules.ClusterUnusedCapacity.expr.reserved,
   ClusterUnusedCapacity: function(arg)
     |||
-      (
-        vector(%f)
-      ) and (
-        %s - %s > %f * %s
-      ) and (
-        %s - %s > %f * %s
-      ) and (
-        %s - %s > %f * %s
-      ) and (
-        %s > %f * %s
-      ) and (
-        %s > %f * %s
-      )
+      min(
+        (
+          label_replace(
+            (%s - %s) / %s
+          , "resource", "pods", "", "")
+        ) or (
+          label_replace(
+            (%s - %s) / %s
+          , "resource", "requested_memory", "", "")
+        ) or (
+          label_replace(
+            (%s - %s) / %s
+          , "resource", "requested_cpu", "", "")
+        ) or (
+          label_replace(
+            %s / %s
+          , "resource", "memory", "", "")
+        ) or (
+          label_replace(
+            %s / %s
+          , "resource", "cpu", "", "")
+        )
+      ) > %f
     |||
     % [
-      unusedFactor,
-
       podCapacity,
       podCount,
-      unusedFactor,
-      params.capacityAlerts.groups.PodCapacity.rules.TooManyPods.expr.threshold,
+      getExpr('PodCapacity', 'TooManyPods').threshold,
 
       memoryAllocatable,
       memoryRequests,
-      unusedFactor,
-      params.capacityAlerts.groups.ResourceRequests.rules.TooMuchMemoryRequested.expr.threshold,
+      getExpr('ResourceRequests', 'TooMuchMemoryRequested').threshold,
 
       cpuAllocatable,
       cpuRequests,
-      unusedFactor,
-      params.capacityAlerts.groups.ResourceRequests.rules.TooMuchCPURequested.expr.threshold,
+      getExpr('ResourceRequests', 'TooMuchCPURequested').threshold,
 
       memoryFree,
-      unusedFactor,
-      params.capacityAlerts.groups.MemoryCapacity.rules.ClusterLowOnMemory.expr.threshold,
+      getExpr('MemoryCapacity', 'ClusterLowOnMemory').threshold,
 
       cpuIdle,
-      unusedFactor,
-      params.capacityAlerts.groups.CpuCapacity.rules.ClusterCpuUsageHigh.expr.threshold,
+      getExpr('CpuCapacity', 'ClusterCpuUsageHigh').threshold,
+
+      unusedReserved,
     ],
 };
 
