@@ -2108,7 +2108,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: "(\n  node_filesystem_avail_bytes{job=\"node-exporter\",fstype!=\"\
             \"} / node_filesystem_size_bytes{job=\"node-exporter\",fstype!=\"\"} *\
-            \ 100 < 20\nand\n  predict_linear(node_filesystem_avail_bytes{job=\"node-exporter\"\
+            \ 100 < 15\nand\n  predict_linear(node_filesystem_avail_bytes{job=\"node-exporter\"\
             ,fstype!=\"\"}[6h], 24*60*60) < 0\nand\n  node_filesystem_readonly{job=\"\
             node-exporter\",fstype!=\"\"} == 0\n)\n"
           for: 1h
@@ -2126,7 +2126,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: "(\n  node_filesystem_avail_bytes{job=\"node-exporter\",fstype!=\"\
             \"} / node_filesystem_size_bytes{job=\"node-exporter\",fstype!=\"\"} *\
-            \ 100 < 15\nand\n  predict_linear(node_filesystem_avail_bytes{job=\"node-exporter\"\
+            \ 100 < 10\nand\n  predict_linear(node_filesystem_avail_bytes{job=\"node-exporter\"\
             ,fstype!=\"\"}[6h], 4*60*60) < 0\nand\n  node_filesystem_readonly{job=\"\
             node-exporter\",fstype!=\"\"} == 0\n)\n"
           for: 1h
