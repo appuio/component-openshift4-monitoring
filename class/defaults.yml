@@ -263,3 +263,18 @@ parameters:
                 range: '1d'
                 # How far into the future to predict (in seconds)
                 predict: '3*24*60*60'
+
+        UnusedCapacity:
+          rules:
+            ClusterHasUnusedNodes:
+              enabled: true
+              annotations:
+                message: 'Cluster has unused nodes.'
+                runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/unusedcapacity.html#SYN_ClusterHasUnusedNodes
+                description: 'The cluster has {{ $value }} unused nodes. Consider removing unused nodes.'
+              for: 8h
+              labels: {}
+              expr:
+                # How many nodes need to be unused.
+                # There should be some overcapacity to account for failing nodes and future growth.
+                reserved: 4

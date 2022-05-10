@@ -329,6 +329,10 @@ capacityAlerts:
           enabled: false <6>
         ExpectClusterCpuUsageHigh:
           enabled: false <6>
+    UnusedCapacity:
+      rules:
+        ClusterHasUnusedNodes:
+          enabled: false <7>
 ---
 <1> Enables capacity alerts
 <2> Changes the alert message for the pod capacity alert
@@ -336,6 +340,7 @@ capacityAlerts:
 <4> Change the pod count prediction to look at the last two days and predict the value in five days
 <5> Completely overrides the default alert rule and alerts if the total memory request is over 9000 GB
 <6> Disables both CPU capacity alert rules
+<7> Disables alert if the cluster has unused nodes.
 
 
 == `rules`
