@@ -1,16 +1,17 @@
 = Alert Group: syn-UnusedCapacity
 
-We provide a rule to notice if a cluster has unused nodes.
-The cost of running the cluster may be optimized by removing unused nodes.
+We provide an alert rule which fires if a cluster has multiple unused nodes.
+When this alert fires, the cluster can be scaled down to optimize costs.
 
 == Alert Rule: SYN_ClusterHasUnusedNodes [[SYN_ClusterHasUnusedNodes]]
 
 === icon:glasses[] Overview
 
-This alert indicated that the cluster is underutilized and nodes might be removed.
-It will fire if *pod count*, *CPU requests*, *CPU usage*, *memory requests* and *memory usage* are lower than the threshold of reserved nodes used for failover and future capacity needs.
+This alert indicates that the cluster utilization is low enough that nodes can be removed safely.
+The alert fires if *pod count*, *CPU requests*, *CPU usage*, *memory requests*, and *memory usage* are are all low enough that a node can be removed without impacting cluster stability in case of a node failure.
+By default, the alert will fire when the equivalent of at least four nodes has been unused for each metric for eight hours.
+Both the threshold of four unused nodes, and the duration of eight hours can be tuned through the component parameters.
 
-Removing the unused nodes could reduce the cost of running this cluster.
 
 === icon:search[] Investigate
 
@@ -33,8 +34,9 @@ If that's the case, please disable this alert and open an issue for this compone
 
 If this alert isn't actionable, noisy, or was raised too early you might want to tune it.
 
-Through the component parameters you have the option modify the amount of reserved nodes, change for how long the alert needs to be firing until you are alerted, or disable it outright.
-In the example below will adapt the rule to only alert after two days and change the reserved nodes to 5.
+Through the component parameters you have the option modify the number of reserved nodes.
+Additionally, you can change for how long the alert needs to be firing until you are alerted, or disable it completely.
+In the example below will adapt the rule to only alert after two days and change the number of reserved nodes to 5.
 
 [source,yaml]
 ----
