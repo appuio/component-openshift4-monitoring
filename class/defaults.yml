@@ -112,9 +112,7 @@ parameters:
               for: 30m
               labels: {}
               expr:
-                # How many more pods need to be schedulable
-                threshold: 'max(kube_node_status_capacity{resource="pods"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
             ExpectTooManyPods:
               enabled: false
@@ -125,9 +123,7 @@ parameters:
               for: 3h
               labels: {}
               expr:
-                # How many more pods need to be schedulable in three days
-                threshold: 'max(kube_node_status_capacity{resource="pods"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
                 # How much of the past to consider for the prediction
                 range: '1d'
@@ -145,9 +141,7 @@ parameters:
               for: 30m
               labels: {}
               expr:
-                # How much memory needs to be available to allocate (in bytes)
-                threshold: 'max(kube_node_status_allocatable{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
             ExpectTooMuchMemoryRequested:
               enabled: false
@@ -158,9 +152,7 @@ parameters:
               for: 3h
               labels: {}
               expr:
-                # How much memory needs to be available to allocate in three days (in bytes)
-                threshold: 'max(kube_node_status_allocatable{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
                 # How much of the past to consider for the prediction
                 range: '1d'
@@ -175,9 +167,7 @@ parameters:
               for: 30m
               labels: {}
               expr:
-                # How many cpu cores need to be available to allocate
-                threshold: 'max(kube_node_status_allocatable{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
             ExpectTooMuchCPURequested:
               enabled: false
@@ -188,9 +178,7 @@ parameters:
               for: 3h
               labels: {}
               expr:
-                # How many cpu cores need to be available to allocate in three days
-                threshold: 'max(kube_node_status_allocatable{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
                 # How much of the past to consider for the prediction
                 range: '1d'
@@ -208,9 +196,7 @@ parameters:
               for: 30m
               labels: {}
               expr:
-                # How much memory needs to be free over all worker nodes (in bytes)
-                threshold: 'max(kube_node_status_capacity{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
             ExpectClusterLowOnMemory:
               enabled: false
@@ -221,9 +207,7 @@ parameters:
               for: 3h
               labels: {}
               expr:
-                # How much memory needs to be over all worker nodes in three days (in bytes)
-                threshold: 'max(kube_node_status_capacity{resource="memory"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
                 # How much of the past to consider for the prediction
                 range: '1d'
@@ -241,9 +225,7 @@ parameters:
               for: 30m
               labels: {}
               expr:
-                # How many cpu cores need to be available to allocate
-                threshold: 'max(kube_node_status_capacity{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
 
             ExpectClusterCpuUsageHigh:
@@ -255,9 +237,7 @@ parameters:
               for: 3h
               labels: {}
               expr:
-                # How many cpu cores need to be idle
-                threshold: 'max(kube_node_status_capacity{resource="cpu"} * on(node) group_left kube_node_role{role="app"})'
-                # Multiply the threshold by this factor
+                # The alert specific threshold is multiplied by this factor. 1 == one node
                 factor: 1
                 # How much of the past to consider for the prediction
                 range: '1d'

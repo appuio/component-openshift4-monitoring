@@ -25,18 +25,25 @@ local filterWorkerNodes(metric, workerRole='app', nodeLabel='node') =
   '%(metric)s * on(%(nodeLabel)s) group_left label_replace(kube_node_role{role="%(workerRole)s"}, "%(nodeLabel)s", "$1", "node", "(.+)")' %
   { metric: metric, nodeLabel: nodeLabel, workerRole: workerRole };
 
+local maxPerNode(resource) = 'max((%s) * on(node) group_left kube_node_role{role="app"})' % resource;
+
 local resourceCapacity(resource) = 'sum(%s)' % filterWorkerNodes('kube_node_status_capacity{resource="%s"}' % resource);
 local resourceAllocatable(resource) = 'sum(%s)' % filterWorkerNodes('kube_node_status_allocatable{resource="%s"}' % resource);
 local resourceRequests(resource) = 'sum(%s)' % filterWorkerNodes('kube_pod_resource_request{resource="%s"}' % resource);
 
+local memoryRequestsThreshold = maxPerNode('kube_node_status_allocatable{resource="memory"}');
+local memoryThreshold = maxPerNode('kube_node_status_capacity{resource="memory"}');
 local memoryAllocatable = resourceAllocatable('memory');
 local memoryRequests = resourceRequests('memory');
 local memoryFree = 'sum(%s)' % filterWorkerNodes('node_memory_MemAvailable_bytes', nodeLabel='instance');
 
+local cpuRequestsThreshold = maxPerNode('kube_node_status_allocatable{resource="cpu"}');
+local cpuThreshold = maxPerNode('kube_node_status_capacity{resource="cpu"}');
 local cpuAllocatable = resourceAllocatable('cpu');
 local cpuRequests = resourceRequests('cpu');
 local cpuIdle = 'sum(%s)' % filterWorkerNodes('rate(node_cpu_seconds_total{mode="idle"}[15m])', nodeLabel='instance');
 
+local podThreshold = maxPerNode('kube_node_status_capacity{resource="pods"}');
 local podCapacity = resourceCapacity('pods');
 local podCount = 'sum(%s)' % filterWorkerNodes('kubelet_running_pods');
 
@@ -44,19 +51,19 @@ local getExpr = function(group, rule) params.capacityAlerts.groups[group].rules[
 local unusedReserved = getExpr('UnusedCapacity', 'ClusterHasUnusedNodes').reserved;
 
 local exprMap = {
-  TooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, podCount, arg.factor, arg.threshold ],
-  ExpectTooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, predict(podCount, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
+  TooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, podCount, arg.factor, podThreshold ],
+  ExpectTooManyPods: function(arg) '%s - %s < %f * %s' % [ podCapacity, predict(podCount, range=arg.range, predict=arg.predict), arg.factor, podThreshold ],
 
-  TooMuchMemoryRequested: function(arg) '%s - %s < %f * %s' % [ memoryAllocatable, memoryRequests, arg.factor, arg.threshold ],
-  ExpectTooMuchMemoryRequested: function(arg) '%s - %s < %f * %s' % [ memoryAllocatable, predict(memoryRequests, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
-  TooMuchCPURequested: function(arg) '%s - %s < %f * %s' % [ cpuAllocatable, cpuRequests, arg.factor, arg.threshold ],
-  ExpectTooMuchCPURequested: function(arg) '%s - %s < %f * %s' % [ cpuAllocatable, predict(cpuRequests, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
+  TooMuchMemoryRequested: function(arg) '%s - %s < %f * %s' % [ memoryAllocatable, memoryRequests, arg.factor, memoryRequestsThreshold ],
+  ExpectTooMuchMemoryRequested: function(arg) '%s - %s < %f * %s' % [ memoryAllocatable, predict(memoryRequests, range=arg.range, predict=arg.predict), arg.factor, memoryRequestsThreshold ],
+  TooMuchCPURequested: function(arg) '%s - %s < %f * %s' % [ cpuAllocatable, cpuRequests, arg.factor, cpuRequestsThreshold ],
+  ExpectTooMuchCPURequested: function(arg) '%s - %s < %f * %s' % [ cpuAllocatable, predict(cpuRequests, range=arg.range, predict=arg.predict), arg.factor, cpuRequestsThreshold ],
 
-  ClusterLowOnMemory: function(arg) '%s < %f * %s' % [ memoryFree, arg.factor, arg.threshold ],
-  ExpectClusterLowOnMemory: function(arg) '%s < %f * %s' % [ predict(memoryFree, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
+  ClusterLowOnMemory: function(arg) '%s < %f * %s' % [ memoryFree, arg.factor, memoryThreshold ],
+  ExpectClusterLowOnMemory: function(arg) '%s < %f * %s' % [ predict(memoryFree, range=arg.range, predict=arg.predict), arg.factor, memoryThreshold ],
 
-  ClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ cpuIdle, arg.factor, arg.threshold ],
-  ExpectClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ predict(cpuIdle, range=arg.range, predict=arg.predict), arg.factor, arg.threshold ],
+  ClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ cpuIdle, arg.factor, cpuThreshold ],
+  ExpectClusterCpuUsageHigh: function(arg) '%s < %f * %s' % [ predict(cpuIdle, range=arg.range, predict=arg.predict), arg.factor, cpuThreshold ],
 
   ClusterHasUnusedNodes: function(arg)
     |||
@@ -87,21 +94,21 @@ local exprMap = {
     % [
       podCapacity,
       podCount,
-      getExpr('PodCapacity', 'TooManyPods').threshold,
+      podThreshold,
 
       memoryAllocatable,
       memoryRequests,
-      getExpr('ResourceRequests', 'TooMuchMemoryRequested').threshold,
+      memoryRequestsThreshold,
 
       cpuAllocatable,
       cpuRequests,
-      getExpr('ResourceRequests', 'TooMuchCPURequested').threshold,
+      cpuRequestsThreshold,
 
       memoryFree,
-      getExpr('MemoryCapacity', 'ClusterLowOnMemory').threshold,
+      memoryThreshold,
 
       cpuIdle,
-      getExpr('CpuCapacity', 'ClusterCpuUsageHigh').threshold,
+      cpuThreshold,
 
       unusedReserved,
     ],
