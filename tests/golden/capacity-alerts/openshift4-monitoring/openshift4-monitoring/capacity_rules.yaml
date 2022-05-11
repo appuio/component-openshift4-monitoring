@@ -21,7 +21,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: sum(rate(node_cpu_seconds_total{mode="idle"}[15m]) * on(instance)
             group_left label_replace(kube_node_role{role="app"}, "instance", "$1",
-            "node", "(.+)")) < 1.000000 * max(kube_node_status_capacity{resource="cpu"}
+            "node", "(.+)")) < 1.000000 * max((kube_node_status_capacity{resource="cpu"})
             * on(node) group_left kube_node_role{role="app"})
           for: 30m
           labels:
@@ -39,7 +39,7 @@ spec:
             runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/memorycapacity.html#SYN_ClusterMemoryUsageHigh
             syn_component: openshift4-monitoring
           expr: sum(node_memory_MemAvailable_bytes * on(instance) group_left label_replace(kube_node_role{role="app"},
-            "instance", "$1", "node", "(.+)")) < 1.000000 * max(kube_node_status_capacity{resource="memory"}
+            "instance", "$1", "node", "(.+)")) < 1.000000 * max((kube_node_status_capacity{resource="memory"})
             * on(node) group_left kube_node_role{role="app"})
           for: 30m
           labels:
@@ -59,7 +59,7 @@ spec:
           expr: sum(kube_node_status_capacity{resource="pods"} * on(node) group_left
             label_replace(kube_node_role{role="app"}, "node", "$1", "node", "(.+)"))
             - sum(kubelet_running_pods * on(node) group_left label_replace(kube_node_role{role="app"},
-            "node", "$1", "node", "(.+)")) < 1.000000 * max(kube_node_status_capacity{resource="pods"}
+            "node", "$1", "node", "(.+)")) < 1.000000 * max((kube_node_status_capacity{resource="pods"})
             * on(node) group_left kube_node_role{role="app"})
           for: 30m
           labels:
@@ -80,7 +80,7 @@ spec:
             label_replace(kube_node_role{role="app"}, "node", "$1", "node", "(.+)"))
             - sum(kube_pod_resource_request{resource="cpu"} * on(node) group_left
             label_replace(kube_node_role{role="app"}, "node", "$1", "node", "(.+)"))
-            < 1.000000 * max(kube_node_status_allocatable{resource="cpu"} * on(node)
+            < 1.000000 * max((kube_node_status_allocatable{resource="cpu"}) * on(node)
             group_left kube_node_role{role="app"})
           for: 30m
           labels:
@@ -99,7 +99,7 @@ spec:
             label_replace(kube_node_role{role="app"}, "node", "$1", "node", "(.+)"))
             - sum(kube_pod_resource_request{resource="memory"} * on(node) group_left
             label_replace(kube_node_role{role="app"}, "node", "$1", "node", "(.+)"))
-            < 1.000000 * max(kube_node_status_allocatable{resource="memory"} * on(node)
+            < 1.000000 * max((kube_node_status_allocatable{resource="memory"}) * on(node)
             group_left kube_node_role{role="app"})
           for: 30m
           labels:
@@ -119,32 +119,32 @@ spec:
             pods\"} * on(node) group_left label_replace(kube_node_role{role=\"app\"\
             }, \"node\", \"$1\", \"node\", \"(.+)\")) - sum(kubelet_running_pods *\
             \ on(node) group_left label_replace(kube_node_role{role=\"app\"}, \"node\"\
-            , \"$1\", \"node\", \"(.+)\"))) / max(kube_node_status_capacity{resource=\"\
-            pods\"} * on(node) group_left kube_node_role{role=\"app\"})\n    , \"\
+            , \"$1\", \"node\", \"(.+)\"))) / max((kube_node_status_capacity{resource=\"\
+            pods\"}) * on(node) group_left kube_node_role{role=\"app\"})\n    , \"\
             resource\", \"pods\", \"\", \"\")\n  ) or (\n    label_replace(\n    \
             \  (sum(kube_node_status_allocatable{resource=\"memory\"} * on(node) group_left\
             \ label_replace(kube_node_role{role=\"app\"}, \"node\", \"$1\", \"node\"\
             , \"(.+)\")) - sum(kube_pod_resource_request{resource=\"memory\"} * on(node)\
             \ group_left label_replace(kube_node_role{role=\"app\"}, \"node\", \"\
-            $1\", \"node\", \"(.+)\"))) / max(kube_node_status_allocatable{resource=\"\
-            memory\"} * on(node) group_left kube_node_role{role=\"app\"})\n    , \"\
-            resource\", \"requested_memory\", \"\", \"\")\n  ) or (\n    label_replace(\n\
+            $1\", \"node\", \"(.+)\"))) / max((kube_node_status_allocatable{resource=\"\
+            memory\"}) * on(node) group_left kube_node_role{role=\"app\"})\n    ,\
+            \ \"resource\", \"requested_memory\", \"\", \"\")\n  ) or (\n    label_replace(\n\
             \      (sum(kube_node_status_allocatable{resource=\"cpu\"} * on(node)\
             \ group_left label_replace(kube_node_role{role=\"app\"}, \"node\", \"\
             $1\", \"node\", \"(.+)\")) - sum(kube_pod_resource_request{resource=\"\
             cpu\"} * on(node) group_left label_replace(kube_node_role{role=\"app\"\
-            }, \"node\", \"$1\", \"node\", \"(.+)\"))) / max(kube_node_status_allocatable{resource=\"\
-            cpu\"} * on(node) group_left kube_node_role{role=\"app\"})\n    , \"resource\"\
-            , \"requested_cpu\", \"\", \"\")\n  ) or (\n    label_replace(\n     \
-            \ sum(node_memory_MemAvailable_bytes * on(instance) group_left label_replace(kube_node_role{role=\"\
-            app\"}, \"instance\", \"$1\", \"node\", \"(.+)\")) / max(kube_node_status_capacity{resource=\"\
-            memory\"} * on(node) group_left kube_node_role{role=\"app\"})\n    , \"\
-            resource\", \"memory\", \"\", \"\")\n  ) or (\n    label_replace(\n  \
-            \    sum(rate(node_cpu_seconds_total{mode=\"idle\"}[15m]) * on(instance)\
+            }, \"node\", \"$1\", \"node\", \"(.+)\"))) / max((kube_node_status_allocatable{resource=\"\
+            cpu\"}) * on(node) group_left kube_node_role{role=\"app\"})\n    , \"\
+            resource\", \"requested_cpu\", \"\", \"\")\n  ) or (\n    label_replace(\n\
+            \      sum(node_memory_MemAvailable_bytes * on(instance) group_left label_replace(kube_node_role{role=\"\
+            app\"}, \"instance\", \"$1\", \"node\", \"(.+)\")) / max((kube_node_status_capacity{resource=\"\
+            memory\"}) * on(node) group_left kube_node_role{role=\"app\"})\n    ,\
+            \ \"resource\", \"memory\", \"\", \"\")\n  ) or (\n    label_replace(\n\
+            \      sum(rate(node_cpu_seconds_total{mode=\"idle\"}[15m]) * on(instance)\
             \ group_left label_replace(kube_node_role{role=\"app\"}, \"instance\"\
-            , \"$1\", \"node\", \"(.+)\")) / max(kube_node_status_capacity{resource=\"\
-            cpu\"} * on(node) group_left kube_node_role{role=\"app\"})\n    , \"resource\"\
-            , \"cpu\", \"\", \"\")\n  )\n) > 4.000000\n"
+            , \"$1\", \"node\", \"(.+)\")) / max((kube_node_status_capacity{resource=\"\
+            cpu\"}) * on(node) group_left kube_node_role{role=\"app\"})\n    , \"\
+            resource\", \"cpu\", \"\", \"\")\n  )\n) > 4.000000\n"
           for: 8h
           labels:
             severity: warning

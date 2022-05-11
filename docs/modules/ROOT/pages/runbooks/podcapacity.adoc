@@ -40,8 +40,8 @@ If that's the case, please disable this alert and open an issue for this compone
 
 If this alert isn't actionable, noisy, or was raised too late you might want to tune it.
 
-Through the component parameters you have the option modify the alert threshold, change for how long it needs to be firing until you are alerted, or disable it outright.
-In the example below will adapt the rule to only alert after two hours, but increase the threshold to 1000 pods.
+Through the component parameters you have the option modify the alert threshold factor, change for how long it needs to be firing until you are alerted, or disable it outright.
+In the example below will adapt the rule to only alert after two hours, but decrease the threshold factor to 0.5.
 
 [source,yaml]
 ----
@@ -54,9 +54,8 @@ capacityAlerts:
           enabled: true
           for: 2h
           expr:
-            threshold: '1000' <1>
+            factor: 0.5
 ----
-<1> The threshold can be an arbitrary promql expression
 
 == Alert Rule: SYN_ExpectTooManyPods [[SYN_ExpectTooManyPods]]
 
