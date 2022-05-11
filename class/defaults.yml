@@ -137,7 +137,7 @@ parameters:
               annotations:
                 message: 'Only {{ $value }} memory left for new pods.'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_TooMuchMemoryRequested
-                description: 'The cluster is close to asigning all memory to running pods. The cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
+                description: 'The cluster is close to assigning all memory to running pods. The cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
               for: 30m
               labels: {}
               expr:
@@ -148,7 +148,7 @@ parameters:
               annotations:
                 message: 'Expected to exceed the threshold of requested memory in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_ExpectTooMuchMemoryRequested
-                description: 'The cluster is getting close to asigning all memory to running pods. Soon the cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
+                description: 'The cluster is getting close to assigning all memory to running pods. Soon the cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
               for: 3h
               labels: {}
               expr:
@@ -163,7 +163,7 @@ parameters:
               annotations:
                 message: 'Only {{ $value }} cpu cores left for new pods.'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_TooMuchCPURequested
-                description: 'The cluster is close to asigning all CPU resources to running pods. The cluster might not be able to handle node failures and might soon not be able to start new pods. Consider adding new nodes.'
+                description: 'The cluster is close to assigning all CPU resources to running pods. The cluster might not be able to handle node failures and might soon not be able to start new pods. Consider adding new nodes.'
               for: 30m
               labels: {}
               expr:
@@ -174,7 +174,7 @@ parameters:
               annotations:
                 message: 'Expected to exceed the threshold of requested CPU resources in 3 days'
                 runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/resourcerequests.html#SYN_ExpectTooMuchCPURequested
-                description: 'The cluster is getting close to asigning all CPU cores to running pods. Soon the cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
+                description: 'The cluster is getting close to assigning all CPU cores to running pods. Soon the cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
               for: 3h
               labels: {}
               expr:
