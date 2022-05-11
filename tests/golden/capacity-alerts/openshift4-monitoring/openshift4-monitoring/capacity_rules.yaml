@@ -70,7 +70,7 @@ spec:
       rules:
         - alert: SYN_TooMuchCPURequested
           annotations:
-            description: The cluster is close to asigning all CPU resources to running
+            description: The cluster is close to assigning all CPU resources to running
               pods. The cluster might not be able to handle node failures and might
               soon not be able to start new pods. Consider adding new nodes.
             message: Only {{ $value }} cpu cores left for new pods.
@@ -89,7 +89,7 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_TooMuchMemoryRequested
           annotations:
-            description: The cluster is close to asigning all memory to running pods.
+            description: The cluster is close to assigning all memory to running pods.
               The cluster might not be able to handle node failures and might not
               be able to start new pods. Consider adding new nodes.
             message: Only {{ $value }} memory left for new pods.
