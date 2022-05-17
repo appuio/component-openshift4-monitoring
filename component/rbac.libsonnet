@@ -1,7 +1,8 @@
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local inv = kap.inventory();
-local params = inv.parameters.control_api;
+
+local params = inv.parameters.openshift4_monitoring;
 
 local defaultAnnotations = {
   syn_component: inv.parameters._instance,
@@ -55,7 +56,7 @@ local discoveryRoleBinding = kube.ClusterRoleBinding('syn-prometheus-auto-discov
     {
       kind: 'ServiceAccount',
       name: 'prometheus-k8s',
-      namespace: 'openshift-monitoring',
+      namespace: params.namespace,
     },
   ],
 };
