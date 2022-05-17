@@ -9,7 +9,8 @@ local defaultAnnotations = {
 };
 
 /*
-* Allows discovery of services, pods, and endpoints for prometheus auto-discovery
+* Allows Prometheus auto-discovery.
+* Adds the recommended permissions from https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/rbac.md#prometheus-rbac
 */
 local discoveryRole = kube.ClusterRole('syn-prometheus-auto-discovery') {
   metadata+: {
