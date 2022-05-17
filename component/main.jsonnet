@@ -71,6 +71,7 @@ local ns_patch =
       'alertmanager.yaml': std.manifestYamlDoc(params.alertManagerConfig),
     },
   },
+  rbac: import 'rbac.libsonnet',
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
   [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
