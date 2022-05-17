@@ -30,6 +30,19 @@ local discoveryRole = kube.ClusterRole('syn-prometheus-auto-discovery') {
         'watch',
       ],
     },
+    {
+      apiGroups: [
+        'networking.k8s.io',
+      ],
+      resources: [
+        'ingresses',
+      ],
+      verbs: [
+        'get',
+        'list',
+        'watch',
+      ],
+    },
   ],
 };
 
