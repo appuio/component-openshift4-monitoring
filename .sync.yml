@@ -1,5 +1,5 @@
 :global:
-  componentName: openshift4-monitoring
+  componentName: OpenShift4 Monitoring
   feature_goldenTests: true
   testMatrix:
     key: instance
@@ -7,10 +7,6 @@
       - capacity-alerts
       - release-4.9
       - release-4.10
-
-docs/antora.yml:
-  name: openshift4-monitoring
-  title: OpenShift4 Monitoring
 
 .gitignore:
   additionalEntries:
