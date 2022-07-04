@@ -2284,11 +2284,10 @@ spec:
               }}.'
             summary: etcd cluster has high number of failed grpc requests.
             syn_component: openshift4-monitoring
-          expr: "100 * sum(rate(grpc_server_handled_total{job=\"etcd\", grpc_code=~\"\
-            Unknown|FailedPrecondition|ResourceExhausted|Internal|Unavailable|DataLoss|DeadlineExceeded\"\
-            }[5m])) without (grpc_type, grpc_code)\n  /\nsum(rate(grpc_server_handled_total{job=\"\
+          expr: "(sum(rate(grpc_server_handled_total{job=\"etcd\", grpc_code=~\"Unknown|FailedPrecondition|ResourceExhausted|Internal|Unavailable|DataLoss|DeadlineExceeded\"\
+            }[5m])) without (grpc_type, grpc_code)\n  /\n(sum(rate(grpc_server_handled_total{job=\"\
             etcd\"}[5m])) without (grpc_type, grpc_code)\n  > 2 and on ()(sum(cluster_infrastructure_provider{type!~\"\
-            ipi|BareMetal\"} == bool 1))\n"
+            ipi|BareMetal\"} == bool 1)))) * 100 > 10\n"
           for: 10m
           labels:
             severity: warning
@@ -2301,26 +2300,23 @@ spec:
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-etcd-operator/etcdHighNumberOfFailedGRPCRequests.md
             summary: etcd cluster has high number of failed grpc requests.
             syn_component: openshift4-monitoring
-          expr: "100 * sum(rate(grpc_server_handled_total{job=\"etcd\", grpc_code=~\"\
-            Unknown|FailedPrecondition|ResourceExhausted|Internal|Unavailable|DataLoss|DeadlineExceeded\"\
-            }[5m])) without (grpc_type, grpc_code)\n  /\nsum(rate(grpc_server_handled_total{job=\"\
-            etcd\"}[5m])) without (grpc_type, grpc_code)\n  > 5 and on ()(sum(cluster_infrastructure_provider{type!~\"\
-            ipi|BareMetal\"} == bool 1))\n"
+          expr: "(sum(rate(grpc_server_handled_total{job=\"etcd\", grpc_code=~\"Unknown|FailedPrecondition|ResourceExhausted|Internal|Unavailable|DataLoss|DeadlineExceeded\"\
+            }[5m])) without (grpc_type, grpc_code)\n  /\n(sum(rate(grpc_server_handled_total{job=\"\
+            etcd\"}[5m])) without (grpc_type, grpc_code)\n  > 2 and on ()(sum(cluster_infrastructure_provider{type!~\"\
+            ipi|BareMetal\"} == bool 1)))) * 100 > 50\n"
           for: 10m
           labels:
             severity: critical
             syn: 'true'
         - alert: SYN_etcdHighNumberOfLeaderChanges
           annotations:
-            description: 'etcd cluster "{{ $labels.job }}": {{ $value }} leader changes
-              within the last 15 minutes. Frequent elections may be a sign of insufficient
-              resources, high network latency, or disruptions by other components
-              and should be investigated.'
+            description: 'etcd cluster "{{ $labels.job }}": {{ $value }} average leader
+              changes within the last 10 minutes. Frequent elections may be a sign
+              of insufficient resources, high network latency, or disruptions by other
+              components and should be investigated.'
             summary: etcd cluster has high number of leader changes.
             syn_component: openshift4-monitoring
-          expr: 'increase((max without (instance) (etcd_server_leader_changes_seen_total{job=~".*etcd.*"})
-            or 0*absent(etcd_server_leader_changes_seen_total{job=~".*etcd.*"}))[15m:1m])
-            >= 5
+          expr: 'avg(changes(etcd_server_is_leader[10m])) > 5
 
             '
           for: 5m
