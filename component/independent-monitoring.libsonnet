@@ -15,43 +15,98 @@ local promInstance =
   else
     inv.parameters.prometheus.defaultInstance;
 
-local serviceMonitor = function(name)
-  prom.ServiceMonitor(name) {
-    metadata+: {
-      namespace: nsName,
-    },
-    spec: {
-      endpoints: [
-        {
-          bearerTokenSecret: {
-            key: '',
+local endpointConfiguration = function(serverName) {
+  bearerTokenSecret: {
+    key: '',
+  },
+  interval: '30s',
+  port: 'metrics',
+  scheme: 'https',
+  tlsConfig: {
+    caFile: '/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt',
+    certFile: '/etc/prometheus/secrets/ocp-metric-client-certs-monitoring/tls.crt',
+    keyFile: '/etc/prometheus/secrets/ocp-metric-client-certs-monitoring/tls.key',
+    serverName: serverName,
+  },
+};
+
+local alertmanagerServiceMonitor = prom.ServiceMonitor('alertmanager-main') {
+  metadata+: {
+    namespace: nsName,
+  },
+  spec: {
+    endpoints: [
+      endpointConfiguration('alertmanager-main.openshift-monitoring.svc') {
+        metricRelabelings: [
+          {
+            action: 'keep',
+            sourceLabels: [
+              '__name__',
+            ],
+            regex: 'alertmanager_.*',
           },
-          interval: '30s',
-          port: 'metrics',
-          scheme: 'https',
-          tlsConfig: {
-            caFile: '/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt',
-            certFile: '/etc/prometheus/secrets/ocp-metric-client-certs-monitoring/tls.crt',
-            keyFile: '/etc/prometheus/secrets/ocp-metric-client-certs-monitoring/tls.key',
-            serverName: 'alertmanager-main.openshift-monitoring.svc',
-          },
-        },
-      ],
-      namespaceSelector: {
-        matchNames: [
-          params.namespace,
         ],
       },
-      selector: {
-        matchLabels: {
-          'app.kubernetes.io/component': 'alert-router',
-          'app.kubernetes.io/instance': 'main',
-          'app.kubernetes.io/name': 'alertmanager',
-          'app.kubernetes.io/part-of': 'openshift-monitoring',
-        },
+    ],
+    namespaceSelector: {
+      matchNames: [
+        params.namespace,
+      ],
+    },
+    selector: {
+      matchLabels: {
+        'app.kubernetes.io/component': 'alert-router',
+        'app.kubernetes.io/instance': 'main',
+        'app.kubernetes.io/name': 'alertmanager',
+        'app.kubernetes.io/part-of': 'openshift-monitoring',
       },
     },
-  };
+  },
+};
+
+local prometheusServiceMonitor = prom.ServiceMonitor('prometheus-k8s') {
+  metadata+: {
+    namespace: nsName,
+  },
+  spec: {
+    endpoints: [
+      endpointConfiguration('prometheus-k8s.openshift-monitoring.svc') {
+        metricRelabelings: [
+          {
+            action: 'keep',
+            sourceLabels: [
+              '__name__',
+            ],
+            regex: 'prometheus_.*',
+          },
+          {
+            action: 'drop',
+            sourceLabels: [
+              '__name__',
+            ],
+            regex: std.join('|', [
+              'prometheus_(http|rule|target)_.*',
+              'prometheus_remote_storage_sent_batch_duration_seconds_bucket',
+            ]),
+          },
+        ],
+      },
+    ],
+    namespaceSelector: {
+      matchNames: [
+        params.namespace,
+      ],
+    },
+    selector: {
+      matchLabels: {
+        'app.kubernetes.io/component': 'prometheus',
+        'app.kubernetes.io/instance': 'k8s',
+        'app.kubernetes.io/name': 'prometheus',
+        'app.kubernetes.io/part-of': 'openshift-monitoring',
+      },
+    },
+  },
+};
 
 if params.independent_monitoring.enabled && std.member(inv.applications, 'prometheus') then
   [
@@ -59,7 +114,8 @@ if params.independent_monitoring.enabled && std.member(inv.applications, 'promet
       kube.Namespace(nsName),
       instance=promInstance
     ),
-    serviceMonitor('alertmanager-main'),
+    alertmanagerServiceMonitor,
+    prometheusServiceMonitor,
   ]
 else
   std.trace(

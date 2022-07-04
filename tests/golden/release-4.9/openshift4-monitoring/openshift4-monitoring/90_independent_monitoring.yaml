@@ -20,6 +20,11 @@ spec:
     - bearerTokenSecret:
         key: ''
       interval: 30s
+      metricRelabelings:
+        - action: keep
+          regex: alertmanager_.*
+          sourceLabels:
+            - __name__
       port: metrics
       scheme: https
       tlsConfig:
@@ -35,4 +40,43 @@ spec:
       app.kubernetes.io/component: alert-router
       app.kubernetes.io/instance: main
       app.kubernetes.io/name: alertmanager
+      app.kubernetes.io/part-of: openshift-monitoring
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations: {}
+  labels:
+    name: prometheus-k8s
+  name: prometheus-k8s
+  namespace: syn-monitoring-openshift4-monitoring
+spec:
+  endpoints:
+    - bearerTokenSecret:
+        key: ''
+      interval: 30s
+      metricRelabelings:
+        - action: keep
+          regex: prometheus_.*
+          sourceLabels:
+            - __name__
+        - action: drop
+          regex: prometheus_(http|rule|target)_.*|prometheus_remote_storage_sent_batch_duration_seconds_bucket
+          sourceLabels:
+            - __name__
+      port: metrics
+      scheme: https
+      tlsConfig:
+        caFile: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        certFile: /etc/prometheus/secrets/ocp-metric-client-certs-monitoring/tls.crt
+        keyFile: /etc/prometheus/secrets/ocp-metric-client-certs-monitoring/tls.key
+        serverName: prometheus-k8s.openshift-monitoring.svc
+  namespaceSelector:
+    matchNames:
+      - openshift-monitoring
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: prometheus
+      app.kubernetes.io/instance: k8s
+      app.kubernetes.io/name: prometheus
       app.kubernetes.io/part-of: openshift-monitoring
