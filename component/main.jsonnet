@@ -102,4 +102,6 @@ local ns_patch =
   }
   for group_name in std.objectFields(params.rules)
   if params.rules[group_name] != null
+} + {
+  '90_syn_monitoring': (import 'syn-monitoring.libsonnet'),
 }
