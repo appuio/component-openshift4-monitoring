@@ -17,9 +17,7 @@ metadata:
   namespace: syn-monitoring-openshift4-monitoring
 spec:
   endpoints:
-    - bearerTokenSecret:
-        key: ''
-      interval: 30s
+    - interval: 30s
       metricRelabelings:
         - action: keep
           regex: alertmanager_.*
@@ -52,9 +50,7 @@ metadata:
   namespace: syn-monitoring-openshift4-monitoring
 spec:
   endpoints:
-    - bearerTokenSecret:
-        key: ''
-      interval: 30s
+    - interval: 30s
       metricRelabelings:
         - action: keep
           regex: prometheus_.*

@@ -16,9 +16,6 @@ local promInstance =
     inv.parameters.prometheus.defaultInstance;
 
 local endpointConfiguration = function(serverName) {
-  bearerTokenSecret: {
-    key: '',
-  },
   interval: '30s',
   port: 'metrics',
   scheme: 'https',
