@@ -10,8 +10,8 @@ local params = inv.parameters.openshift4_monitoring;
 local nsName = 'syn-monitoring-openshift4-monitoring';
 
 local promInstance =
-  if params.independent_monitoring.instance != null then
-    params.independent_monitoring.instance
+  if params.syn_monitoring.instance != null then
+    params.syn_monitoring.instance
   else
     inv.parameters.prometheus.defaultInstance;
 
@@ -108,7 +108,7 @@ local prometheusServiceMonitor = prom.ServiceMonitor('prometheus-k8s') {
   },
 };
 
-if params.independent_monitoring.enabled && std.member(inv.applications, 'prometheus') then
+if params.syn_monitoring.enabled && std.member(inv.applications, 'prometheus') then
   [
     prom.RegisterNamespace(
       kube.Namespace(nsName),

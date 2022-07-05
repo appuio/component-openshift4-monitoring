@@ -397,7 +397,7 @@ alerts:
     - KubeClientErrors
 ----
 
-== `independent_monitoring`
+== `syn_monitoring`
 
 This parameter allows users to enable the component's monitoring configuration.
 Currently the component has support for deploying custom `ServiceMonitors` on clusters which use component `prometheus` to manage a custom monitoring stack.
