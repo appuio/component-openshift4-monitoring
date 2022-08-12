@@ -26,6 +26,7 @@ parameters:
       networkPlugin: openshift-sdn
       elasticsearchOperator: true
       clusterSamplesOperator: true
+    thanosObjectStorage: {}
     configs:
       prometheusK8s:
         externalLabels:

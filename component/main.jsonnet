@@ -1,3 +1,4 @@
+local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local prom = import 'lib/prom.libsonnet';
@@ -31,6 +32,9 @@ local ns_patch =
     }
   );
 
+local deployThanosObjStorage =
+  std.length(params.thanosObjectStorage) > 0;
+
 {
   '00_namespace_labels': ns_patch,
   [if std.length(params.configs) > 0 then '10_configmap']:
@@ -42,9 +46,18 @@ local ns_patch =
         'config.yaml': std.manifestYamlDoc(
           {
             enableUserWorkload: params.enableUserWorkload,
-          } + std.mapWithKey(
-            function(field, value) value + params.defaultConfig,
-            params.configs
+            [if deployThanosObjStorage then 'thanos']: {
+              objectStorageConfig: {
+                key: 'thanos.yaml',
+                name: 'thanos-objstore-config',
+              },
+            },
+          } + com.makeMergeable(
+            std.mapWithKey(
+              function(field, value)
+                value + params.defaultConfig,
+              params.configs
+            )
           )
         ),
       },
@@ -71,6 +84,15 @@ local ns_patch =
       'alertmanager.yaml': std.manifestYamlDoc(params.alertManagerConfig),
     },
   },
+  [if deployThanosObjStorage then '11_thanos_config']:
+    kube.Secret('thanos-objstore-config') {
+      metadata+: {
+        namespace: ns,
+      },
+      stringData: {
+        'thanos.yaml': std.manifestYamlDoc(params.thanosObjectStorage),
+      },
+    },
   rbac: import 'rbac.libsonnet',
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',

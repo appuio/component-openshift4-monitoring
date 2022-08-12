@@ -65,6 +65,39 @@ default:: false
 
 A parameter to enable https://docs.openshift.com/container-platform/4.9/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
 
+== `thanosObjectStorage`
+
+[horizontal]
+type:: dictionary
+default:: `{}`
+example::
++
+[source,yaml]
+----
+# Example config for an S3 bucket hosted at s3.example.com
+type: s3
+config:
+  bucket: the-bucket-name
+  # For S3 the endpoint is expected to be given including the region if applicable.
+  endpoint: objects.eu-central-1.example.com
+  access_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/thanos/s3_access_key}
+  secret_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/thanos/s3_secret_key}
+----
+
+This parameter allows users to configure Thanos object storage details.
+See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/thanos.md#configuring-thanos-object-storage[the upstream Prometheus operator documentation] for details.
+
+If this parameter isn't empty, the component will render its contents to key `thanos.yaml` in secret `thanos-objstore-config` in the monitoring namespace.
+Additionally, if a object storage config is provided, the component will inject the following config in the cluster monitoring configuration:
+
+[source,yaml]
+----
+thanos:
+  objectStorageConfig:
+    key: thanos.yaml
+    name: thanos-objstore-config
+----
+
 == `configs`
 
 [horizontal]
