@@ -46,10 +46,12 @@ local deployThanosObjStorage =
         'config.yaml': std.manifestYamlDoc(
           {
             enableUserWorkload: params.enableUserWorkload,
-            [if deployThanosObjStorage then 'thanos']: {
-              objectStorageConfig: {
-                key: 'thanos.yaml',
-                name: 'thanos-objstore-config',
+            [if deployThanosObjStorage then 'prometheusK8s']: {
+              thanos: {
+                objectStorageConfig: {
+                  key: 'thanos.yaml',
+                  name: 'thanos-objstore-config',
+                },
               },
             },
           } + com.makeMergeable(
