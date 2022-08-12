@@ -33,7 +33,7 @@ local ns_patch =
   );
 
 local deployThanosObjStorage =
-  std.length(std.objectFields(params.thanosObjectStorage)) > 0;
+  std.length(params.thanosObjectStorage) > 0;
 
 {
   '00_namespace_labels': ns_patch,
