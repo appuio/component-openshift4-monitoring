@@ -26,6 +26,7 @@ parameters:
       networkPlugin: openshift-sdn
       elasticsearchOperator: true
       clusterSamplesOperator: true
+    thanosObjectStorageConfig: {}
     configs:
       prometheusK8s:
         externalLabels:
@@ -97,6 +98,14 @@ parameters:
         registry: quay.io
         repository: appuio/oc
         tag: v4.9
+      thanos:
+        registry: quay.io
+        repository: thanos/thanos
+        tag: v0.27.0
+      mc:
+        registry: quay.io
+        repository: minio/mc
+        tag: RELEASE.2022-08-23T05-45-20Z
 
 
     capacityAlerts:

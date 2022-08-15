@@ -7,6 +7,7 @@
       - capacity-alerts
       - release-4.9
       - release-4.10
+      - thanos-remotewrite
 
 .gitignore:
   additionalEntries:

@@ -1,0 +1,67 @@
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: '-10'
+  labels:
+    name: thanos-objstorage-mc-config
+  name: thanos-objstorage-mc-config
+  namespace: openshift-monitoring
+stringData:
+  mc-config.json: "{\n    \"aliases\": {\n        \"s3\": {\n            \"accessKey\"\
+    : \"t-silent-test-1234/c-green-test-1234/thanos/s3_access_key\",\n           \
+    \ \"api\": \"s3v4\",\n            \"path\": \"auto\",\n            \"secretKey\"\
+    : \"t-silent-test-1234/c-green-test-1234/thanos/s3_secret_key\",\n           \
+    \ \"url\": \"https://objects.lpg.cloudscale.ch\"\n        }\n    },\n    \"version\"\
+    : \"10\"\n}"
+type: Opaque
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: '-10'
+  labels:
+    name: ensure-thanos-objstorage-bucket
+  name: ensure-thanos-objstorage-bucket
+  namespace: openshift-monitoring
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        name: ensure-thanos-objstorage-bucket
+    spec:
+      containers:
+        - args:
+            - --config-dir
+            - /etc/mc
+            - mb
+            - s3/c-green-test-1234-cluster-monitoring-thanos
+          env: []
+          image: quay.io/minio/mc:RELEASE.2022-08-23T05-45-20Z
+          imagePullPolicy: IfNotPresent
+          name: ensure-bucket
+          ports: []
+          stdin: false
+          tty: false
+          volumeMounts:
+            - mountPath: /etc/mc
+              name: mc
+            - mountPath: /etc/mc/config.json
+              name: mc-config
+              subPath: mc-config.json
+      imagePullSecrets: []
+      initContainers: []
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - emptyDir: {}
+          name: mc
+        - name: mc-config
+          secret:
+            secretName: thanos-objstorage-mc-config

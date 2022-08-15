@@ -421,3 +421,39 @@ default:: `null`
 This parameter can be used to indicate which custom Prometheus instance should pick up the configurations managed by the component.
 
 If the parameter is set to the empty string, the default instance configured for component `prometheus` will be used.
+
+== `thanosObjectStorageConfig`
+
+[horizontal]
+type:: dictionary
+default:: `{}`
+example::
++
+[source,yaml]
+----
+type: s3
+config:
+  bucket: ${cluster:name}-cluster-monitoring-thanos
+  endpoint: s3.eu-central-1.example.com
+  access_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/cluster-monitoring/s3_access_key}
+  secret_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/cluster-monitoring/s3_secret_key}
+----
+
+This parameter allows users to configure the cluster-monitoring Prometheus Thanos sidecar to write TSDB blocks to object storage.
+The contents of the parameter are passed verbatim to the Thanos sidecar as value for parameter `--objstore.config`.
+If the parameter value is the empty dict (`{}`), the component won't deploy the Thanos sidecar configuration.
+
+See https://thanos.io/tip/thanos/storage.md/#configuring-access-to-object-storage[the upstream Thanos documentation] for supported configurations.
+
+If field `type` is set to `s3`, the component will also create an ArgoCD sync job which creates the specified bucket, if it doesn't exist yet.
+
+[NOTE]
+====
+This parameter uses Kyverno to patch the OpenShift-managed cluster-monitoring `Prometheus` custom resource.
+Please make sure that Kyverno is enabled if you're using this feature.
+====
+
+[WARNING]
+====
+Modifying the cluster-monitoring `Prometheus` custom resource isn't officially supported by OpenShift, and may break after an OpenShift upgrade.
+====

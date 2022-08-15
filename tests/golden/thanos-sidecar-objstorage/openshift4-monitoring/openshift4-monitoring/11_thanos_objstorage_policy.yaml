@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  annotations: {}
+  labels:
+    name: thanos-sidecar-objectstorage
+  name: thanos-sidecar-objectstorage
+  namespace: openshift-monitoring
+spec:
+  rules:
+    - match:
+        any:
+          - resources:
+              kinds:
+                - monitoring.coreos.com/v1/Prometheus
+              names:
+                - k8s
+      mutate:
+        patchStrategicMerge:
+          spec:
+            thanos:
+              objectStorageConfig:
+                key: thanos.yaml
+                name: thanos-sidecar-objstorage
+      name: configure-sidecar-objstorage
