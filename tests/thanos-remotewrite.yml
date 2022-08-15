@@ -1,0 +1,24 @@
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-resource-locker/v2.0.1/lib/resource-locker.libjsonnet
+        output_path: vendor/lib/resource-locker.libjsonnet
+
+  resource_locker:
+    namespace: syn-resource-locker
+
+  openshift4_monitoring:
+    manifests_version: release-4.10
+    thanosRemoteWrite:
+      enabled: true
+      objectStorageConfig:
+        type: s3
+        config:
+          bucket: ${cluster:name}-cluster-monitoring-thanos
+          endpoint: objects.lpg.cloudscale.ch
+          access_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/thanos/s3_access_key}
+          secret_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/thanos/s3_secret_key}
+
+  syn_monitoring:
+    enabled: false

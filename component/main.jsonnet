@@ -1,3 +1,4 @@
+local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local prom = import 'lib/prom.libsonnet';
@@ -31,6 +32,14 @@ local ns_patch =
     }
   );
 
+local thanosCfg =
+  if params.thanosRemoteWrite.enabled then
+    import 'thanos.libsonnet'
+  else
+    {
+      manifests: {},
+    };
+
 {
   '00_namespace_labels': ns_patch,
   [if std.length(params.configs) > 0 then '10_configmap']:
@@ -42,9 +51,22 @@ local ns_patch =
         'config.yaml': std.manifestYamlDoc(
           {
             enableUserWorkload: params.enableUserWorkload,
-          } + std.mapWithKey(
-            function(field, value) value + params.defaultConfig,
-            params.configs
+            [if params.thanosRemoteWrite.enabled == true then 'prometheusK8s']: {
+              remoteWrite: [
+                {
+                  name: 'thanos-cluster-monitoring',
+                  url: thanosCfg.receiverURL,
+                  headers: {
+                    'THANOS-TENANT': inv.parameters.cluster.name,
+                  },
+                },
+              ],
+            },
+          } + com.makeMergeable(
+            std.mapWithKey(
+              function(field, value) value + params.defaultConfig,
+              params.configs
+            )
           )
         ),
       },
@@ -75,7 +97,9 @@ local ns_patch =
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
   [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
-} + {
+} +
+thanosCfg.manifests +
+{
   [group_name + '_rules']: prom.PrometheusRule(group_name) {
     metadata+: {
       namespace: params.namespace,
