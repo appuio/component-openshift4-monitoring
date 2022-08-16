@@ -421,3 +421,74 @@ default:: `null`
 This parameter can be used to indicate which custom Prometheus instance should pick up the configurations managed by the component.
 
 If the parameter is set to the empty string, the default instance configured for component `prometheus` will be used.
+
+
+== `thanosRemoteWrite`
+
+This parameter allows users to enable remote-write and an associated Thanos receiver instance for the full cluster-monitoring Prometheus TSDB blocks.
+
+NOTE: This remote-write instance doesn't support customizing which metrics are sent to the receiver.
+
+=== `enabled`
+
+[horizontal]
+type:: boolean
+default:: `false`
+
+This parameter controls whether to deploy the Thanos receiver and associated remote-write config.
+
+=== `receiver`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+namespace: syn-openshift4-monitoring-thanos-receiver
+----
+example::
++
+.Customize receiver local storage configuration
+[source,yaml]
+----
+volumeClaimTemplate:
+  spec:
+    storageClassName: fast
+    resources:
+      requests:
+        storage: 25Gi
+----
+
+This parameter allows users to customize the Thanos receiver configuration.
+See https://github.com/thanos-io/kube-thanos/blob/main/jsonnet/kube-thanos/kube-thanos-receive-default-params.libsonnet[the upstream `kube-thanos` documentation] for supported parameters.
+
+If field `namespace` isn't set to `openshift-monitoring`, the component will create the configured namespace.
+
+The component provides a set of internal default configurations for the Thanos receiver.
+
+=== `objectStorageConfig`
+
+[horizontal]
+type:: dictionary
+default:: `{}`
+example::
++
+[source,yaml]
+----
+type: s3
+config:
+  bucket: ${cluster:name}-cluster-monitoring-thanos
+  endpoint: s3.eu-central-1.example.com
+  access_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/cluster-monitoring/s3_access_key}
+  secret_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/cluster-monitoring/s3_secret_key}
+----
+
+This parameter allows users to configure the Thanos receiver's object storage configuration.
+The contents of the parameter are passed verbatim to the receiver.
+
+If the parameter value is the empty dictionary, the component assumes that the object storage configuration secret is managed externally.
+In this case, the component expects that the user adjusts `receiver.objectStorageConfig` to point to the externally managed configuration secret.
+
+
+See https://thanos.io/tip/thanos/storage.md/#configuring-access-to-object-storage[the upstream Thanos documentation] for supported configurations.
