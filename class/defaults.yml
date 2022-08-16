@@ -94,7 +94,8 @@ parameters:
     rules: {}
     images:
       oc:
-        image: quay.io/appuio/oc
+        registry: quay.io
+        repository: appuio/oc
         tag: v4.9
 
 

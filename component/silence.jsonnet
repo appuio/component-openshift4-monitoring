@@ -65,7 +65,7 @@ local cronJob = kube.CronJob('silence') + namespace {
             serviceAccountName: params.silence.serviceAccountName,
             containers_+: {
               silence: kube.Container('silence') {
-                image: params.images.oc.image + ':' + params.images.oc.tag,
+                image: '%(registry)s/%(repository)s:%(tag)s' % params.images.oc,
                 command: [ '/usr/local/bin/silence' ],
                 volumeMounts_+: {
                   scripts: {
