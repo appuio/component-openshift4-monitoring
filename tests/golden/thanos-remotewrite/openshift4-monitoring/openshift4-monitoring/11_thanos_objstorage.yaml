@@ -8,6 +8,12 @@ metadata:
   name: thanos-receive-objstorage
   namespace: syn-openshift4-monitoring-thanos-receiver
 stringData:
+  mc-config.json: "{\n    \"aliases\": {\n        \"s3\": {\n            \"accessKey\"\
+    : \"t-silent-test-1234/c-green-test-1234/thanos/s3_access_key\",\n           \
+    \ \"api\": \"s3v4\",\n            \"path\": \"auto\",\n            \"secretKey\"\
+    : \"t-silent-test-1234/c-green-test-1234/thanos/s3_secret_key\",\n           \
+    \ \"url\": \"https://objects.lpg.cloudscale.ch\"\n        }\n    },\n    \"version\"\
+    : \"10\"\n}"
   thanos.yaml: "\"config\":\n  \"access_key\": \"t-silent-test-1234/c-green-test-1234/thanos/s3_access_key\"\
     \n  \"bucket\": \"c-green-test-1234-cluster-monitoring-thanos\"\n  \"endpoint\"\
     : \"objects.lpg.cloudscale.ch\"\n  \"secret_key\": \"t-silent-test-1234/c-green-test-1234/thanos/s3_secret_key\"\

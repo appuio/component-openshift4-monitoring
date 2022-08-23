@@ -125,13 +125,37 @@ spec:
             - mountPath: /var/thanos/receive
               name: data
               readOnly: false
+      initContainers:
+        - args:
+            - --config-dir
+            - /etc/mc
+            - mb
+            - s3/c-green-test-1234-cluster-monitoring-thanos
+          env: []
+          image: quay.io/minio/mc:RELEASE.2022-08-23T05-45-20Z
+          imagePullPolicy: IfNotPresent
+          name: ensure-bucket
+          ports: []
+          stdin: false
+          tty: false
+          volumeMounts:
+            - mountPath: /etc/mc
+              name: mc
+            - mountPath: /etc/mc/config.json
+              name: mc-config
+              subPath: mc-config.json
       nodeSelector:
         kubernetes.io/os: linux
         node-role.kubernetes.io/infra: ''
       securityContext: {}
       serviceAccountName: thanos-receive
       terminationGracePeriodSeconds: 900
-      volumes: []
+      volumes:
+        - emptyDir: {}
+          name: mc
+        - name: mc-config
+          secret:
+            secretName: thanos-receive-objstorage
   volumeClaimTemplates:
     - metadata:
         labels:

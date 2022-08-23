@@ -112,6 +112,10 @@ parameters:
         registry: quay.io
         repository: thanos/thanos
         tag: v0.27.0
+      mc:
+        registry: quay.io
+        repository: minio/mc
+        tag: RELEASE.2022-08-23T05-45-20Z
 
 
     capacityAlerts:

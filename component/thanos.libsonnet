@@ -55,13 +55,26 @@ local receiverCfg = {
 local thanosNs = receiverCfg.namespace;
 
 local objStorageSecret =
+  local objStorageCfg = params.thanosRemoteWrite.objectStorageConfig;
   kube.Secret(receiverCfg.name + '-objstorage') {
     metadata+: {
       namespace: thanosNs,
     },
     stringData: {
-      'thanos.yaml': std.manifestYamlDoc(
-        params.thanosRemoteWrite.objectStorageConfig
+      'thanos.yaml': std.manifestYamlDoc(objStorageCfg),
+      [if objStorageCfg.type == 's3' then 'mc-config.json']: std.manifestJson(
+        {
+          version: '10',
+          aliases: {
+            s3: {
+              url: 'https://%s' % [ objStorageCfg.config.endpoint ],
+              accessKey: objStorageCfg.config.access_key,
+              secretKey: objStorageCfg.config.secret_key,
+              api: 's3v4',
+              path: 'auto',
+            },
+          },
+        }
       ),
     },
   };
@@ -129,6 +142,66 @@ local hasAlerts =
   );
   alertCount > 0;
 
+local patchSts(base) =
+  base {
+    spec+: {
+      template+: {
+        spec+: {
+          nodeSelector+: params.defaultConfig.nodeSelector,
+        },
+      },
+    },
+  } +
+  if com.getValueOrDefault(
+    params.thanosRemoteWrite.objectStorageConfig,
+    'type',
+    ''
+  ) == 's3' then
+    {
+      spec+: {
+        template+: {
+          spec+: {
+            initContainers: [
+              kube.Container('ensure-bucket') {
+                image: '%(registry)s/%(repository)s:%(tag)s' % params.images.mc,
+                args: [
+                  '--config-dir',
+                  '/etc/mc',
+                  'mb',
+                  's3/%s' % [
+                    params.thanosRemoteWrite.objectStorageConfig.config.bucket,
+                  ],
+                ],
+                volumeMounts_: {
+                  mc: {
+                    mountPath: '/etc/mc',
+                  },
+                  mc_config: {
+                    mountPath: '/etc/mc/config.json',
+                    subPath: 'mc-config.json',
+                  },
+                },
+              },
+            ],
+            volumes+: [
+              {
+                name: 'mc',
+                emptyDir: {},
+              },
+              {
+                name: 'mc-config',
+                secret: {
+                  secretName: objStorageSecret.metadata.name,
+                },
+              },
+            ],
+          },
+        },
+      },
+    }
+  else
+    {};
+
 {
   receiverURL: 'http://%s.%s.svc:19291/api/v1/receive' % [
     receiverCfg.name,
@@ -156,15 +229,7 @@ local hasAlerts =
   } + {
     ['11_thanos_receiver_%s' % [ name ]]:
       if name == 'statefulSet' then
-        thanosReceiver[name] {
-          spec+: {
-            template+: {
-              spec+: {
-                nodeSelector+: params.defaultConfig.nodeSelector,
-              },
-            },
-          },
-        }
+        patchSts(thanosReceiver[name])
       else
         thanosReceiver[name]
     for name in std.objectFields(thanosReceiver)
