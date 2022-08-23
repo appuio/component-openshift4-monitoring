@@ -2,7 +2,7 @@ local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 
-local thanosMixin = import 'github.com/thanos-io/thanos/mixin/mixin.libsonnet';
+local thanosMixinLib = import 'github.com/thanos-io/thanos/mixin/mixin.libsonnet';
 local thanos = import 'kube-thanos/thanos.libsonnet';
 
 local inv = kap.inventory();
@@ -77,6 +77,58 @@ local nsNodeSelector =
     ]
   );
 
+local thanosMixin = thanosMixinLib {
+  receive+:: {
+    selector: 'job=~".*thanos-receive.*", namespace=~"%s"' % thanosNs,
+  },
+};
+local alertlabels = {
+  syn: 'true',
+  syn_component: 'openshift4-monitoring',
+};
+local alertConfig = params.thanosRemoteWrite.receiverAlerts;
+local rulePatch(rule) =
+  local ruleConfig = com.getValueOrDefault(alertConfig, rule.alert, {});
+
+  alertConfig['*'].patches +
+  com.makeMergeable(com.getValueOrDefault(ruleConfig, 'patches', {}));
+
+local ruleEnabled(rule) =
+  local ruleConfig = com.getValueOrDefault(alertConfig, rule.alert, {});
+  local globalEnabled = alertConfig['*'].enabled;
+  com.getValueOrDefault(ruleConfig, 'enabled', globalEnabled);
+
+
+local alerts =
+  kube._Object('monitoring.coreos.com/v1', 'PrometheusRule', receiverCfg.name) {
+    metadata+: {
+      namespace: thanosNs,
+    },
+    spec+: {
+      groups: [
+        group {
+          rules: [
+            rule {
+              labels+: alertlabels,
+            } + rulePatch(rule)
+            for rule in super.rules
+            if ruleEnabled(rule)
+          ],
+        }
+        for group in thanosMixin.prometheusAlerts.groups
+        if std.member([ 'thanos-receive', 'thanos-receive.rules' ], group.name)
+      ],
+    },
+  };
+
+local hasAlerts =
+  local alertCount = std.foldl(
+    function(sum, g) sum + std.length(g.rules),
+    alerts.spec.groups,
+    0
+  );
+  alertCount > 0;
+
 {
   receiverURL: 'http://%s.%s.svc:19291/api/v1/receive' % [
     receiverCfg.name,
@@ -91,6 +143,7 @@ local nsNodeSelector =
           },
           labels: {
             'network.openshift.io/policy-group': 'monitoring',
+            'openshift.io/cluster-monitoring': 'true',
           } + if std.member(inv.applications, 'networkpolicy') then {
             [inv.parameters.networkpolicy.labels.noDefaults]: 'true',
             [inv.parameters.networkpolicy.labels.purgeDefaults]: 'true',
@@ -99,6 +152,7 @@ local nsNodeSelector =
       },
     [if std.length(params.thanosRemoteWrite.objectStorageConfig) > 0 then '11_thanos_objstorage']:
       objStorageSecret,
+    [if hasAlerts then '11_thanos_receiver_alerts']: alerts,
   } + {
     ['11_thanos_receiver_%s' % [ name ]]:
       if name == 'statefulSet' then

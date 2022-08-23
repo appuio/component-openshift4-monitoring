@@ -5,4 +5,5 @@ metadata:
     openshift.io/node-selector: node-role.kubernetes.io/infra=
   labels:
     network.openshift.io/policy-group: monitoring
+    openshift.io/cluster-monitoring: 'true'
   name: syn-openshift4-monitoring-thanos-receiver

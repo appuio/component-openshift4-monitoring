@@ -30,6 +30,12 @@ parameters:
       enabled: false
       receiver:
         namespace: syn-openshift4-monitoring-thanos-receiver
+      receiverAlerts:
+        # configurations in '*' are applied to all alerts. Individual alert
+        # configs take precedence over configs in '*'.
+        '*':
+          enabled: true
+          patches: {}
       objectStorageConfig: {}
     configs:
       prometheusK8s:

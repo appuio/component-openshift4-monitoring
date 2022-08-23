@@ -467,6 +467,50 @@ If field `namespace` isn't set to `openshift-monitoring`, the component will cre
 
 The component provides a set of internal default configurations for the Thanos receiver.
 
+=== `receiverAlerts`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+'*':
+  enabled: true
+  patches: {}
+----
+example::
++
+[source,yaml]
+----
+'*':
+  patches:
+    annotations:
+      foo: bar <1>
+ThanosReceiveHttpRequestErrorRateHigh:
+  enabled: false <2>
+ThanosReceiveHttpRequestLatencyHigh:
+  patches:
+    labels:
+      severity: warning <3>
+----
+<1> add annotation `foo=bar` to all alerts
+<2> disable alert `ThanosReceiveHttpRequestErrorRateHigh`
+<3> lower the severity of alert `ThanosReceiveHttpRequestLatencyHigh` to `warning`
+
+This parameter allows customizing the alerts for the remote write Thanos receiver.
+Individual alert rules can be customized by adding an entry which uses the alert rule's name as the key.
+
+The component understands fields `enabled` and `patches` in entry of the parameter.
+Field `enabled` controls whether the alert should be deployed on the cluster.
+Field `patches` can be used to specify custom configurations for the alert rule.
+The value of field `patches` is merged as is with the specified alert rule.
+
+The component supports a special key `*`, which can be used to provide configurations which are applied to all Thanos receiver alert rules.
+If configuration for an individual alert is provided it takes precedence over configuration in `*`.
+
+See the https://github.com/thanos-io/thanos/blob/main/mixin/alerts/receive.libsonnet[upstream Jsonnet] for the set of alerts which is deployed by default.
+
 === `objectStorageConfig`
 
 [horizontal]
