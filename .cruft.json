@@ -1,0 +1,21 @@
+{
+  "template": "https://github.com/projectsyn/commodore-component-template.git",
+  "commit": "e6c4fd69190db1ad12e941d578b9423d0e2f993c",
+  "checkout": "main",
+  "context": {
+    "cookiecutter": {
+      "name": "OpenShift4 Monitoring",
+      "slug": "openshift4-monitoring",
+      "parameter_key": "openshift4_monitoring",
+      "test_cases": "capacity-alerts release-4.9 release-4.10",
+      "add_golden": "y",
+      "add_matrix": "y",
+      "add_go_unit": "n",
+      "github_owner": "appuio",
+      "github_name": "component-openshift4-monitoring",
+      "github_url": "https://github.com/appuio/component-openshift4-monitoring",
+      "_template": "https://github.com/projectsyn/commodore-component-template.git"
+    }
+  },
+  "directory": null
+}
