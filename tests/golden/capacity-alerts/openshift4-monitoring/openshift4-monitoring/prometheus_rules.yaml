@@ -1109,13 +1109,13 @@ spec:
             \    kube_daemonset_status_desired_number_scheduled{namespace=~\"(openshift-.*|kube-.*|default)\"\
             ,job=\"kube-state-metrics\"}\n  ) or (\n    kube_daemonset_status_number_misscheduled{namespace=~\"\
             (openshift-.*|kube-.*|default)\",job=\"kube-state-metrics\"}\n     !=\n\
-            \    0\n  ) or (\n    kube_daemonset_updated_number_scheduled{namespace=~\"\
+            \    0\n  ) or (\n    kube_daemonset_status_updated_number_scheduled{namespace=~\"\
             (openshift-.*|kube-.*|default)\",job=\"kube-state-metrics\"}\n     !=\n\
             \    kube_daemonset_status_desired_number_scheduled{namespace=~\"(openshift-.*|kube-.*|default)\"\
             ,job=\"kube-state-metrics\"}\n  ) or (\n    kube_daemonset_status_number_available{namespace=~\"\
             (openshift-.*|kube-.*|default)\",job=\"kube-state-metrics\"}\n     !=\n\
             \    kube_daemonset_status_desired_number_scheduled{namespace=~\"(openshift-.*|kube-.*|default)\"\
-            ,job=\"kube-state-metrics\"}\n  )\n) and (\n  changes(kube_daemonset_updated_number_scheduled{namespace=~\"\
+            ,job=\"kube-state-metrics\"}\n  )\n) and (\n  changes(kube_daemonset_status_updated_number_scheduled{namespace=~\"\
             (openshift-.*|kube-.*|default)\",job=\"kube-state-metrics\"}[5m])\n  \
             \  ==\n  0\n)\n"
           for: 30m
