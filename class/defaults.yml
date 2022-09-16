@@ -9,12 +9,15 @@ parameters:
     =_cluster_monitoring_operator_version_map:
       release-4.9: release-4.9
       release-4.10: release-4.10
+      release-4.11: release-4.11
     =_etcd_operator_version_map:
       release-4.9: release-4.9
       release-4.10: release-4.10
+      release-4.11: release-4.11
     =_operator_lifecycle_manager_map:
       release-4.9: release-4.9
       release-4.10: release-4.9 # no 4.10 release yet
+      release-4.11: release-4.9 # no 4.11 release yet
     jsonnetfile_parameters:
       cmo_version: ${openshift4_monitoring:_cluster_monitoring_operator_version_map:${openshift4_monitoring:manifests_version}}
       etcd_version: ${openshift4_monitoring:_etcd_operator_version_map:${openshift4_monitoring:manifests_version}}

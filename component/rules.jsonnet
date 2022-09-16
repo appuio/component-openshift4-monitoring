@@ -85,7 +85,8 @@ local additionalRules = {
     } ] + std.flatMap(
       function(obj)
         if com.getValueOrDefault(obj, 'kind', '') == 'PrometheusRule' then
-          obj.spec.groups
+          // handle case for empty PrometheusRule objects
+          com.getValueOrDefault(obj, 'spec', { groups: [] }).groups
         else if std.objectHas(obj, 'groups') then
           obj.groups
         else
@@ -184,7 +185,11 @@ local cmoRules =
         monitoringOperator['node-exporter/prometheusRule'],
         monitoringOperator['prometheus-k8s/prometheusRule'],
         monitoringOperator['prometheus-operator/prometheusRule'],
-        monitoringOperator['prometheus-operator/prometheusRuleValidatingWebhook'],
+        com.getValueOrDefault(
+          monitoringOperator,
+          'prometheus-operator/prometheusRuleValidatingWebhook',
+          {}
+        ),
         monitoringOperator['thanos-querier/prometheusRule'],
         monitoringOperator['thanos-ruler/thanosRulerPrometheusRule'],
       ],
