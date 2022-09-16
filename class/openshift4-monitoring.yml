@@ -24,7 +24,7 @@ parameters:
         # Realistically, these rules should be managed by component
         # openshift4-logging instead of this component
         release-4.11:
-          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-5.0/hack/prometheus-rules.yaml
+          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-5.5/files/prometheus_alerts.yml
       machine-api-operator:
         release-4.9:
           # Release 4.9 has typo in manifest
