@@ -7,7 +7,7 @@
       "name": "OpenShift4 Monitoring",
       "slug": "openshift4-monitoring",
       "parameter_key": "openshift4_monitoring",
-      "test_cases": "capacity-alerts release-4.9 release-4.10",
+      "test_cases": "capacity-alerts release-4.9 release-4.10 release-4.11",
       "add_lib": "y",
       "add_pp": "n",
       "add_golden": "y",
