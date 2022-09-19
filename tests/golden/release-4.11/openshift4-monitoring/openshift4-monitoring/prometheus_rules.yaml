@@ -1792,7 +1792,8 @@ spec:
         - alert: SYN_AggregatedLoggingSystemCPUHigh
           annotations:
             message: System CPU usage on the node {{ $labels.node }} in {{ $labels.cluster
-              }} cluster is {{ $value }}%
+              }} cluster is {{ $value }}%.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Aggregated-Logging-System-CPU-is-High
             summary: System CPU usage is high
             syn_component: openshift4-monitoring
           expr: 'sum by (cluster, instance, node) (es_os_cpu_percent) > 90
@@ -1800,39 +1801,30 @@ spec:
             '
           for: 1m
           labels:
-            severity: alert
-            syn: 'true'
-        - alert: SYN_ElasticsearchBulkRequestsRejectionJumps
-          annotations:
-            message: High Bulk Rejection Ratio at {{ $labels.node }} node in {{ $labels.cluster
-              }} cluster. This node may not be keeping up with the indexing speed.
-            summary: High Bulk Rejection Ratio - {{ $value }}%
-            syn_component: openshift4-monitoring
-          expr: 'round( bulk:reject_ratio:rate2m * 100, 0.001 ) > 5
-
-            '
-          for: 10m
-          labels:
-            severity: warning
+            namespace: openshift-logging
+            severity: info
             syn: 'true'
         - alert: SYN_ElasticsearchClusterNotHealthy
           annotations:
             message: Cluster {{ $labels.cluster }} health status has been RED for
-              at least 2m. Cluster does not accept writes, shards may be missing or
+              at least 7m. Cluster does not accept writes, shards may be missing or
               master node hasn't been elected yet.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Cluster-Health-is-Red
             summary: Cluster health status is RED
             syn_component: openshift4-monitoring
           expr: 'sum by (cluster) (es_cluster_status == 2)
 
             '
-          for: 2m
+          for: 7m
           labels:
+            namespace: openshift-logging
             severity: critical
             syn: 'true'
         - alert: SYN_ElasticsearchClusterNotHealthy
           annotations:
             message: Cluster {{ $labels.cluster }} health status has been YELLOW for
               at least 20m. Some shard replicas are not allocated.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Cluster-Health-is-Yellow
             summary: Cluster health status is YELLOW
             syn_component: openshift4-monitoring
           expr: 'sum by (cluster) (es_cluster_status == 1)
@@ -1840,12 +1832,46 @@ spec:
             '
           for: 20m
           labels:
+            namespace: openshift-logging
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ElasticsearchDiskSpaceRunningLow
+          annotations:
+            message: Cluster {{ $labels.cluster }} is predicted to be out of disk
+              space within the next 6h.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Disk-Space-is-Running-Low
+            summary: Cluster low on disk space
+            syn_component: openshift4-monitoring
+          expr: 'sum(predict_linear(es_fs_path_available_bytes[6h], 6 * 3600)) < 0
+
+            '
+          for: 1h
+          labels:
+            namespace: openshift-logging
+            severity: critical
+            syn: 'true'
+        - alert: SYN_ElasticsearchHighFileDescriptorUsage
+          annotations:
+            message: Cluster {{ $labels.cluster }} is predicted to be out of file
+              descriptors within the next hour.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-FileDescriptor-Usage-is-high
+            summary: Cluster low on file descriptors
+            syn_component: openshift4-monitoring
+          expr: 'predict_linear(es_process_file_descriptors_max_number[1h], 3600)
+            - predict_linear(es_process_file_descriptors_open_number[1h], 3600) <
+            0
+
+            '
+          for: 10m
+          labels:
+            namespace: openshift-logging
             severity: warning
             syn: 'true'
         - alert: SYN_ElasticsearchJVMHeapUseHigh
           annotations:
             message: JVM Heap usage on the node {{ $labels.node }} in {{ $labels.cluster
               }} cluster is {{ $value }}%.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-JVM-Heap-Use-is-High
             summary: JVM Heap usage on the node is high
             syn_component: openshift4-monitoring
           expr: 'sum by (cluster, instance, node) (es_jvm_mem_heap_used_percent) >
@@ -1854,56 +1880,129 @@ spec:
             '
           for: 10m
           labels:
-            severity: alert
+            namespace: openshift-logging
+            severity: info
             syn: 'true'
-        - alert: SYN_ElasticsearchNodeDiskLowForSegmentMerges
+        - alert: SYN_ElasticsearchNodeDiskWatermarkReached
           annotations:
-            message: Free disk at {{ $labels.node }} node in {{ $labels.cluster }}
-              cluster may be low for optimal segment merges
-            summary: Free disk may be low for optimal segment merges
+            message: Disk Low Watermark Reached at {{ $labels.pod }} pod. Shards can
+              not be allocated to this node anymore. You should consider adding more
+              disk to the node.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Node-Disk-Low-Watermark-Reached
+            summary: Disk Low Watermark Reached - disk saturation is {{ $value }}%
             syn_component: openshift4-monitoring
-          expr: 'sum by (cluster, instance, node) (es_fs_path_free_bytes) /
-
-            sum by (cluster, instance, node) (es_indices_store_size_bytes)
-
-            < 0.5
-
-            '
-          for: 15m
+          expr: "sum by (instance, pod) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
+            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > on(instance,\
+            \ pod) es_cluster_routing_allocation_disk_watermark_low_pct\n"
+          for: 5m
           labels:
+            namespace: openshift-logging
+            severity: info
+            syn: 'true'
+        - alert: SYN_ElasticsearchNodeDiskWatermarkReached
+          annotations:
+            message: Disk High Watermark Reached at {{ $labels.pod }} pod. Some shards
+              will be re-allocated to different nodes if possible. Make sure more
+              disk space is added to the node or drop old indices allocated to this
+              node.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Node-Disk-High-Watermark-Reached
+            summary: Disk High Watermark Reached - disk saturation is {{ $value }}%
+            syn_component: openshift4-monitoring
+          expr: "sum by (instance, pod) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
+            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > on(instance,\
+            \ pod) es_cluster_routing_allocation_disk_watermark_high_pct\n"
+          for: 5m
+          labels:
+            namespace: openshift-logging
+            severity: critical
+            syn: 'true'
+        - alert: SYN_ElasticsearchNodeDiskWatermarkReached
+          annotations:
+            message: Disk Flood Stage Watermark Reached at {{ $labels.pod }}. Every
+              index having a shard allocated on this node is enforced a read-only
+              block. The index block must be released manually when the disk utilization
+              falls below the high watermark.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Node-Disk-Flood-Watermark-Reached
+            summary: Disk Flood Stage Watermark Reached - disk saturation is {{ $value
+              }}%
+            syn_component: openshift4-monitoring
+          expr: "sum by (instance, pod) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
+            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > on(instance,\
+            \ pod) es_cluster_routing_allocation_disk_watermark_flood_stage_pct\n"
+          for: 5m
+          labels:
+            namespace: openshift-logging
+            severity: critical
+            syn: 'true'
+        - alert: SYN_ElasticsearchNodeDiskWatermarkReached
+          annotations:
+            message: Disk Low Watermark is predicted to be reached within the next
+              6h at {{ $labels.pod }} pod. Shards can not be allocated to this node
+              anymore. You should consider adding more disk to the node.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Node-Disk-Low-Watermark-Reached
+            summary: Disk Low Watermark is predicted to be reached within next 6h.
+            syn_component: openshift4-monitoring
+          expr: "sum by (instance, pod) (\n  round(\n    (1 - (\n      predict_linear(es_fs_path_available_bytes[3h],\
+            \ 6 * 3600) /\n      predict_linear(es_fs_path_total_bytes[3h], 6 * 3600)\n\
+            \    )\n  ) * 100, 0.001)\n) > on(instance, pod) es_cluster_routing_allocation_disk_watermark_low_pct\n"
+          for: 1h
+          labels:
+            namespace: openshift-logging
             severity: warning
             syn: 'true'
         - alert: SYN_ElasticsearchNodeDiskWatermarkReached
           annotations:
-            message: Disk Low Watermark Reached at {{ $labels.node }} node in {{ $labels.cluster
-              }} cluster. Shards can not be allocated to this node anymore. You should
-              consider adding more disk to the node.
-            summary: Disk Low Watermark Reached - disk saturation is {{ $value }}%
+            message: Disk High Watermark is predicted to be reached within the next
+              6h at {{ $labels.pod }} pod. Some shards will be re-allocated to different
+              nodes if possible. Make sure more disk space is added to the node or
+              drop old indices allocated to this node.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Node-Disk-High-Watermark-Reached
+            summary: Disk High Watermark is predicted to be reached within next 6h.
             syn_component: openshift4-monitoring
-          expr: "sum by (cluster, instance, node) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
-            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > 85\n"
-          for: 5m
+          expr: "sum by (instance, pod) (\n  round(\n    (1 - (\n      predict_linear(es_fs_path_available_bytes[3h],\
+            \ 6 * 3600) /\n      predict_linear(es_fs_path_total_bytes[3h], 6 * 3600)\n\
+            \    )\n  ) * 100, 0.001)\n) > on(instance, pod) es_cluster_routing_allocation_disk_watermark_high_pct\n"
+          for: 1h
           labels:
-            severity: alert
+            namespace: openshift-logging
+            severity: warning
             syn: 'true'
         - alert: SYN_ElasticsearchNodeDiskWatermarkReached
           annotations:
-            message: Disk High Watermark Reached at {{ $labels.node }} node in {{
-              $labels.cluster }} cluster. Some shards will be re-allocated to different
-              nodes if possible. Make sure more disk space is added to the node or
-              drop old indices allocated to this node.
-            summary: Disk High Watermark Reached - disk saturation is {{ $value }}%
+            message: Disk Flood Stage Watermark is predicted to be reached within
+              the next 6h at {{ $labels.pod }}. Every index having a shard allocated
+              on this node is enforced a read-only block. The index block must be
+              released manually when the disk utilization falls below the high watermark.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Node-Disk-Flood-Watermark-Reached
+            summary: Disk Flood Stage Watermark is predicted to be reached within
+              next 6h.
             syn_component: openshift4-monitoring
-          expr: "sum by (cluster, instance, node) (\n  round(\n    (1 - (\n      es_fs_path_available_bytes\
-            \ /\n      es_fs_path_total_bytes\n    )\n  ) * 100, 0.001)\n) > 90\n"
-          for: 5m
+          expr: "sum by (instance, pod) (\n  round(\n    (1 - (\n      predict_linear(es_fs_path_available_bytes[3h],\
+            \ 6 * 3600) /\n      predict_linear(es_fs_path_total_bytes[3h], 6 * 3600)\n\
+            \    )\n  ) * 100, 0.001)\n) > on(instance, pod) es_cluster_routing_allocation_disk_watermark_flood_stage_pct\n"
+          for: 1h
           labels:
-            severity: high
+            namespace: openshift-logging
+            severity: warning
+            syn: 'true'
+        - alert: SYN_ElasticsearchOperatorCSVNotSuccessful
+          annotations:
+            message: Elasticsearch Operator CSV has not reconciled succesfully.
+            summary: Elasticsearch Operator CSV Not Successful
+            syn_component: openshift4-monitoring
+          expr: 'csv_succeeded{name =~ "elasticsearch-operator.*"} == 0
+
+            '
+          for: 10m
+          labels:
+            namespace: openshift-logging
+            severity: warning
             syn: 'true'
         - alert: SYN_ElasticsearchProcessCPUHigh
           annotations:
             message: ES process CPU usage on the node {{ $labels.node }} in {{ $labels.cluster
-              }} cluster is {{ $value }}%
+              }} cluster is {{ $value }}%.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Process-CPU-is-High
             summary: ES process CPU usage is high
             syn_component: openshift4-monitoring
           expr: 'sum by (cluster, instance, node) (es_process_cpu_percent) > 90
@@ -1911,10 +2010,24 @@ spec:
             '
           for: 1m
           labels:
-            severity: alert
+            namespace: openshift-logging
+            severity: info
             syn: 'true'
-    - name: syn-logging_elasticsearch.rules
-      rules: []
+        - alert: SYN_ElasticsearchWriteRequestsRejectionJumps
+          annotations:
+            message: High Write Rejection Ratio at {{ $labels.node }} node in {{ $labels.cluster
+              }} cluster. This node may not be keeping up with the indexing speed.
+            runbook_url: https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md#Elasticsearch-Write-Requests-Rejection-Jumps
+            summary: High Write Rejection Ratio - {{ $value }}%
+            syn_component: openshift4-monitoring
+          expr: 'round( writing:reject_ratio:rate2m * 100, 0.001 ) > 5
+
+            '
+          for: 10m
+          labels:
+            namespace: openshift-logging
+            severity: warning
+            syn: 'true'
     - name: syn-machine-api-operator-metrics-collector-up
       rules:
         - alert: SYN_MachineAPIOperatorMetricsCollectionFailing

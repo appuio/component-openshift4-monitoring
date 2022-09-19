@@ -172,6 +172,41 @@ local patchRules = {
   },
 };
 
+local runbookBaseURL =
+  'https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md';
+local renderRunbookBaseURL = {
+  spec+: {
+    groups: std.map(
+      function(group)
+        group {
+          rules: std.map(
+            function(rule)
+              if (
+                std.objectHas(rule, 'alert') &&
+                std.objectHas(rule.annotations, 'runbook_url') &&
+                std.length(std.findSubstr(
+                  '[[.RunbookBaseURL]]', rule.annotations.runbook_url
+                )) > 0
+              ) then
+                rule {
+                  annotations+: {
+                    runbook_url: std.strReplace(
+                      super.runbook_url,
+                      '[[.RunbookBaseURL]]',
+                      runbookBaseURL
+                    ),
+                  },
+                }
+              else
+                rule,
+            group.rules
+          ),
+        },
+      super.groups
+    ),
+  },
+};
+
 local cmoRules =
   std.foldl(
     function(acc, it) acc + it,
@@ -212,6 +247,7 @@ local rules =
       + annotateRules
       + filterRules
       + patchRules
+      + renderRunbookBaseURL
     ).spec.groups,
     {},
   );
