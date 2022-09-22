@@ -265,3 +265,5 @@ parameters:
     syn_monitoring:
       enabled: true
       instance: null
+
+    secrets: {}
