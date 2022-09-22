@@ -1,3 +1,4 @@
+local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local prom = import 'lib/prom.libsonnet';
@@ -16,6 +17,8 @@ local ns =
   else
     params.namespace;
 
+local secrets = com.generateResources(params.secrets, kube.Secret);
+
 local ns_patch =
   rl.Patch(
     kube.Namespace(ns),
@@ -33,6 +36,7 @@ local ns_patch =
 
 {
   '00_namespace_labels': ns_patch,
+  '01_secrets': secrets,
   [if std.length(params.configs) > 0 then '10_configmap']:
     kube.ConfigMap('cluster-monitoring-config') {
       metadata+: {
