@@ -58,4 +58,4 @@ KUBENT_IMAGE    ?= docker.io/projectsyn/kubent:latest
 KUBENT_DOCKER   ?= $(DOCKER_CMD) $(DOCKER_ARGS) $(root_volume) --entrypoint=/app/kubent $(KUBENT_IMAGE)
 
 instance ?= capacity-alerts
-test_instances = tests/capacity-alerts.yml tests/release-4.9.yml tests/release-4.10.yml tests/release-4.11.yml
+test_instances = tests/capacity-alerts.yml tests/release-4.9.yml tests/release-4.10.yml tests/release-4.11.yml tests/remote-write.yml
