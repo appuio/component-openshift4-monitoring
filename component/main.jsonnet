@@ -48,7 +48,14 @@ local ns_patch =
             enableUserWorkload: params.enableUserWorkload,
           } + std.mapWithKey(
             function(field, value) value + params.defaultConfig,
-            params.configs
+            params.configs {
+              prometheusK8s+: {
+                _remoteWrite+:: {},
+              } + {
+                local rwd = super._remoteWrite,
+                remoteWrite+: [ rwd[name] { name: name } for name in std.objectFields(rwd) ],
+              },
+            },
           )
         ),
       },

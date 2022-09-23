@@ -16,12 +16,6 @@ parameters:
 
   openshift4_monitoring:
     manifests_version: release-4.11
-    secrets:
-      remote-write:
-        stringData:
-          url: https://prometheus.example.com/api/v1/write
-          username: prometheus
-          password: prometheus
 
   prometheus:
     defaultInstance: infra
