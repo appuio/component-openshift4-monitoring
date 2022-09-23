@@ -11,8 +11,13 @@ local namespace = {
 };
 
 local cm = kube.ConfigMap('silence') + namespace {
+  local silences = params.silence.silences,
   data: {
     silence: importstr './scripts/silence.sh',
+    'silences.json': std.manifestJsonMinified([
+      silences[comment] { comment: comment }
+      for comment in std.objectFields(silences)
+    ]),
   },
 };
 
@@ -32,9 +37,18 @@ local cronJob = kube.CronJob('silence') + namespace {
               silence: kube.Container('silence') {
                 image: params.images.oc.image + ':' + params.images.oc.tag,
                 command: [ '/usr/local/bin/silence' ],
+                env_+: {
+                  SILENCES_JSON: {
+                    configMapKeyRef: {
+                      name: cm.metadata.name,
+                      key: 'silences.json',
+                    },
+                  },
+                },
                 volumeMounts_+: {
                   scripts: {
-                    mountPath: '/usr/local/bin/',
+                    mountPath: '/usr/local/bin/silence',
+                    subPath: 'silence',
                     readOnly: true,
                   },
                   'ca-bundle': {
@@ -47,7 +61,7 @@ local cronJob = kube.CronJob('silence') + namespace {
             volumes_+: {
               scripts: {
                 configMap: {
-                  name: 'silence',
+                  name: cm.metadata.name,
                   defaultMode: std.parseOctal('0550'),
                 },
               },

@@ -93,6 +93,15 @@ parameters:
         successful: 3
       nodeSelector:
         node-role.kubernetes.io/infra: ''
+      silences:
+        "Silence non syn alerts":
+          matchers:
+            - name: alertname
+              value: ".+"
+              isRegex: true
+            - name: syn
+              value: ""
+              isRegex: false
 
     rules: {}
     images:
