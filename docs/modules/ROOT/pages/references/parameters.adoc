@@ -241,6 +241,32 @@ type:: dict
 
 Parameters to configure the silence CronJob.
 
+
+== `silence.silences`
+
+[horizontal]
+type:: dict
+default::
++
+[source,yaml]
+----
+"Silence non syn alerts":
+  matchers:
+    - name: alertname
+      value: ".+"
+      isRegex: true
+    - name: syn
+      value: ""
+      isRegex: false
+----
+
+Contains the list of silences to be applied.
+The key is used as the comment of the silence and the value is a dictionary which is passed to Alertmanager.
+
+Silences removed from the hierarchy stay active in Alertmanager for up to a year until they expire.
+
+Silences all non-SYN alerts by default.
+
 === `schedule`
 
 [horizontal]
