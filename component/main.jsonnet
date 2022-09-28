@@ -53,7 +53,11 @@ local ns_patch =
                 _remoteWrite+:: {},
               } + {
                 local rwd = super._remoteWrite,
-                remoteWrite+: [ rwd[name] { name: name } for name in std.objectFields(rwd) ],
+                remoteWrite+: std.filterMap(
+                  function(name) rwd[name] != null,
+                  function(name) rwd[name] { name: name },
+                  std.objectFields(rwd)
+                ),
               },
             },
           )
