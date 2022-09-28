@@ -82,6 +82,8 @@ default::
 [source,yaml]
 ----
 prometheusK8s:
+  remoteWrite: []
+  _remoteWrite: {}
   externalLabels:
     cluster_id: ${cluster:name}
     tenant_id: ${cluster:tenant}
@@ -118,6 +120,39 @@ This table shows the monitoring components you can configure and the keys used t
 |Prometheus Adapter|`k8sPrometheusAdapter`
 |Thanos Querier|`thanosQuerier`
 |====
+
+=== `configs.prometheusK8s._remoteWrite`
+
+[horizontal]
+type:: dictionary
+default:: `{}`
+example::
++
+[source,yaml]
+----
+_remoteWrite:
+  example:
+    url: https://prometheus.example.com/api/v1/write
+    headers:
+      "X-Scope-OrgID": example
+    writeRelabelConfigs:
+      - sourceLabels: ['syn']
+        regex: '.+'
+        action: keep
+    basicAuth:
+      username:
+        name: remote-write
+        key: username
+      password:
+        name: remote-write
+        key: password
+----
+
+A dictionary holding the remote write configurations for the Prometheus component.
+The key is the name of the configuration, the value is the content of the configuration.
+
+The remote write configuration will be appended to the `configs.prometheusK8s.remoteWrite` parameter for backwards compatibility.
+
 
 == `configsUserWorkload`
 

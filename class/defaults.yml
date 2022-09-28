@@ -31,6 +31,8 @@ parameters:
       clusterSamplesOperator: true
     configs:
       prometheusK8s:
+        remoteWrite: []
+        _remoteWrite: {}
         externalLabels:
           cluster_id: ${cluster:name}
           tenant_id: ${cluster:tenant}

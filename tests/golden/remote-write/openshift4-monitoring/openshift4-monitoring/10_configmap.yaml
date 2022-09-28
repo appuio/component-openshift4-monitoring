@@ -9,12 +9,18 @@ data:
     : \"\"\n\"openshiftStateMetrics\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
     : \"\"\n\"prometheusK8s\":\n  \"externalLabels\":\n    \"cluster_id\": \"c-green-test-1234\"\
     \n    \"tenant_id\": \"t-silent-test-1234\"\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n  \"remoteWrite\": []\n  \"retention\": \"8d\"\n  \"volumeClaimTemplate\"\
-    :\n    \"spec\":\n      \"resources\":\n        \"requests\":\n          \"storage\"\
-    : \"50Gi\"\n\"prometheusOperator\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n\"telemeterClient\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n\"thanosQuerier\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\""
+    : \"\"\n  \"remoteWrite\":\n  - \"name\": \"backwards-compatibility\"\n  - \"\
+    basicAuth\":\n      \"password\":\n        \"key\": \"password\"\n        \"name\"\
+    : \"remote-write\"\n      \"username\":\n        \"key\": \"username\"\n     \
+    \   \"name\": \"remote-write\"\n    \"headers\":\n      \"X-Scope-OrgID\": \"\
+    example\"\n    \"name\": \"example\"\n    \"url\": \"https://prometheus.example.com/api/v1/write\"\
+    \n    \"writeRelabelConfigs\":\n    - \"action\": \"keep\"\n      \"regex\": \"\
+    .+\"\n      \"sourceLabels\":\n      - \"syn\"\n  \"retention\": \"8d\"\n  \"\
+    volumeClaimTemplate\":\n    \"spec\":\n      \"resources\":\n        \"requests\"\
+    :\n          \"storage\": \"50Gi\"\n\"prometheusOperator\":\n  \"nodeSelector\"\
+    :\n    \"node-role.kubernetes.io/infra\": \"\"\n\"telemeterClient\":\n  \"nodeSelector\"\
+    :\n    \"node-role.kubernetes.io/infra\": \"\"\n\"thanosQuerier\":\n  \"nodeSelector\"\
+    :\n    \"node-role.kubernetes.io/infra\": \"\""
 kind: ConfigMap
 metadata:
   annotations: {}
