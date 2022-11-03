@@ -56,8 +56,14 @@ parameters:
       openshiftStateMetrics: {}
       thanosQuerier: {}
     configsUserWorkload:
+      alertmanager:
+        enabled: true
+        enableAlertmanagerConfig: true
+        volumeClaimTemplate: ${openshift4_monitoring:configs:alertmanagerMain:volumeClaimTemplate}
       prometheusOperator: {}
-      prometheus: ${openshift4_monitoring:configs:prometheusK8s}
+      prometheus:
+        retention: 8d
+        volumeClaimTemplate: ${openshift4_monitoring:configs:prometheusK8s:volumeClaimTemplate}
       thanosRuler: {}
     alertManagerConfig:
       route:
