@@ -55,6 +55,10 @@ local cronJob = kube.CronJob('silence') + namespace {
                     mountPath: '/etc/ssl/certs/serving-certs/',
                     readOnly: true,
                   },
+                  'kube-api-access': {
+                    mountPath: '/var/run/secrets/kubernetes.io/serviceaccount',
+                    readOnly: true,
+                  },
                 },
               },
             },
@@ -69,6 +73,26 @@ local cronJob = kube.CronJob('silence') + namespace {
                 configMap: {
                   defaultMode: std.parseOctal('0440'),
                   name: params.silence.servingCertsCABundleName,
+                },
+              },
+              // we need to explictly configure the projected volume as the
+              // 'prometheus-k8s' ServiceAccount has
+              // `automountServiceAccountToken=false` on fresh OCP 4.11
+              // setups.
+              // NOTE: This doesn't break on older/upgraded clusters but
+              // having the explict projected volume simply disables the token
+              // automount.
+              'kube-api-access': {
+                projected: {
+                  defaultMode: 420,
+                  sources: [
+                    {
+                      serviceAccountToken: {
+                        expirationSeconds: 3607,
+                        path: 'token',
+                      },
+                    },
+                  ],
                 },
               },
             },

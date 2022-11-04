@@ -65,6 +65,9 @@ spec:
                 - mountPath: /etc/ssl/certs/serving-certs/
                   name: ca-bundle
                   readOnly: true
+                - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+                  name: kube-api-access
+                  readOnly: true
                 - mountPath: /usr/local/bin/silence
                   name: scripts
                   readOnly: true
@@ -81,6 +84,13 @@ spec:
                 defaultMode: 288
                 name: serving-certs-ca-bundle
               name: ca-bundle
+            - name: kube-api-access
+              projected:
+                defaultMode: 420
+                sources:
+                  - serviceAccountToken:
+                      expirationSeconds: 3607
+                      path: token
             - configMap:
                 defaultMode: 360
                 name: silence
