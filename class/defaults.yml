@@ -91,6 +91,8 @@ parameters:
       ignoreNames: []
       customAnnotations: {}
       patchRules: {}
+      # Alerts to ignore for user workload monitoring
+      ignoreUserWorkload: []
 
     silence:
       schedule: '0 */4 * * *'

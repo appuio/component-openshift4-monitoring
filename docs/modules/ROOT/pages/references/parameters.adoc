@@ -279,6 +279,28 @@ patchRules:
       for: 30m
 ----
 
+=== `ignoreUserWorkload`
+
+[horizontal]
+type:: list
+default:: `[]`
+
+A list of alerting rules for which the component should patch the `expr` and `annotations.description` fields to ensure they don't alert for the user workload monitoring stack.
+
+By default, we don't turn off any alerts for the user workload monitoring stack.
+
+The parameter supports removing entries by providing the entry to remove prefixed with `~`.
+The parameter can be completely cleared with the following config:
+
+[source,yaml]
+----
+parameters:
+  openshift4_monitoring:
+    alerts:
+      ~ignoreUserWorkload: []
+----
+
+
 == `silence`
 
 [horizontal]
