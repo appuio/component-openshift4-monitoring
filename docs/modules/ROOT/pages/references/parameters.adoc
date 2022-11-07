@@ -71,7 +71,7 @@ Whether the Cluster Samples Operator prometheus rules should be included or not.
 type:: boolean
 default:: false
 
-A parameter to enable https://docs.openshift.com/container-platform/4.9/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
+A parameter to enable https://docs.openshift.com/container-platform/latest/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
 
 == `configs`
 
@@ -162,21 +162,31 @@ default::
 +
 [source,yaml]
 ----
+alertmanager:
+  enabled: true
+  enableAlertmanagerConfig: true
+  volumeClaimTemplate: ${openshift4_monitoring:configs:alertmanagerMain:volumeClaimTemplate}
 prometheusOperator: {}
-prometheus: ${openshift4_monitoring:configs:prometheusK8s}
+prometheus:
+  retention: 8d
+  volumeClaimTemplate: ${openshift4_monitoring:configs:prometheusK8s:volumeClaimTemplate}
 thanosRuler: {}
 ----
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[user workload monitoring components].
 
+By default, we configure the user workload monitoring Prometheus and Alertmanager to inherit the `volumeClaimTemplate` specifications from the cluster-monitoring config.
+This allows users to configure the default storageclass and volume size of both monitoring stacks through the cluster-monitoring config.
+
 This table shows the monitoring components you can configure and the keys used to specify the components:
 
 [options="header"]
 |====
-|Component|Key
-|Prometheus Operator|`prometheusOperator`
-|Prometheus|`prometheus`
-|Thanos Ruler|`thanosRuler`
+|Component|Key|Note
+|Alertmanager|`alertmanager`|Only on OpenShift 4.11 and newer
+|Prometheus Operator|`prometheusOperator`|
+|Prometheus|`prometheus`|
+|Thanos Ruler|`thanosRuler`|
 |====
 
 == `alertManagerConfig`
@@ -268,6 +278,28 @@ patchRules:
     SystemMemoryExceedsReservation:
       for: 30m
 ----
+
+=== `ignoreUserWorkload`
+
+[horizontal]
+type:: list
+default:: `[]`
+
+A list of alerting rules for which the component should patch the `expr` and `annotations.description` fields to ensure they don't alert for the user workload monitoring stack.
+
+By default, we don't turn off any alerts for the user workload monitoring stack.
+
+The parameter supports removing entries by providing the entry to remove prefixed with `~`.
+The parameter can be completely cleared with the following config:
+
+[source,yaml]
+----
+parameters:
+  openshift4_monitoring:
+    alerts:
+      ~ignoreUserWorkload: []
+----
+
 
 == `silence`
 

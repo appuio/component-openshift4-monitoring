@@ -207,6 +207,65 @@ local renderRunbookBaseURL = {
   },
 };
 
+local patchPrometheusStackRules =
+  local ignoreUserWorkload =
+    com.renderArray(params.alerts.ignoreUserWorkload);
+  local dropUserWorkload(alertname) = std.member(ignoreUserWorkload, alertname);
+
+  local replacers = [
+    function(e)
+      std.strReplace(
+        e,
+        'namespace=~"openshift-monitoring|openshift-user-workload-monitoring"',
+        'namespace="openshift-monitoring"'
+      ),
+    function(e)
+      std.strReplace(
+        e,
+        'job=~"alertmanager-main|alertmanager-user-workload"',
+        'job="alertmanager-main"'
+      ),
+    function(e)
+      std.strReplace(
+        e,
+        'job=~"prometheus-k8s|prometheus-user-workload"',
+        'job="prometheus-k8s"'
+      ),
+  ];
+
+  local patch_selector(field) =
+    std.foldl(function(e, r) r(e), replacers, field);
+
+  if std.length(ignoreUserWorkload) == 0 then
+    {}
+  else
+    {
+      spec+: {
+        groups: std.map(
+          function(group)
+            group {
+              rules: std.map(
+                function(rule)
+                  if (
+                    std.objectHas(rule, 'alert') &&
+                    dropUserWorkload(rule.alert)
+                  ) then
+                    rule {
+                      expr: patch_selector(super.expr),
+                      [if std.objectHas(rule.annotations, 'description') then 'annotations']+: {
+                        description: patch_selector(super.description),
+                      },
+                    }
+                  else
+                    rule,
+                group.rules
+              ),
+            },
+          super.groups
+        ),
+      },
+    };
+
 local cmoRules =
   std.foldl(
     function(acc, it) acc + it,
@@ -247,6 +306,7 @@ local rules =
       + annotateRules
       + filterRules
       + patchRules
+      + patchPrometheusStackRules
       + renderRunbookBaseURL
     ).spec.groups,
     {},
