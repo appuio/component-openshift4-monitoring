@@ -21,3 +21,8 @@ By doing so, the monitoring can be run on only a subset of the worker nodes.
 Ensure that the target cluster does have nodes with the infra role label set.
 See the components defaults for the exact value.
 ====
+
+== Cluster-reader permissions
+
+The component deploys a `ClusterRole` which grants `get`, `list`, and `watch` permissions on all `monitoring.coreos.com` resources.
+This `ClusterRole` is configured to be aggregated to the `cluster-reader` `ClusterRole`, thus granting users which have `cluster-reader` read-only access to all `monitoring.coreos.com` resources in the cluster.
