@@ -24,7 +24,7 @@ parameters:
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
-    enableUserWorkload: false
+    enableUserWorkload: true
     upstreamRules:
       networkPlugin: openshift-sdn
       elasticsearchOperator: true
