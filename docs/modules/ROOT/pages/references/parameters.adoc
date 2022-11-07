@@ -69,7 +69,7 @@ Whether the Cluster Samples Operator prometheus rules should be included or not.
 
 [horizontal]
 type:: boolean
-default:: false
+default:: `true`
 
 A parameter to enable https://docs.openshift.com/container-platform/latest/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
 

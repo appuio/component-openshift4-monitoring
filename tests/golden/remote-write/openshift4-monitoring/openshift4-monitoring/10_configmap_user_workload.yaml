@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  config.yaml: "\"alertmanager\":\n  \"enableAlertmanagerConfig\": true\n  \"enabled\"\
+    : true\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\": \"\"\n  \"\
+    volumeClaimTemplate\":\n    \"spec\":\n      \"resources\":\n        \"requests\"\
+    :\n          \"storage\": \"2Gi\"\n\"prometheus\":\n  \"nodeSelector\":\n    \"\
+    node-role.kubernetes.io/infra\": \"\"\n  \"retention\": \"8d\"\n  \"volumeClaimTemplate\"\
+    :\n    \"spec\":\n      \"resources\":\n        \"requests\":\n          \"storage\"\
+    : \"50Gi\"\n\"prometheusOperator\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
+    : \"\"\n\"thanosRuler\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
+    : \"\""
+kind: ConfigMap
+metadata:
+  annotations: {}
+  labels:
+    name: user-workload-monitoring-config
+  name: user-workload-monitoring-config
+  namespace: openshift-user-workload-monitoring

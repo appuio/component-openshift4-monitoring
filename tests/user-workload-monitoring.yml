@@ -16,7 +16,6 @@ parameters:
 
   openshift4_monitoring:
     manifests_version: release-4.11
-    enableUserWorkload: true
     alerts:
       ignoreUserWorkload:
         - AlertmanagerFailedToSendAlerts
