@@ -37,6 +37,7 @@ local ns_patch =
 {
   '00_namespace_labels': ns_patch,
   '01_secrets': secrets,
+  '02_aggregated_clusterroles': (import 'aggregated-clusterroles.libsonnet'),
   [if std.length(params.configs) > 0 then '10_configmap']:
     kube.ConfigMap('cluster-monitoring-config') {
       metadata+: {
