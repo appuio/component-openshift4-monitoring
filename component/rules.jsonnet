@@ -8,6 +8,8 @@ local defaultAnnotations = {
   syn_component: inv.parameters._instance,
 };
 
+local alertpatching = import 'lib/alert-patching.libsonnet';
+
 local excludeESOperatorRules =
   local loggingVersion =
     local ver = std.get(
@@ -144,14 +146,7 @@ local additionalRules = {
 local filterRules = {
   spec+: {
     groups: [
-      group {
-        rules: std.filter(
-          function(rule)
-            std.objectHas(rule, 'alert') &&
-            !std.member(params.alerts.ignoreNames, rule.alert),
-          group.rules
-        ),
-      }
+      alertpatching.filterRules(group, params.alerts.ignoreNames)
       for group in super.groups
     ],
   },
@@ -201,14 +196,7 @@ local patchRules = {
       function(group)
         group {
           rules: std.map(
-            function(rule)
-              if (
-                std.objectHas(rule, 'alert') &&
-                std.objectHas(rulePatches, rule.alert)
-              ) then
-                rule + com.makeMergeable(rulePatches[rule.alert])
-              else
-                rule,
+            function(rule) alertpatching.patchRule(rule, rulePatches, false),
             group.rules
           ),
         },

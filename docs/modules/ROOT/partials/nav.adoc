@@ -1,6 +1,8 @@
 * xref:index.adoc[Home]
+
 .Reference
 * xref:references/parameters.adoc[Parameters]
+* xref:references/alert-patching.adoc[]
 
 .How-Tos
 * xref:how-tos/opsgenie.adoc[OpsGenie integration]
