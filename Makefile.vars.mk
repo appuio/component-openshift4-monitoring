@@ -57,4 +57,4 @@ KUBENT_IMAGE    ?= ghcr.io/doitintl/kube-no-trouble:latest
 KUBENT_DOCKER   ?= $(DOCKER_CMD) $(DOCKER_ARGS) $(root_volume) --entrypoint=/app/kubent $(KUBENT_IMAGE)
 
 instance ?= capacity-alerts
-test_instances = tests/capacity-alerts.yml tests/release-4.9.yml tests/release-4.10.yml tests/release-4.11.yml tests/remote-write.yml tests/user-workload-monitoring.yml
+test_instances = tests/capacity-alerts.yml tests/release-4.9.yml tests/release-4.10.yml tests/release-4.11.yml tests/remote-write.yml tests/user-workload-monitoring.yml tests/es-operator-rules.yml
