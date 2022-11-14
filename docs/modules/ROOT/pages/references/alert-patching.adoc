@@ -1,0 +1,121 @@
+= `alert-patching.libsonnet` API reference
+
+The component provides library `openshift4-monitoring-alert-patching.libsonnet`, which is also available as `alert-patching.libsonnet`.
+This library provides some helper functions which allow users to ensure that PrometheusRule objects which they manage are suitable to use with component `openshift4-monitoring`.
+
+== Usage
+
+[source,jsonnet]
+----
+local com = import 'lib/commodore.libjsonnet';
+local kap = import 'lib/kapitan.libjsonnet';
+local kube = import 'lib/kube.libjsonnet';
+
+local inv = kap.inventory();
+local params = inv.parameters.<component_name>;
+
+local alertpatching = import 'lib/alert-patching.libsonnet'; <1>
+
+local patches = params.alerts.patches; <2>
+local ignoreNames = com.renderArray(params.alerts.ignoreNames); <3>
+
+local raw_alert_groups = [ ... ]; <4>
+
+{
+  alert_rules: kube._Object('monitoring.coreos.com/v1', 'PrometheusRule', 'my-alert-rules') {
+    metadata+: {
+      namespace: params.namespace,
+    },
+    spec: {
+      groups: std.filter(
+        function(it) std.length(r.rules) > 0,
+        [
+          alertpatching.filterPatchRules(
+            g, ignoreNames, patches,
+          ); <5>
+          for g in groups
+        ],
+      ), <6>
+    },
+  },
+};
+----
+<1> Import the library.
+By using the aliased name, you can make your component compatible with any monitoring component which provides an `alert-patching.libsonnet` library alias.
+<2> Extract alert patches from the component parameters.
+Alternatively, you can define patches directly in Jsonnet.
+<3> Extract alert names to ignore from the component parameters.
+We use `com.renderArray()` here to allow users to re-enable alerts which were ignored higher up in the hierarchy.
+<4> Loading/creation of alert rule groups omitted for brevity.
+<5> Filter and patch each group in the loaded groups.
+We pass our preprocessed `ignoreNames` and `patches` to the function.
+<6> We use `std.filter()` to completely remove groups which don't contain any rules after filtering them from the resulting `PrometheusRule` object.
+
+== `filterRules(group, ignoreNames=[], preserveRecordingRules=false)`
+
+This function filters alert rules in the provided group.
+
+The function assumes that parameter `group` is a valid entry for the PrometheusRule CR `.spec.groups` field.
+
+=== Arguments
+
+`group`::
+A PrometheusRule CR `.spec.groups` entry.
+
+`ignoreNames`::
+A list of alert names to filter out.
+This argument is optional, and defaults to the empty list.
+The function doesn't process the provided value for `ignoreNames`, except converting it to a Jsonnet set with `std.set()`.
+If you want to use `com.renderArray()` to allow re-enabling ignored alerts, you'll have to do so before providing the list to the function.
+
+`preserveRecordingRules`::
+Whether to keep or discard recording rules in the group.
+This argument is optional and defaults to `false`.
+This is useful when wanting to patch alerting rules which are already deployed to the cluster through some operator (for example cluster-logging, or rook-ceph).
+Generally, in such cases, we'll only want to modify alerting rules, but don't want to deploy duplicates of the recording rules which may be present in the same groups as the alerting rules in the upstream manifests.
+
+=== Return value
+
+The group with any alert rules whose field `alert` matches an entry in either component parameter `openshift4_monitoring.alerts.ignoreNames`, or an entry in the provided `ignoreNames` list removed.
+If `preserveRecordingRules` is `false`, all recording rules are also removed from the resulting group.
+
+== `patchRule(rule, patches={}, patchName=true)`
+
+This function patches the provided alert rule to adhere to the format expected by this component.
+This includes adding labels which are used by other parts of the component to the rule (for example `syn=true`), and ensuring that the alert name is prefixed with `SYN_`.
+
+Custom alert patches can be provided through argument `patches`.
+
+Recording rules will always be returned unchanged.
+
+=== Arguments
+
+`rule`::
+The rule to patch
+
+`patches`::
+An object with partial alert rule definitions.
+The function uses the provided rule's `alert` field to look up potential patches.
+This parameter is optional and defaults to an empty object.
+
+`patchName`::
+ Whether to prefix the alert name with `SYN_` if it isn't already.
+ This parameter is optional and defaults to `true`.
+
+=== Return value
+
+The patched rule
+
+== `filterPatchRules(group, ignoreNames=[], patches={}, preserveRecordingRules=false, patchNames=true)`
+
+This function provides a convenience wrapper which filters the provided group using `filterRules`, and applies `patchRule` for each rule which isn't dropped by `filterRules`.
+
+=== Arguments
+
+See `filterRules` and `patchRule` for detailed descriptions of the arguments.
+
+Argument `patchNames` is passed as argument `patchName` to `patchRule`.
+
+=== Return value
+
+The group with any rules that match a filter condition removed and all other rules patched according to the provided patches.
