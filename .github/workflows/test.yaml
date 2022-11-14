@@ -38,6 +38,7 @@ jobs:
           - release-4.11
           - remote-write
           - user-workload-monitoring
+          - es-operator-rules
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -58,6 +59,7 @@ jobs:
           - release-4.11
           - remote-write
           - user-workload-monitoring
+          - es-operator-rules
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}

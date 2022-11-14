@@ -8,6 +8,51 @@ local defaultAnnotations = {
   syn_component: inv.parameters._instance,
 };
 
+local excludeESOperatorRules =
+  local loggingVersion =
+    local ver = std.get(
+      std.get(inv.parameters, 'components', {}),
+      'openshift4-logging',
+      { version: '' }
+    ).version;
+    if std.startsWith(ver, 'v') then
+      // split version of form `v<major>.<minor>.<patch>-<suffix>`
+      // we only care about <major> and <minor>, so we don't even worry about
+      // suffixes.
+      local verparts = std.split(
+        std.substr(ver, 1, std.length(ver)),
+        '.',
+      );
+      local parseOrWarn(val, typ) =
+        local parsed = std.parseJson(val);
+        if std.isNumber(parsed) then
+          parsed
+        else
+          std.trace(
+            'Failed to parse %s version "%s" as number, returning 0' % [ typ, val ],
+            0
+          );
+      {
+        major: parseOrWarn(verparts[0], 'major'),
+        minor: parseOrWarn(verparts[1], 'minor'),
+      }
+    else
+      // if we get a version which isn't prefixed by v, we just return a
+      // openshift4-logging version which is managing the ES operator alerts
+      // itself.
+      {
+        major: 2,
+        minor: 0,
+      };
+  params.upstreamRules.elasticsearchOperator == false ||
+  // also exclude ES operator if we're seeing a openshift4-logging version
+  // which manages the ES operator rules itself (openshift4-logging >=
+  // v1.7.0).
+  (
+    loggingVersion.major >= 2 ||
+    (loggingVersion.major == 1 && loggingVersion.minor >= 7)
+  );
+
 local upstreamManifestsFileExclude = function(file) (
   (
     params.upstreamRules.networkPlugin != 'ovn-kubernetes' &&
@@ -21,7 +66,7 @@ local upstreamManifestsFileExclude = function(file) (
     file == 'openshift-sdn.yaml'
   )
   || (
-    params.upstreamRules.elasticsearchOperator == false &&
+    excludeESOperatorRules &&
     file == 'elasticsearch-operator.yaml'
   )
   || (

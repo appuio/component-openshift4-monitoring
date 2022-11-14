@@ -1,13 +1,13 @@
 {
   "template": "https://github.com/projectsyn/commodore-component-template.git",
-  "commit": "0f8aa8baef803c2f09d710c717f26f7eff145407",
+  "commit": "86f54285090cc7ef5372a32b752f8bcdc562b338",
   "checkout": "main",
   "context": {
     "cookiecutter": {
       "name": "OpenShift4 Monitoring",
       "slug": "openshift4-monitoring",
       "parameter_key": "openshift4_monitoring",
-      "test_cases": "capacity-alerts release-4.9 release-4.10 release-4.11 remote-write user-workload-monitoring",
+      "test_cases": "capacity-alerts release-4.9 release-4.10 release-4.11 remote-write user-workload-monitoring es-operator-rules",
       "add_lib": "y",
       "add_pp": "n",
       "add_golden": "y",

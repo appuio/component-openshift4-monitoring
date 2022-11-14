@@ -53,8 +53,13 @@ This ensures neither openshift-sdn nor OVN-Kubernetes monitoring rules are deplo
 type:: boolean
 default:: `true`
 
-Whether the Elasticsearch Operator prometheus rules should be included or not.
+WARNING: This parameter is deprecated and will be removed in a future version of the component.
 
+Whether the Elasticsearch Operator Prometheus rules should be included or not.
+
+Component `openshift4-logging` starting with version v1.7.0 manages the Elasticsearch Operator Prometheus rules itself.
+This parameter doesn't have an effect if the inventory includes component `openshift4-logging` with version v1.7.0 or newer.
+For such inventories, this component will never include the Elasticsearch Operator Prometheus rules.
 
 == `upstreamRules.clusterSamplesOperator`
 
