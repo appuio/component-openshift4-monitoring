@@ -1059,30 +1059,26 @@ spec:
       rules:
         - alert: SYN_HighOverallControlPlaneMemory
           annotations:
-            description: Given three control plane nodes, the overall memory utilization
-              may only be about 2/3 of all available capacity. This is because if
-              a single control plane node fails, the kube-apiserver and etcd my be
-              slow to respond. To fix this, increase memory of the control plane nodes.
+            description: 'The overall memory usage is high.
+
+              kube-apiserver and etcd might be slow to respond.
+
+              To fix this, increase memory of the control plane nodes.
+
+
+              This alert was adjusted to be less sensitive in 4.11.
+
+              Newer Go versions use more memory, if available, to reduce GC pauses.
+
+
+              Old memory behavior can be restored by setting `GOGC=63`.
+
+              See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
+
+              '
             summary: Memory utilization across all control plane nodes is high, and
               could impact responsiveness and stability.
             syn_component: openshift4-monitoring
-          description: 'The overall memory usage is high.
-
-            kube-apiserver and etcd might be slow to respond.
-
-            To fix this, increase memory of the control plane nodes.
-
-
-            This alert was adjusted to be less sensitive in 4.11.
-
-            Newer Go versions use more memory, if available, to reduce GC pauses.
-
-
-            Old memory behavior can be restored by setting `GOGC=63`.
-
-            See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
-
-            '
           expr: "(\n  1\n  -\n  sum (\n    node_memory_MemFree_bytes\n    + node_memory_Buffers_bytes\n\
             \    + node_memory_Cached_bytes\n    AND on (instance)\n    label_replace(\
             \ kube_node_role{role=\"master\"}, \"instance\", \"$1\", \"node\", \"\

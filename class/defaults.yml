@@ -94,16 +94,17 @@ parameters:
       patchRules:
         release-4.11:
           HighOverallControlPlaneMemory:
-            description: |
-              The overall memory usage is high.
-              kube-apiserver and etcd might be slow to respond.
-              To fix this, increase memory of the control plane nodes.
+            annotations:
+              description: |
+                The overall memory usage is high.
+                kube-apiserver and etcd might be slow to respond.
+                To fix this, increase memory of the control plane nodes.
 
-              This alert was adjusted to be less sensitive in 4.11.
-              Newer Go versions use more memory, if available, to reduce GC pauses.
+                This alert was adjusted to be less sensitive in 4.11.
+                Newer Go versions use more memory, if available, to reduce GC pauses.
 
-              Old memory behavior can be restored by setting `GOGC=63`.
-              See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
+                Old memory behavior can be restored by setting `GOGC=63`.
+                See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
             expr: |
               (
                 1
