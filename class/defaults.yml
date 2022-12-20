@@ -151,7 +151,7 @@ parameters:
 
 
     capacityAlerts:
-      enabled: false
+      enabled: true
       groups:
         PodCapacity:
           rules:
