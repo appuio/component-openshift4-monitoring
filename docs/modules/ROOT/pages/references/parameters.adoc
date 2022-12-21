@@ -393,8 +393,8 @@ Number of successful jobs to keep.
 type:: dict
 
 This parameter allows users to enable and configure alerts for capacity management.
-The capacity alerts are disabled by default and can be enabled by setting the key `capacityAlerts.enabled` to `true`.
-Predictive alerts are disabled by default and can be enabled, as exampled by `ExpectClusterCpuUsageHigh.enabled` to `true`.
+The capacity alerts are enabled by default and can be disabled completely by setting the key `capacityAlerts.enabled` to `false`.
+Predictive alerts are disabled by default and can be enabled individually as shown below by setting `ExpectClusterCpuUsageHigh.enabled` to `true`.
 
 The dictionary will be transformed into a `PrometheusRule` object by the component.
 
