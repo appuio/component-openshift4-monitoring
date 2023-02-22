@@ -1,0 +1,18 @@
+= Alert Group: syn-Prometheus
+
+== Alert Rule: SYN_PrometheusRemoteWriteBehind [[SYN_PrometheusRemoteWriteBehind]]
+== Alert Rule: SYN_PrometheusRemoteWriteDesiredShards [[SYN_PrometheusRemoteWriteDesiredShards]]
+
+=== icon:glasses[] Overview
+
+This alert indicates that the Mimir instance on APPUiO Cloud LPG-2 has a problem accepting metrics.
+Typically after maintenance, the nginx pod in front of Mimir, didn't renew the ip of the distributor pods.
+
+=== icon:wrench[] Resolve
+
+Restart the nginx pod.
++
+[source,shell]
+----
+k -n vshn-appuio-mimir delete po -l app.kubernetes.io/component=nginx
+----

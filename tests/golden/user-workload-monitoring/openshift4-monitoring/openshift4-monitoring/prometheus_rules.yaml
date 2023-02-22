@@ -2940,6 +2940,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} remote write
               is {{ printf "%.1f" $value }}s behind for {{ $labels.remote_name}}:{{
               $labels.url }}.
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
             summary: Prometheus remote write is behind.
             syn_component: openshift4-monitoring
           expr: "# Without max_over_time, failed scrapes could create false negatives,\
@@ -2960,6 +2961,7 @@ spec:
               {{ $labels.remote_name}}:{{ $labels.url }}, which is more than the max
               of {{ printf `prometheus_remote_storage_shards_max{instance="%s",job=~"prometheus-k8s|prometheus-user-workload"}`
               $labels.instance | query | first | value }}.
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
             summary: Prometheus remote write desired shards calculation wants to run
               more than configured max shards.
             syn_component: openshift4-monitoring

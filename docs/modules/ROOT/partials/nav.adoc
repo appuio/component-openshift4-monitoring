@@ -16,3 +16,5 @@
 * xref:runbooks/resourcerequests.adoc[Resource Requests Alert]
 * xref:runbooks/memorycapacity.adoc[Memory Capacity Alert]
 * xref:runbooks/cpucapacity.adoc[CPU Capacity Alert]
+* xref:runbooks/unusedcapacity.adoc[Node Capacity Alert]
+* xref:runbooks/remotewrite.adoc[Prometheus RemoteWrite Alert]
