@@ -1,0 +1,29 @@
+= Alert Group: syn-Prometheus
+
+== Alert Rule: SYN_PrometheusRemoteWriteBehind [[SYN_PrometheusRemoteWriteBehind]]
+== Alert Rule: SYN_PrometheusRemoteWriteDesiredShards [[SYN_PrometheusRemoteWriteDesiredShards]]
+
+=== icon:glasses[] Overview
+
+This alert may indicate that the remote write receiver isn't accepting metrics due to an internal problem or that there's a network issue between Prometheus and the remote write receiver.
+If the remote write receiver is a Mimir instance, the root cause may be that the ngnix in front of the Mimir components has stale pod IPs in its DNS cache.
+
+=== icon:[search] Investigate
+
+* Check that the remote write receiver's endpoint is reachable
++
+[source,bash]
+----
+kubectl -n openshift-monitoring --as=cluster-admin exec -it prometheus-k8s-0 -- curl <remote-write-endpoint>
+----
+* Check the remote write receiver for any issues.
+If the remote write receiver is a Mimir instance, check the Mimir nginx pod logs.
+Errors like the following indicate that nginx's DNS cache contains stale pod IPs.
++
+[source]
+----
+2022/12/13 08:50:31 [error] 9#9: *2748893 vshn-appuio-mimir-distributor-headless.vshn-appuio-mimir.svc.cluster.local could not be resolved (110: Operation timed out), client: 10.128.10.35, server: , request: "POST /api/v1/push HTTP/1.1", host: "metrics-receive.appuio.net"
+----
+=== icon:wrench[] Resolve
+
+If you've identified that the Mimir nginx is the cause of the issue, restart the nginx pod.

@@ -121,6 +121,12 @@ parameters:
                   label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
                 )
               ) * 100 > 80
+          PrometheusRemoteWriteBehind:
+            annotations:
+              runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
+          PrometheusRemoteWriteDesiredShards:
+            annotations:
+              runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
       # Alerts to ignore for user workload monitoring
       ignoreUserWorkload: []
 
