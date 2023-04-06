@@ -1,26 +1,66 @@
 apiVersion: v1
 data:
-  config.yaml: "\"alertmanagerMain\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n  \"volumeClaimTemplate\":\n    \"spec\":\n      \"resources\":\n    \
-    \    \"requests\":\n          \"storage\": \"2Gi\"\n\"enableUserWorkload\": true\n\
-    \"grafana\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\": \"\"\
-    \n\"k8sPrometheusAdapter\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n\"kubeStateMetrics\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n\"openshiftStateMetrics\":\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n\"prometheusK8s\":\n  \"externalLabels\":\n    \"cluster_id\": \"c-green-test-1234\"\
-    \n    \"tenant_id\": \"t-silent-test-1234\"\n  \"nodeSelector\":\n    \"node-role.kubernetes.io/infra\"\
-    : \"\"\n  \"remoteWrite\":\n  - \"name\": \"backwards-compatibility\"\n  - \"\
-    basicAuth\":\n      \"password\":\n        \"key\": \"password\"\n        \"name\"\
-    : \"remote-write\"\n      \"username\":\n        \"key\": \"username\"\n     \
-    \   \"name\": \"remote-write\"\n    \"headers\":\n      \"X-Scope-OrgID\": \"\
-    example\"\n    \"name\": \"example\"\n    \"url\": \"https://prometheus.example.com/api/v1/write\"\
-    \n    \"writeRelabelConfigs\":\n    - \"action\": \"keep\"\n      \"regex\": \"\
-    .+\"\n      \"sourceLabels\":\n      - \"syn\"\n  \"retention\": \"8d\"\n  \"\
-    volumeClaimTemplate\":\n    \"spec\":\n      \"resources\":\n        \"requests\"\
-    :\n          \"storage\": \"50Gi\"\n\"prometheusOperator\":\n  \"nodeSelector\"\
-    :\n    \"node-role.kubernetes.io/infra\": \"\"\n\"telemeterClient\":\n  \"nodeSelector\"\
-    :\n    \"node-role.kubernetes.io/infra\": \"\"\n\"thanosQuerier\":\n  \"nodeSelector\"\
-    :\n    \"node-role.kubernetes.io/infra\": \"\""
+  config.yaml: |-
+    "alertmanagerMain":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+      "volumeClaimTemplate":
+        "spec":
+          "resources":
+            "requests":
+              "storage": "2Gi"
+    "enableUserWorkload": true
+    "grafana":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "k8sPrometheusAdapter":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "kubeStateMetrics":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "openshiftStateMetrics":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "prometheusK8s":
+      "externalLabels":
+        "cluster_id": "c-green-test-1234"
+        "tenant_id": "t-silent-test-1234"
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+      "remoteWrite":
+      - "name": "backwards-compatibility"
+      - "basicAuth":
+          "password":
+            "key": "password"
+            "name": "remote-write"
+          "username":
+            "key": "username"
+            "name": "remote-write"
+        "headers":
+          "X-Scope-OrgID": "example"
+        "name": "example"
+        "url": "https://prometheus.example.com/api/v1/write"
+        "writeRelabelConfigs":
+        - "action": "keep"
+          "regex": ".+"
+          "sourceLabels":
+          - "syn"
+      "retention": "8d"
+      "volumeClaimTemplate":
+        "spec":
+          "resources":
+            "requests":
+              "storage": "50Gi"
+    "prometheusOperator":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "telemeterClient":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "thanosQuerier":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
 kind: ConfigMap
 metadata:
   annotations: {}

@@ -8,10 +8,24 @@ metadata:
   name: alertmanager-main
   namespace: openshift-monitoring
 stringData:
-  alertmanager.yaml: "\"inhibit_rules\":\n- \"equal\":\n  - \"namespace\"\n  - \"\
-    alertname\"\n  \"source_match\":\n    \"severity\": \"critical\"\n  \"target_match_re\"\
-    :\n    \"severity\": \"warning|info\"\n- \"equal\":\n  - \"namespace\"\n  - \"\
-    alertname\"\n  \"source_match\":\n    \"severity\": \"warning\"\n  \"target_match_re\"\
-    :\n    \"severity\": \"info\"\n\"route\":\n  \"group_interval\": \"5s\"\n  \"\
-    group_wait\": \"0s\"\n  \"repeat_interval\": \"10m\""
+  alertmanager.yaml: |-
+    "inhibit_rules":
+    - "equal":
+      - "namespace"
+      - "alertname"
+      "source_match":
+        "severity": "critical"
+      "target_match_re":
+        "severity": "warning|info"
+    - "equal":
+      - "namespace"
+      - "alertname"
+      "source_match":
+        "severity": "warning"
+      "target_match_re":
+        "severity": "info"
+    "route":
+      "group_interval": "5s"
+      "group_wait": "0s"
+      "repeat_interval": "10m"
 type: Opaque
