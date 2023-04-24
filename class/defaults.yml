@@ -322,3 +322,12 @@ parameters:
       instance: null
 
     secrets: {}
+
+    cortex_tenant_ns_label:
+      enabled: false
+      requests:
+        cpu: '500m'
+        memory: '256Mi'
+      limits:
+        cpu: '5'
+        memory: '256Mi'

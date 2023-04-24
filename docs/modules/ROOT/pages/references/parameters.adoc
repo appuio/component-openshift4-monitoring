@@ -538,3 +538,69 @@ default:: `{}`
 A dict of secrets to create in the namespace.
 The key is the name of the secret, the value is the content of the secret.
 The value must be a dict with a key `stringData` which is a dict of key/value pairs to add to the secret.
+
+== `cortex_tenant_ns_label`
+
+[horizontal]
+type:: dict
+
+Parameters to configure the cortex-tenant-ns-label reverse proxy.
+
+=== `enabled`
+
+[horizontal]
+type:: boolean
+default:: `false`
+
+Enable or disable the cortex-tenant-ns-label reverse proxy.
+
+=== `requests`
+
+[horizontal]
+type:: dict
+default::
++
+[source,yaml]
+----
+cpu: '500m'
+memory: '256Mi'
+----
+
+Configure the reserved resources for the cortex-tenant-ns-label reverse proxy.
+
+=== `limits`
+
+[horizontal]
+type:: dict
+default::
++
+[source,yaml]
+----
+cpu: '5'
+memory: '256Mi'
+----
+
+Configure the maximum resources for the cortex-tenant-ns-label reverse proxy.
+
+=== `config`
+
+[horizontal]
+type:: string
+default:: ``
+example::
++
+[source,yaml]
+----
+listen: 0.0.0.0:8080
+target: https://metrics-receive.appuio.net/api/v1/push
+log_level: warn
+auth:
+  egress:
+    username: ?{vaultkv:__shared__/__shared__/metrics-receive-appuio-net-remote-write/username}
+    password: ?{vaultkv:__shared__/__shared__/metrics-receive-appuio-net-remote-write/password}
+  namespace:
+    tenant_label: 'appuio.io/organization'
+----
+
+Configure the cortex-tenant-ns-label reverse proxy. See https://github.com/vshn/cortex-tenant-ns-label for more details.
+

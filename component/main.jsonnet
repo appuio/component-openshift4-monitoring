@@ -90,6 +90,7 @@ local ns_patch =
   rbac: import 'rbac.libsonnet',
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
+  [if params.cortex_tenant_ns_label.enabled then 'cortex_tenant_ns_label']: import 'cortex-tenant-ns-label.jsonnet',
   [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
 } + {
   [group_name + '_rules']: prom.PrometheusRule(group_name) {
