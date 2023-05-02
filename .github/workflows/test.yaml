@@ -39,6 +39,7 @@ jobs:
           - remote-write
           - user-workload-monitoring
           - es-operator-rules
+          - capacity-alerts-with-node-labels
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -60,6 +61,7 @@ jobs:
           - remote-write
           - user-workload-monitoring
           - es-operator-rules
+          - capacity-alerts-with-node-labels
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}

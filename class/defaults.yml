@@ -158,6 +158,7 @@ parameters:
 
     capacityAlerts:
       enabled: true
+      groupByNodeLabels: []
       groups:
         PodCapacity:
           rules:
