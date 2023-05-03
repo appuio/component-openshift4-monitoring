@@ -411,15 +411,16 @@ Example:
 ---
 capacityAlerts:
   enabled: true <1>
+  groupByNodeLabels: [] <2>
   groups:
     PodCapacity:
       rules:
         TooManyPods:
           annotations:
-            message: 'The number of pods is too damn high' <2>
-          for: 3h <3>
+            message: 'The number of pods is too damn high' <3>
+          for: 3h <4>
         ExpectTooManyPods:
-          expr: <4>
+          expr: <5>
             range: '2d'
             predict: '5*24*60*60'
 
@@ -428,25 +429,26 @@ capacityAlerts:
         TooMuchMemoryRequested:
           enabled: true
           expr:
-            raw: sum(kube_pod_resource_request{resource="memory"}) > 9000*1024*1024*1024 <5>
+            raw: sum(kube_pod_resource_request{resource="memory"}) > 9000*1024*1024*1024 <6>
     CpuCapacity:
       rules:
         ClusterCpuUsageHigh:
-          enabled: false <6>
+          enabled: false <7>
         ExpectClusterCpuUsageHigh:
-          enabled: false <6>
+          enabled: false <7>
     UnusedCapacity:
       rules:
         ClusterHasUnusedNodes:
-          enabled: false <7>
+          enabled: false <8>
 ---
 <1> Enables capacity alerts
-<2> Changes the alert message for the pod capacity alert
-<3> Only alerts for pod capacity if it fires for 3 hours
-<4> Change the pod count prediction to look at the last two days and predict the value in five days
-<5> Completely overrides the default alert rule and alerts if the total memory request is over 9000 GB
-<6> Disables both CPU capacity alert rules
-<7> Disables alert if the cluster has unused nodes.
+<2> List of node labels (as they show up in the `kube_node_labels` metric) by which alerts are grouped
+<3> Changes the alert message for the pod capacity alert
+<4> Only alerts for pod capacity if it fires for 3 hours
+<5> Change the pod count prediction to look at the last two days and predict the value in five days
+<6> Completely overrides the default alert rule and alerts if the total memory request is over 9000 GB
+<7> Disables both CPU capacity alert rules
+<8> Disables alert if the cluster has unused nodes.
 
 
 == `rules`
