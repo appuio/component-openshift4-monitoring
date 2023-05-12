@@ -318,8 +318,4 @@ parameters:
                 # There should be some overcapacity to account for failing nodes and future growth.
                 reserved: 4
 
-    syn_monitoring:
-      enabled: true
-      instance: null
-
     secrets: {}

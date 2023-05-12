@@ -1,15 +1,9 @@
-applications:
-  - prometheus
-
 parameters:
   kapitan:
     dependencies:
       - type: https
         source: https://raw.githubusercontent.com/projectsyn/component-resource-locker/v2.6.2/lib/resource-locker.libjsonnet
         output_path: vendor/lib/resource-locker.libjsonnet
-      - type: https
-        source: https://raw.githubusercontent.com/projectsyn/component-prometheus/master/lib/prometheus.libsonnet
-        output_path: vendor/lib/prometheus.libsonnet
 
   resource_locker:
     namespace: syn-resource-locker
@@ -31,7 +25,3 @@ parameters:
         - PrometheusScrapeBodySizeLimitHit
         - PrometheusScrapeSampleLimitHit
         - PrometheusTargetSyncFailure
-
-
-  prometheus:
-    defaultInstance: infra
