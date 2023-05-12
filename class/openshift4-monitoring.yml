@@ -115,6 +115,10 @@ parameters:
         source: ${openshift4_monitoring:_manifest_urls:ovn-kubernetes:${openshift4_monitoring:manifests_version}:control_plane}
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/ovn-kubernetes-control-plane.yaml
 
+      - type: https
+        source: https://raw.githubusercontent.com/openshift/cluster-storage-operator/${openshift4_monitoring:manifests_version}/assets/vsphere_problem_detector/12_prometheusrules.yaml
+        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/vsphere-problem-detector-rules.yaml
+
     compile:
       # Prerender cluster-version-operator YAML with Jinja2.
       # This works even though the file is templated with Gotemplate, because

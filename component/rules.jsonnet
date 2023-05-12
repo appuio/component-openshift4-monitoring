@@ -75,6 +75,10 @@ local upstreamManifestsFileExclude = function(file) (
     params.upstreamRules.clusterSamplesOperator == false &&
     file == 'cluster-samples-operator.yaml'
   )
+  || (
+    inv.parameters.facts.cloud != 'vsphere' &&
+    file == 'vsphere-problem-detector-rules.yaml'
+  )
 );
 
 local loadFiles(root) =
