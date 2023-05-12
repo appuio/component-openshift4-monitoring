@@ -1,8 +1,8 @@
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
+local po = import 'lib/patch-operator.libsonnet';
 local prom = import 'lib/prom.libsonnet';
-local rl = import 'lib/resource-locker.libjsonnet';
 
 
 local inv = kap.inventory();
@@ -20,7 +20,7 @@ local ns =
 local secrets = com.generateResources(params.secrets, kube.Secret);
 
 local ns_patch =
-  rl.Patch(
+  po.Patch(
     kube.Namespace(ns),
     {
       metadata: {
