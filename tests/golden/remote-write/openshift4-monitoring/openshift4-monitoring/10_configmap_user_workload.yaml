@@ -14,6 +14,24 @@ data:
     "prometheus":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
+      "remoteWrite":
+      - "name": "backwards-compatibility-user"
+      - "basicAuth":
+          "password":
+            "key": "password"
+            "name": "remote-write-user"
+          "username":
+            "key": "username"
+            "name": "remote-write-user"
+        "headers":
+          "X-Scope-OrgID": "customer"
+        "name": "example"
+        "url": "https://user-prometheus.example.com/api/v1/write"
+        "writeRelabelConfigs":
+        - "action": "keep"
+          "regex": ".+"
+          "sourceLabels":
+          - "customer"
       "retention": "8d"
       "volumeClaimTemplate":
         "spec":

@@ -16,6 +16,12 @@ parameters:
         stringData:
           username: prometheus
           password: prometheus
+      remote-write-user:
+        metadata:
+          namespace: openshift-user-workload-monitoring
+        stringData:
+          username: prometheus
+          password: prometheus
 
     configs:
       prometheusK8s:
@@ -36,4 +42,25 @@ parameters:
                 key: username
               password:
                 name: remote-write
+                key: password
+
+    configsUserWorkload:
+      prometheus:
+        remoteWrite:
+          - name: backwards-compatibility-user
+        _remoteWrite:
+          example:
+            url: https://user-prometheus.example.com/api/v1/write
+            headers:
+              "X-Scope-OrgID": customer
+            writeRelabelConfigs:
+              - sourceLabels: ['customer']
+                regex: '.+'
+                action: keep
+            basicAuth:
+              username:
+                name: remote-write-user
+                key: username
+              password:
+                name: remote-write-user
                 key: password

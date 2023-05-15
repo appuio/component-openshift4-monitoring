@@ -194,6 +194,40 @@ This table shows the monitoring components you can configure and the keys used t
 |Thanos Ruler|`thanosRuler`|
 |====
 
+=== `configsUserWorkload.prometheus._remoteWrite`
+
+[horizontal]
+type:: dictionary
+default:: `{}`
+example::
++
+[source,yaml]
+----
+_remoteWrite:
+  example:
+    url: https://prometheus.example.com/api/v1/write
+    headers:
+      "X-Scope-OrgID": customer
+    writeRelabelConfigs:
+      - sourceLabels: ['customer']
+        regex: '.+'
+        action: keep
+    basicAuth:
+      username:
+        name: remote-write-customer
+        key: username
+      password:
+        name: remote-write-customer
+        key: password
+----
+
+A dictionary holding the remote write configurations for the Prometheus component of the user workload monitoring stack.
+The key is the name of the configuration, the value is the content of the configuration.
+
+The remote write configuration will be appended to the `configsUserWorkload.prometheus.remoteWrite` parameter for backwards compatibility.
+
+
+
 == `alertManagerConfig`
 
 [horizontal]

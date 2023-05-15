@@ -14,6 +14,7 @@ data:
     "prometheus":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
+      "remoteWrite": []
       "retention": "8d"
       "volumeClaimTemplate":
         "spec":
