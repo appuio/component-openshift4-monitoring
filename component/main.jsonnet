@@ -34,6 +34,18 @@ local ns_patch =
     }
   );
 
+
+local patchRemoteWrite(promConfig) = promConfig {
+  _remoteWrite+:: {},
+} + {
+  local rwd = super._remoteWrite,
+  remoteWrite+: std.filterMap(
+    function(name) rwd[name] != null,
+    function(name) rwd[name] { name: name },
+    std.objectFields(rwd)
+  ),
+};
+
 {
   '00_namespace_labels': ns_patch,
   '01_secrets': secrets,
@@ -50,18 +62,9 @@ local ns_patch =
           } + std.mapWithKey(
             function(field, value) value + params.defaultConfig,
             params.configs {
-              prometheusK8s+: {
-                _remoteWrite+:: {},
-              } + {
-                local rwd = super._remoteWrite,
-                remoteWrite+: std.filterMap(
-                  function(name) rwd[name] != null,
-                  function(name) rwd[name] { name: name },
-                  std.objectFields(rwd)
-                ),
-              },
-            },
-          )
+              prometheusK8s: patchRemoteWrite(super.prometheusK8s),
+            }
+          ),
         ),
       },
     },
@@ -74,7 +77,9 @@ local ns_patch =
         'config.yaml': std.manifestYamlDoc(
           std.mapWithKey(
             function(field, value) value + params.defaultConfig,
-            params.configsUserWorkload
+            params.configsUserWorkload {
+              prometheus: patchRemoteWrite(super.prometheus),
+            }
           )
         ),
       },
