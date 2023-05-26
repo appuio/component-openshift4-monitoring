@@ -13,6 +13,35 @@ local global_alert_params =
     { alerts: { ignoreNames: [] } }
   ).alerts;
 
+local syn_team =
+  local instance = inv.parameters._instance;
+  local syn = if std.objectHas(inv.parameters, 'syn') then {
+    owner: std.get(inv.parameters.syn, 'owner', ''),
+    teams: std.get(inv.parameters.syn, 'teams', { teams: {} }),
+  } else { owner: '', teams: {} };
+  local team_instances = [
+    {
+      team: tn,
+      instances: std.get(syn.teams[tn], 'instances', []),
+    }
+    for tn in std.objectFields(syn.teams)
+  ];
+  local team = std.foldl(
+    function(o, ti)
+      if std.member(ti.instances, instance) then
+        o + [ ti.team ]
+      else
+        o,
+    team_instances,
+    []
+  );
+  if std.length(team) > 1 then
+    error "Multiple owners for instance '%s': %s" % [ instance, team ]
+  else if std.length(team) == 1 then
+    team[0]
+  else
+    syn.owner;
+
 /**
  * \brief filter alert rules in the provided group
  *
@@ -108,6 +137,9 @@ local patchRule(rule, patches={}, patchName=true) =
         // mark alert as belonging to component instance in whose context the
         // function is called.
         syn_component: inv.parameters._instance,
+        // mark alert as belonging to the team in whose context the
+        // function is called.
+        [if syn_team != '' then 'syn_team']: syn_team,
       },
     } + com.makeMergeable(rulepatch);
 
