@@ -1,3 +1,20 @@
 # Overwrite parameters here
 
-# parameters: {...}
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
+        output_path: vendor/lib/patch-operator.libsonnet
+
+  patch_operator:
+    namespace: syn-patch-operator
+    patch_serviceaccount:
+      name: patch-sa
+
+  syn:
+    owner: my_team
+    teams:
+      other_team:
+        instances:
+          - 'openshift4-monitoring'

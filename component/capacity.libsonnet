@@ -13,9 +13,10 @@ local defaultAnnotations = {
 };
 
 local alertLabels = {
+  severity: 'warning',
   syn: 'true',
   syn_component: 'openshift4-monitoring',
-  severity: 'warning',
+  [if std.objectHas(inv.parameters, 'syn') then 'syn_team']: std.get(inv.parameters.syn, 'owner', ''),
 };
 
 local predict(indicator, range='1d', resolution='5m', predict='3*24*60*60') =
