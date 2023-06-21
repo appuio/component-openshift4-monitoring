@@ -36,6 +36,15 @@ parameters:
               - sourceLabels: ['syn']
                 regex: '.+'
                 action: keep
+              - timeseries:
+                  - foo_metric_number_one
+                  - foo_metric_number_two
+                  - foo_metric_number_three
+                  - ~foo_metric_number_three
+                action: keep
+              - timeseries: []
+                sourceLabels: ['foo']
+                action: keep
             basicAuth:
               username:
                 name: remote-write

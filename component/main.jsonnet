@@ -34,6 +34,19 @@ local ns_patch =
     }
   );
 
+local transformRelabelConfigs(remoteWriteConfig) = if std.objectHas(remoteWriteConfig, 'writeRelabelConfigs')
+then remoteWriteConfig {
+  writeRelabelConfigs: std.map(
+    function(wrlc) wrlc {
+      timeseries:: [],
+      [if std.objectHas(wrlc, 'timeseries') && std.length(com.renderArray(wrlc.timeseries)) > 0
+      then 'regex']: std.format('(%s)', std.join('|', com.renderArray(wrlc.timeseries))),
+    },
+    remoteWriteConfig.writeRelabelConfigs,
+  ),
+
+}
+else remoteWriteConfig;
 
 local patchRemoteWrite(promConfig) = promConfig {
   _remoteWrite+:: {},
@@ -41,7 +54,7 @@ local patchRemoteWrite(promConfig) = promConfig {
   local rwd = super._remoteWrite,
   remoteWrite+: std.filterMap(
     function(name) rwd[name] != null,
-    function(name) rwd[name] { name: name },
+    function(name) transformRelabelConfigs(rwd[name] { name: name }),
     std.objectFields(rwd)
   ),
 };
