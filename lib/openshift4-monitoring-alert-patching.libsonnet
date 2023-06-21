@@ -7,11 +7,20 @@ local kap = import 'lib/kapitan.libjsonnet';
 local inv = kap.inventory();
 
 local global_alert_params =
-  std.get(
-    inv.parameters,
-    'openshift4_monitoring',
-    { alerts: { ignoreNames: [] } }
-  ).alerts;
+  local p =
+    std.get(
+      inv.parameters,
+      'openshift4_monitoring',
+      { alerts: {} }
+    ).alerts;
+  // Make sure that both fields we access in the library functions are set.
+  // We don't do this in the default value of `std.get()`, because this
+  // approach allows users to only set the parameter which they care about for
+  // their component tests.
+  p {
+    ignoreNames: [],
+    customAnnotations: {},
+  };
 
 local syn_team =
   local instance = inv.parameters._instance;
@@ -101,6 +110,10 @@ local filterRules(group, ignoreNames=[], preserveRecordingRules=false) =
  * other parts of the component to the rule (e.g. `syn=true`), as well as
  * ensuring that the alert name is prefixed with `SYN_`.
  *
+ * The function also reads any custom annotations from parameter
+ * `openshift4_monitoring.alerts.customAnnotations` and applies those to the
+ * alert rule.
+ *
  * Custom alert patches can be provided through argument `patches`.
  *
  * Recording rules will always be returned unchanged
@@ -141,6 +154,8 @@ local patchRule(rule, patches={}, patchName=true) =
         // function is called.
         [if syn_team != '' then 'syn_team']: syn_team,
       },
+      annotations+:
+        std.get(global_alert_params.customAnnotations, super.alert, {}),
     } + com.makeMergeable(rulepatch);
 
 /**

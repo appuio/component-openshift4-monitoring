@@ -167,15 +167,8 @@ local annotateRules = {
               // rules cannot have annotations.
               // We identify alert rules by the presence of the `alert` field.
               if std.objectHas(rule, 'alert') then
-                local annotations =
-                  defaultAnnotations +
-                  if std.objectHas(customAnnotations, rule.alert) then
-                    customAnnotations[rule.alert]
-                  else
-                    {};
-
                 rule {
-                  annotations+: annotations,
+                  annotations+: defaultAnnotations,
                 }
               else
                 rule,
