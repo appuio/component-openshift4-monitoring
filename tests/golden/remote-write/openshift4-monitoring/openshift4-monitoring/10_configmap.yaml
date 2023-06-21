@@ -46,6 +46,11 @@ data:
           "regex": ".+"
           "sourceLabels":
           - "syn"
+        - "action": "keep"
+          "regex": "(foo_metric_number_one|foo_metric_number_two)"
+        - "action": "keep"
+          "sourceLabels":
+          - "foo"
       "retention": "8d"
       "volumeClaimTemplate":
         "spec":

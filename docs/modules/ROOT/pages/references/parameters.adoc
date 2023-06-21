@@ -141,9 +141,13 @@ _remoteWrite:
     headers:
       "X-Scope-OrgID": example
     writeRelabelConfigs:
-      - sourceLabels: ['syn']
+      - action: keep
+        sourceLabels: ['syn']
         regex: '.+'
-        action: keep
+      - action: keep
+        timeseries:
+          - foo_metric_one
+          - foo_metric_two
     basicAuth:
       username:
         name: remote-write
@@ -158,6 +162,8 @@ The key is the name of the configuration, the value is the content of the config
 
 The remote write configuration will be appended to the `configs.prometheusK8s.remoteWrite` parameter for backwards compatibility.
 
+In this configuration only, `writeRelabelConfigs` entries can hold an entry for `timeseries` containing a list of strings representing individual Prometheus timeseries.
+These will be translated into a `regex` entry, with a regular expression matching any one of the listed timeseries.
 
 == `configsUserWorkload`
 
