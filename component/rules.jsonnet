@@ -353,24 +353,28 @@ local rules =
     },
   },
   spec: {
-    groups: [
-      {
-        local group = rules[alertGroupName],
-        name: 'syn-' + group.name,
-        rules: std.sort([
-          rule {
-            alert: if rule.alert != 'Watchdog' then
-              'SYN_' + rule.alert
-            else
-              rule.alert,
-            labels+: {
-              syn: 'true',
-            },
+    groups:
+      std.filter(
+        function(group) std.length(group.rules) > 0,
+        [
+          {
+            local group = rules[alertGroupName],
+            name: 'syn-' + group.name,
+            rules: std.sort([
+              rule {
+                alert: if rule.alert != 'Watchdog' then
+                  'SYN_' + rule.alert
+                else
+                  rule.alert,
+                labels+: {
+                  syn: 'true',
+                },
+              }
+              for rule in group.rules
+            ], function(r) r.alert),
           }
-          for rule in group.rules
-        ], function(r) r.alert),
-      }
-      for alertGroupName in std.sort(std.objectFields(rules))
-    ],
+          for alertGroupName in std.sort(std.objectFields(rules))
+        ]
+      ),
   },
 }
