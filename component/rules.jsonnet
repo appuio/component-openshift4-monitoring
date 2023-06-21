@@ -323,6 +323,44 @@ local cmoRules =
 
 local etcdRules = com.makeMergeable(import 'cluster-etcd-operator/main.jsonnet');
 
+local dropRules =
+  local drop(rule) =
+    (std.get(rule.labels, 'severity', '') == 'info') ||
+    (
+      std.get(rule.labels, 'severity', '') == 'warning' &&
+      std.member(
+        [
+          'ExtremelyHighIndividualControlPlaneCPU',
+          'MachineConfigControllerPausedPoolKubeletCA',
+          'NodeClockNotSynchronising',
+          'NodeFileDescriptorLimit',
+          'NodeFilesystemAlmostOutOfFiles',
+          'NodeFilesystemAlmostOutOfSpace',
+          'NodeFilesystemFilesFillingUp',
+          'PodDisruptionBudgetAtLimit',
+          'ThanosRuleRuleEvaluationLatencyHigh',
+          'etcdDatabaseHighFragmentationRatio',
+          'etcdExcessiveDatabaseGrowth',
+          'etcdHighCommitDurations',
+          'etcdHighFsyncDurations',
+          'etcdHighNumberOfFailedGRPCRequests',
+          'etcdMemberCommunicationSlow',
+        ],
+        std.get(rule, 'alert', '')
+      )
+    );
+  {
+    spec+: {
+      groups: [
+        group {
+          rules: std.filter(function(rule) !drop(rule), super.rules),
+        }
+        for group in super.groups
+        if !std.member(com.renderArray(params.alerts.ignoreGroups), group.name)
+      ],
+    },
+  };
+
 local rules =
   std.foldl(
     function(x, y)
@@ -335,6 +373,7 @@ local rules =
       + additionalRules
       + annotateRules
       + filterRules
+      + dropRules
       + patchRules
       + patchPrometheusStackRules
       + renderRunbookBaseURL

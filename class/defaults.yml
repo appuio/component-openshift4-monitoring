@@ -89,7 +89,39 @@ parameters:
             - namespace
             - alertname
     alerts:
-      ignoreNames: []
+      ignoreNames:
+        - AlertmanagerReceiversNotConfigured
+        - CannotRetrieveUpdates
+        - ClusterProxyApplySlow
+        - ConfigReloaderSidecarErrors
+        - FailingOperator
+        - GarbageCollectorSyncFailed
+        - ImageRegistryStorageReconfigured
+        - KubeCPUOvercommit
+        - KubeCPUQuotaOvercommit
+        - KubeHpaMaxedOut
+        - KubeHpaReplicasMismatch
+        - KubeMemoryOvercommit
+        - KubeMemoryQuotaOvercommit
+        - KubeQuotaExceeded
+        - KubeStateMetricsListErrors
+        - NodeRAIDDegraded
+        - NodeRAIDDiskFailure
+        - NodeTextFileCollectorScrapeError
+        - PrometheusOperatorListErrors
+        - PrometheusOperatorNodeLookupErrors
+        - SchedulerLegacyPolicySet
+        - TechPreviewNoUpgrade
+        - ThanosQueryGrpcClientErrorRate
+        - ThanosQueryGrpcServerErrorRate
+        - ThanosQueryHighDNSFailures
+        - ThanosRuleAlertmanagerHighDNSFailures
+        - ThanosRuleQueryHighDNSFailures
+        - node_cpu_load5
+      ignoreGroups:
+        - CloudCredentialOperator
+        - SamplesOperator
+        - kube-apiserver-slos-basic
       customAnnotations: {}
       patchRules:
         release-4.11:
