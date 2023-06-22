@@ -84,6 +84,8 @@ If `preserveRecordingRules` is `false`, all recording rules are also removed fro
 This function patches the provided alert rule to adhere to the format expected by this component.
 This includes adding labels which are used by other parts of the component to the rule (for example `syn=true`), and ensuring that the alert name is prefixed with `SYN_`.
 
+The function also reads any custom annotations from parameter `openshift4_monitoring.alerts.customAnnotations` and applies those to the alert rule.
+
 Custom alert patches can be provided through argument `patches`.
 
 Recording rules will always be returned unchanged.
