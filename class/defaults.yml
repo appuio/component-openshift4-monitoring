@@ -118,6 +118,22 @@ parameters:
         - ThanosRuleAlertmanagerHighDNSFailures
         - ThanosRuleQueryHighDNSFailures
         - node_cpu_load5
+      ignoreWarnings:
+        - ExtremelyHighIndividualControlPlaneCPU
+        - MachineConfigControllerPausedPoolKubeletCA
+        - NodeClockNotSynchronising
+        - NodeFileDescriptorLimit
+        - NodeFilesystemAlmostOutOfFiles
+        - NodeFilesystemAlmostOutOfSpace
+        - NodeFilesystemFilesFillingUp
+        - PodDisruptionBudgetAtLimit
+        - ThanosRuleRuleEvaluationLatencyHigh
+        - etcdDatabaseHighFragmentationRatio
+        - etcdExcessiveDatabaseGrowth
+        - etcdHighCommitDurations
+        - etcdHighFsyncDurations
+        - etcdHighNumberOfFailedGRPCRequests
+        - etcdMemberCommunicationSlow
       ignoreGroups:
         - CloudCredentialOperator
         - SamplesOperator

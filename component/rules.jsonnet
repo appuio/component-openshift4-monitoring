@@ -329,23 +329,7 @@ local dropRules =
     (
       std.get(rule.labels, 'severity', '') == 'warning' &&
       std.member(
-        [
-          'ExtremelyHighIndividualControlPlaneCPU',
-          'MachineConfigControllerPausedPoolKubeletCA',
-          'NodeClockNotSynchronising',
-          'NodeFileDescriptorLimit',
-          'NodeFilesystemAlmostOutOfFiles',
-          'NodeFilesystemAlmostOutOfSpace',
-          'NodeFilesystemFilesFillingUp',
-          'PodDisruptionBudgetAtLimit',
-          'ThanosRuleRuleEvaluationLatencyHigh',
-          'etcdDatabaseHighFragmentationRatio',
-          'etcdExcessiveDatabaseGrowth',
-          'etcdHighCommitDurations',
-          'etcdHighFsyncDurations',
-          'etcdHighNumberOfFailedGRPCRequests',
-          'etcdMemberCommunicationSlow',
-        ],
+        com.renderArray(params.alerts.ignoreWarnings),
         std.get(rule, 'alert', '')
       )
     );
