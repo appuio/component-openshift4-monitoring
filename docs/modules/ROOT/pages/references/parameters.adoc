@@ -280,9 +280,31 @@ Configuration parameters related to influence the resulting alert rules.
 
 [horizontal]
 type:: list
-default:: `[]`
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
 
-List of https://github.com/prometheus-operator/kube-prometheus[kube-prometheus] alert rule names to be dropped.
+List of alert rule names to be dropped.
+
+NOTE: This parameter is taken into account in the `filterRules` and `filterPatchRules` library functions.
+
+=== `ignoreWarnings`
+
+[horizontal]
+type:: list
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+
+List of alert rule names for which to drop alerts with label `severity: warning`.
+
+NOTE: In contrast to `ignoreNames`, this parameter is not taken into account in the `filterRules` and `filterPatchRules` library functions.
+
+=== `ignoreGroups`
+
+[horizontal]
+type:: list
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+
+List of complete alert rule groups to drop.
+
+NOTE: This parameter is not taken into account for `filterRules` and `filterPatchRules`.
 
 === `customAnnotations`
 
