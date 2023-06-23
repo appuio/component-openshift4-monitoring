@@ -323,6 +323,28 @@ local cmoRules =
 
 local etcdRules = com.makeMergeable(import 'cluster-etcd-operator/main.jsonnet');
 
+local dropRules =
+  local drop(rule) =
+    (std.get(rule.labels, 'severity', '') == 'info') ||
+    (
+      std.get(rule.labels, 'severity', '') == 'warning' &&
+      std.member(
+        com.renderArray(params.alerts.ignoreWarnings),
+        std.get(rule, 'alert', '')
+      )
+    );
+  {
+    spec+: {
+      groups: [
+        group {
+          rules: std.filter(function(rule) !drop(rule), super.rules),
+        }
+        for group in super.groups
+        if !std.member(com.renderArray(params.alerts.ignoreGroups), group.name)
+      ],
+    },
+  };
+
 local rules =
   std.foldl(
     function(x, y)
@@ -335,6 +357,7 @@ local rules =
       + additionalRules
       + annotateRules
       + filterRules
+      + dropRules
       + patchRules
       + patchPrometheusStackRules
       + renderRunbookBaseURL
@@ -353,24 +376,28 @@ local rules =
     },
   },
   spec: {
-    groups: [
-      {
-        local group = rules[alertGroupName],
-        name: 'syn-' + group.name,
-        rules: std.sort([
-          rule {
-            alert: if rule.alert != 'Watchdog' then
-              'SYN_' + rule.alert
-            else
-              rule.alert,
-            labels+: {
-              syn: 'true',
-            },
+    groups:
+      std.filter(
+        function(group) std.length(group.rules) > 0,
+        [
+          {
+            local group = rules[alertGroupName],
+            name: 'syn-' + group.name,
+            rules: std.sort([
+              rule {
+                alert: if rule.alert != 'Watchdog' then
+                  'SYN_' + rule.alert
+                else
+                  rule.alert,
+                labels+: {
+                  syn: 'true',
+                },
+              }
+              for rule in group.rules
+            ], function(r) r.alert),
           }
-          for rule in group.rules
-        ], function(r) r.alert),
-      }
-      for alertGroupName in std.sort(std.objectFields(rules))
-    ],
+          for alertGroupName in std.sort(std.objectFields(rules))
+        ]
+      ),
   },
 }
