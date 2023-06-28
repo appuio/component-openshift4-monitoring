@@ -548,7 +548,7 @@ spec:
             summary: Pod container waiting longer than 1 hour
             syn_component: openshift4-monitoring
           expr: |
-            sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}) > 0
+            sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}) > 0
           for: 1h
           labels:
             severity: warning
@@ -562,7 +562,7 @@ spec:
             summary: DaemonSet pods are misscheduled.
             syn_component: openshift4-monitoring
           expr: |
-            kube_daemonset_status_number_misscheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"} > 0
+            kube_daemonset_status_number_misscheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"} > 0
           for: 15m
           labels:
             severity: warning
@@ -576,9 +576,9 @@ spec:
             summary: DaemonSet pods are not scheduled.
             syn_component: openshift4-monitoring
           expr: |
-            kube_daemonset_status_desired_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+            kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               -
-            kube_daemonset_status_current_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"} > 0
+            kube_daemonset_status_current_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"} > 0
           for: 10m
           labels:
             severity: warning
@@ -594,24 +594,24 @@ spec:
           expr: |
             (
               (
-                kube_daemonset_status_current_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_current_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                  !=
-                kube_daemonset_status_desired_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               ) or (
-                kube_daemonset_status_number_misscheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_number_misscheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                  !=
                 0
               ) or (
-                kube_daemonset_status_updated_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_updated_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                  !=
-                kube_daemonset_status_desired_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               ) or (
-                kube_daemonset_status_number_available{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_number_available{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                  !=
-                kube_daemonset_status_desired_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               )
             ) and (
-              changes(kube_daemonset_status_updated_number_scheduled{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}[5m])
+              changes(kube_daemonset_status_updated_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[5m])
                 ==
               0
             )
@@ -629,9 +629,9 @@ spec:
             summary: Deployment generation mismatch due to possible roll-back
             syn_component: openshift4-monitoring
           expr: |
-            kube_deployment_status_observed_generation{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+            kube_deployment_status_observed_generation{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               !=
-            kube_deployment_metadata_generation{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+            kube_deployment_metadata_generation{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
           for: 15m
           labels:
             severity: warning
@@ -645,7 +645,7 @@ spec:
             summary: Job did not complete in time
             syn_component: openshift4-monitoring
           expr: |
-            kube_job_spec_completions{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"} - kube_job_status_succeeded{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}  > 0
+            kube_job_spec_completions{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"} - kube_job_status_succeeded{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}  > 0
           for: 12h
           labels:
             severity: warning
@@ -661,7 +661,7 @@ spec:
             summary: Job failed to complete.
             syn_component: openshift4-monitoring
           expr: |
-            kube_job_failed{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}  > 0
+            kube_job_failed{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}  > 0
           for: 15m
           labels:
             severity: warning
@@ -675,7 +675,7 @@ spec:
             summary: Pod is crash looping.
             syn_component: openshift4-monitoring
           expr: |
-            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}[5m]) >= 1
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[5m]) >= 1
           for: 15m
           labels:
             severity: warning
@@ -692,7 +692,7 @@ spec:
           expr: |
             sum by (namespace, pod) (
               max by(namespace, pod) (
-                kube_pod_status_phase{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics", phase=~"Pending|Unknown"}
+                kube_pod_status_phase{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics", phase=~"Pending|Unknown"}
               ) * on(namespace, pod) group_left(owner_kind) topk by(namespace, pod) (
                 1, max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"})
               )
@@ -711,9 +711,9 @@ spec:
             summary: StatefulSet generation mismatch due to possible roll-back
             syn_component: openshift4-monitoring
           expr: |
-            kube_statefulset_status_observed_generation{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+            kube_statefulset_status_observed_generation{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               !=
-            kube_statefulset_metadata_generation{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+            kube_statefulset_metadata_generation{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
           for: 15m
           labels:
             severity: warning
@@ -729,11 +729,11 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              kube_statefulset_status_replicas_ready{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+              kube_statefulset_status_replicas_ready{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                 !=
-              kube_statefulset_status_replicas{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+              kube_statefulset_status_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
             ) and (
-              changes(kube_statefulset_status_replicas_updated{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}[10m])
+              changes(kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[10m])
                 ==
               0
             )
@@ -752,18 +752,18 @@ spec:
           expr: |
             (
               max without (revision) (
-                kube_statefulset_status_current_revision{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   unless
-                kube_statefulset_status_update_revision{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               )
                 *
               (
-                kube_statefulset_replicas{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_statefulset_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   !=
-                kube_statefulset_status_replicas_updated{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+                kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               )
             )  and (
-              changes(kube_statefulset_status_replicas_updated{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}[5m])
+              changes(kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[5m])
                 ==
               0
             )
@@ -782,7 +782,7 @@ spec:
             summary: PersistentVolume is having issues with provisioning.
             syn_component: openshift4-monitoring
           expr: |
-            kube_persistentvolume_status_phase{phase=~"Failed|Pending",namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"} > 0
+            kube_persistentvolume_status_phase{phase=~"Failed|Pending",namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"} > 0
           for: 5m
           labels:
             severity: warning
@@ -799,12 +799,12 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              kubelet_volume_stats_available_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"}
+              kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
                 /
-              kubelet_volume_stats_capacity_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"}
+              kubelet_volume_stats_capacity_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
             ) < 0.03
             and
-            kubelet_volume_stats_used_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"} > 0
+            kubelet_volume_stats_used_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
           for: 1m
           labels:
             severity: critical
@@ -822,14 +822,14 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              kubelet_volume_stats_available_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"}
+              kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
                 /
-              kubelet_volume_stats_capacity_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"}
+              kubelet_volume_stats_capacity_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
             ) < 0.15
             and
-            kubelet_volume_stats_used_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"} > 0
+            kubelet_volume_stats_used_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
             and
-            predict_linear(kubelet_volume_stats_available_bytes{namespace=~"(openshift-.*|kube-.*|default)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+            predict_linear(kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
           for: 1h
           labels:
             severity: warning
@@ -1499,7 +1499,7 @@ spec:
                     namespace_workload_pod:kube_pod_owner:relabel
                     * on(namespace,workload,workload_type) group_left()
                     (
-                      count without(pod) (namespace_workload_pod:kube_pod_owner:relabel{namespace=~"(openshift-.*|kube-.*|default)"}) > 1
+                      count without(pod) (namespace_workload_pod:kube_pod_owner:relabel{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)"}) > 1
                     )
                   )
                 )
@@ -1616,11 +1616,11 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (((
-              kube_deployment_spec_replicas{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+              kube_deployment_spec_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                 >
-              kube_deployment_status_replicas_available{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}
+              kube_deployment_status_replicas_available{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
             ) and (
-              changes(kube_deployment_status_replicas_updated{namespace=~"(openshift-.*|kube-.*|default)",job="kube-state-metrics"}[5m])
+              changes(kube_deployment_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[5m])
                 ==
               0
             )) * on() group_left cluster:control_plane:all_nodes_ready) > 0

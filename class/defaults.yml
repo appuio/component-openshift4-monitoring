@@ -89,6 +89,13 @@ parameters:
             - namespace
             - alertname
     alerts:
+      includeNamespaces:
+        - appuio.*
+        - cilium
+        - default
+        - kube-.*
+        - openshift-.*
+        - syn.*
       ignoreNames:
         - AlertmanagerReceiversNotConfigured
         - CannotRetrieveUpdates

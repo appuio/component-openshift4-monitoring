@@ -180,6 +180,16 @@ local annotateRules = {
   },
 };
 
+local renderedNamespaceSelector =
+  std.join('|', com.renderArray(params.alerts.includeNamespaces));
+
+local patchExpr(expr) =
+  std.strReplace(
+    expr,
+    'namespace=~"(openshift-.*|kube-.*|default)"',
+    'namespace=~"(%s)"' % renderedNamespaceSelector
+  );
+
 local rulePatches =
   com.getValueOrDefault(
     params.alerts.patchRules,
@@ -193,7 +203,9 @@ local patchRules = {
       function(group)
         group {
           rules: std.map(
-            function(rule) alertpatching.patchRule(rule, rulePatches, false),
+            function(rule) alertpatching.patchRule(rule, rulePatches, false) {
+              expr: patchExpr(super.expr),
+            },
             group.rules
           ),
         },
