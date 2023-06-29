@@ -43,6 +43,7 @@ jobs:
           - vsphere
           - team-label
           - release-4.12
+          - release-4.13
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -68,6 +69,7 @@ jobs:
           - vsphere
           - team-label
           - release-4.12
+          - release-4.13
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
