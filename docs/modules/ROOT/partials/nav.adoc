@@ -3,6 +3,7 @@
 .Reference
 * xref:references/parameters.adoc[Parameters]
 * xref:references/alert-patching.adoc[]
+* xref:references/prom.adoc[]
 
 .How-Tos
 * xref:how-tos/opsgenie.adoc[OpsGenie integration]
