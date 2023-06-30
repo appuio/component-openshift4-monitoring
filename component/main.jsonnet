@@ -59,6 +59,9 @@ local patchRemoteWrite(promConfig) = promConfig {
   ),
 };
 
+local customRules =
+  prom.generateRules('custom-rules', params.rules);
+
 {
   '00_namespace_labels': ns_patch,
   '01_secrets': secrets,
@@ -109,31 +112,5 @@ local patchRemoteWrite(promConfig) = promConfig {
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
   [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
-} + {
-  [group_name + '_rules']: prom.PrometheusRule(group_name) {
-    metadata+: {
-      namespace: params.namespace,
-      labels+: {
-        role: 'alert-rules',
-      },
-    },
-    spec+: {
-      groups+: [ {
-        name: group_name,
-        rules: [
-          local rnamekey = std.splitLimit(rname, ':', 1);
-          params.rules[group_name][rname] {
-            [rnamekey[0]]: rnamekey[1],
-            labels+: {
-              syn: 'true',
-            },
-          }
-          for rname in std.objectFields(params.rules[group_name])
-          if params.rules[group_name][rname] != null
-        ],
-      } ],
-    },
-  }
-  for group_name in std.objectFields(params.rules)
-  if params.rules[group_name] != null
+  [if std.length(customRules.spec.groups) > 0 then 'custom_rules']: customRules,
 }
