@@ -116,7 +116,8 @@ spec:
       rules:
         - expr: sum(foo)
           record: foo:sum
-        - annotations:
+        - alert: FooAlert
+          annotations:
             summary: Less than 10 Foos for 10 minutes
           expr: foo:sum < 10
           for: 10m
