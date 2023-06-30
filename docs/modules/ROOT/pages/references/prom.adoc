@@ -1,0 +1,140 @@
+= `prom.libsonnet` API reference
+
+The component provides library `openshift4-monitoring-prom.libsonnet`, which is also available as `prom.libsonnet`.
+This library provides some helper functions which allow users to more easily create prometheus-operator custom resources.
+
+== Usage
+
+[source,jsonnet]
+----
+local kap = import 'lib/kapitan.libjsonnet';
+
+local inv = kap.inventory();
+local params = inv.parameters.<component_name>;
+
+local prom = import 'lib/prom.libsonnet'; <1>
+
+local rules = params.rules; <2>
+
+{
+  service_monitor: prom.ServiceMonitor('my-service-monitor') {
+    spec+: {
+     // ...
+    },
+  }, <3>
+  additional_rules: prom.generateRules('my-alert-rules', rules), <4>
+};
+----
+<1> Import the library.
+By using the aliased name, you can make your component compatible with any monitoring component which provides an `alert-patching.libsonnet` library alias.
+<2> Extract alert rules from the component parameters.
+Alternatively, you can define patches directly in Jsonnet.
+<3> The library provides basic wrappers to generate prometheus-operator custom resources.
+These functions are implemented through `kube._Object()` internally.
+<4> `generateRules()` is modelled after `com.generateResources()` and can be used to transform additional alerting and recording rules defined in the hierarchy into a valid `PrometheusRule` manifest.
+
+== `PrometheusRule(name)`
+
+Helper to create PrometheusRule objects.
+
+=== Arguments
+
+`name`:: The name of the resulting `PrometheusRule` object.
+
+=== Return value
+
+An empty `PrometheusRule` object.
+
+== `Prometheus(name)`
+
+Helper to create `Prometheus` objects.
+
+=== Arguments
+
+`name`:: The name of the resulting `Prometheus` object.
+
+=== Return value
+
+An empty Prometheus object.
+
+== `AlertManager(name)`
+
+Helper to create `AlertManager` objects.
+
+=== Arguments
+
+`name`:: The name of the resulting `AlertManager` object.
+
+=== Return value
+
+An empty `AlertManager` object.
+
+
+== `generateRules(name, rules)`
+
+This function takes an object defining a set of rule groups.
+Each key-value pair in the object represents the name of a rule group and the list of rules for the group.
+The function expects that each value is another object where each key-value pair represents an alerting or recording rule.
+
+Alerting and recording rules are distinguished through the specific format of the keys in these objects.
+All alerting rules must be prefixed with `alert:`
+All recording rules must be prefixed with `record:`
+The component will extract the first colon-delimited part of the key and inject key-value pair `[part0]: parts` into the provided value.
+
+Note that the function will pass each rule through xref:references/alert-patching.adoc#patchRule[the alert-patching `patchRule()` function] with `patches={}` and `patch_name=false`.
+
+=== Example
+
+Let's take the following input value for `rules`:
+
+[source,yaml]
+----
+rules:
+  my-group:
+    "record:foo:sum":
+      expr: sum(foo)
+    "alert:FooAlert"
+      expr: foo:sum < 10
+      for: 10m
+      annotations:
+        summary: Less than 10 Foos for 10 minutes
+      labels:
+        severity: warning
+----
+
+The library will generate the `PrometheusRule` shown below with call `generateRules('my-rules', rules)`:
+
+[source,yaml]
+----
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: my-rules
+spec:
+  groups:
+    - name: my-group
+      rules:
+        - expr: sum(foo)
+          record: foo:sum
+        - alert: FooAlert
+          annotations:
+            summary: Less than 10 Foos for 10 minutes
+          expr: foo:sum < 10
+          for: 10m
+          labels:
+            severity: warning
+            syn: "true" <2>
+            syn_component: foocomponent <2>
+            syn_team: footeam <3>
+----
+<2> Alerting rules are patched to match the default configuration for component `openshift4-monitoring`.
+<3> If Project Syn multi-team configuration is present, label `syn_team` is added based on the component instance calling the `generateRules()` function.
+
+=== Arguments
+
+`name`:: The name of the resulting `PrometheusRule` object
+`rules`:: An object representing a set of rule groups.
+
+=== Return value
+
+A single `PrometheusRule` object containing all non-empty groups based on parameter `groups`.

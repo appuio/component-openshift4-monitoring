@@ -79,6 +79,7 @@ Generally, in such cases, we'll only want to modify alerting rules, but don't wa
 The group with any alert rules whose field `alert` matches an entry in either component parameter `openshift4_monitoring.alerts.ignoreNames`, or an entry in the provided `ignoreNames` list removed.
 If `preserveRecordingRules` is `false`, all recording rules are also removed from the resulting group.
 
+[#patchRule]
 == `patchRule(rule, patches={}, patchName=true)`
 
 This function patches the provided alert rule to adhere to the format expected by this component.

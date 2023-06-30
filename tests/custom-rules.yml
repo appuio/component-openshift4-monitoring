@@ -1,0 +1,40 @@
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
+        output_path: vendor/lib/patch-operator.libsonnet
+
+  patch_operator:
+    namespace: syn-patch-operator
+    patch_serviceaccount:
+      name: patch-sa
+
+  openshift4_monitoring:
+    manifests_version: release-4.11
+
+    rules:
+      group-a:
+        "record:foo:sum":
+          expr: sum(foo)
+        "record:bar:irate5m":
+          expr: sum(irate(bar[5m]))
+        "alert:FooLow":
+          expr: foo:sum < 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Less than 10 Foos for 5 minutes"
+      group_b:
+        "alert:AlertsFiring":
+          expr: ALERTS{alertstate="firing"} > 0
+          for: 15m
+          annotations:
+            summary: Alerts have been firing for 15 minutes
+        "record:baz": null
+      group_c: null
+      group_d: {}
+      group_e:
+        "record:foo:sum": null
+        "record:bar:sum": null
