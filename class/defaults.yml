@@ -28,7 +28,6 @@ parameters:
     enableUserWorkload: true
     upstreamRules:
       networkPlugin: openshift-sdn
-      elasticsearchOperator: true
       clusterSamplesOperator: true
     configs:
       prometheusK8s:
