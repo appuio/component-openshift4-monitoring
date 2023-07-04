@@ -23,10 +23,6 @@ local upstreamManifestsFileExclude = function(file) (
     file == 'openshift-sdn.yaml'
   )
   || (
-    params.upstreamRules.clusterSamplesOperator == false &&
-    file == 'cluster-samples-operator.yaml'
-  )
-  || (
     inv.parameters.facts.cloud != 'vsphere' &&
     file == 'vsphere-problem-detector-rules.yaml'
   )
