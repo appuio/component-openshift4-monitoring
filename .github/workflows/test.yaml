@@ -38,7 +38,6 @@ jobs:
           - release-4.11
           - remote-write
           - user-workload-monitoring
-          - es-operator-rules
           - capacity-alerts-with-node-labels
           - vsphere
           - team-label
@@ -63,7 +62,6 @@ jobs:
           - release-4.11
           - remote-write
           - user-workload-monitoring
-          - es-operator-rules
           - capacity-alerts-with-node-labels
           - vsphere
           - team-label

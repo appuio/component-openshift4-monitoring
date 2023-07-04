@@ -14,17 +14,6 @@ parameters:
           api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/api-usage.yaml
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/cpu-utilization.yaml
           slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
-      elasticsearch-operator:
-        release-4.9:
-          # Release 4.9 was forgotten but 5.0 and 4.8 are identical
-          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-4.8/hack/prometheus-rules.yaml
-        release-4.10:
-          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-4.8/hack/prometheus-rules.yaml
-        # TODO: figure out what we should be using for OCP4.11 (and possibly 4.10)
-        # Realistically, these rules should be managed by component
-        # openshift4-logging instead of this component
-        release-4.11:
-          prometheus: https://raw.githubusercontent.com/openshift/elasticsearch-operator/release-5.5/files/prometheus_alerts.yml
       machine-api-operator:
         release-4.9:
           # Release 4.9 has typo in manifest
@@ -93,9 +82,6 @@ parameters:
       - type: https
         source: https://raw.githubusercontent.com/openshift/cluster-kube-scheduler-operator/${openshift4_monitoring:manifests_version}/manifests/0000_90_kube-scheduler-operator_03_servicemonitor.yaml
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cluster-kube-scheduler-operator.yaml
-      - type: https
-        source: ${openshift4_monitoring:_manifest_urls:elasticsearch-operator:${openshift4_monitoring:manifests_version}:prometheus}
-        output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/elasticsearch-operator.yaml
       - type: https
         source: ${openshift4_monitoring:_manifest_urls:machine-api-operator:${openshift4_monitoring:manifests_version}:prometheus}
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/machine-api-operator.yaml

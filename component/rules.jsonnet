@@ -10,51 +10,6 @@ local defaultAnnotations = {
 
 local alertpatching = import 'lib/alert-patching.libsonnet';
 
-local excludeESOperatorRules =
-  local loggingVersion =
-    local ver = std.get(
-      std.get(inv.parameters, 'components', {}),
-      'openshift4-logging',
-      { version: '' }
-    ).version;
-    if std.startsWith(ver, 'v') then
-      // split version of form `v<major>.<minor>.<patch>-<suffix>`
-      // we only care about <major> and <minor>, so we don't even worry about
-      // suffixes.
-      local verparts = std.split(
-        std.substr(ver, 1, std.length(ver)),
-        '.',
-      );
-      local parseOrWarn(val, typ) =
-        local parsed = std.parseJson(val);
-        if std.isNumber(parsed) then
-          parsed
-        else
-          std.trace(
-            'Failed to parse %s version "%s" as number, returning 0' % [ typ, val ],
-            0
-          );
-      {
-        major: parseOrWarn(verparts[0], 'major'),
-        minor: parseOrWarn(verparts[1], 'minor'),
-      }
-    else
-      // if we get a version which isn't prefixed by v, we just return a
-      // openshift4-logging version which is managing the ES operator alerts
-      // itself.
-      {
-        major: 2,
-        minor: 0,
-      };
-  params.upstreamRules.elasticsearchOperator == false ||
-  // also exclude ES operator if we're seeing a openshift4-logging version
-  // which manages the ES operator rules itself (openshift4-logging >=
-  // v1.7.0).
-  (
-    loggingVersion.major >= 2 ||
-    (loggingVersion.major == 1 && loggingVersion.minor >= 7)
-  );
-
 local upstreamManifestsFileExclude = function(file) (
   (
     params.upstreamRules.networkPlugin != 'ovn-kubernetes' &&
@@ -66,10 +21,6 @@ local upstreamManifestsFileExclude = function(file) (
   || (
     params.upstreamRules.networkPlugin != 'openshift-sdn' &&
     file == 'openshift-sdn.yaml'
-  )
-  || (
-    excludeESOperatorRules &&
-    file == 'elasticsearch-operator.yaml'
   )
   || (
     params.upstreamRules.clusterSamplesOperator == false &&
@@ -214,41 +165,6 @@ local patchRules = {
   },
 };
 
-local runbookBaseURL =
-  'https://github.com/openshift/elasticsearch-operator/blob/master/docs/alerts.md';
-local renderRunbookBaseURL = {
-  spec+: {
-    groups: std.map(
-      function(group)
-        group {
-          rules: std.map(
-            function(rule)
-              if (
-                std.objectHas(rule, 'alert') &&
-                std.objectHas(rule.annotations, 'runbook_url') &&
-                std.length(std.findSubstr(
-                  '[[.RunbookBaseURL]]', rule.annotations.runbook_url
-                )) > 0
-              ) then
-                rule {
-                  annotations+: {
-                    runbook_url: std.strReplace(
-                      super.runbook_url,
-                      '[[.RunbookBaseURL]]',
-                      runbookBaseURL
-                    ),
-                  },
-                }
-              else
-                rule,
-            group.rules
-          ),
-        },
-      super.groups
-    ),
-  },
-};
-
 local patchPrometheusStackRules =
   local ignoreUserWorkload =
     com.renderArray(params.alerts.ignoreUserWorkload);
@@ -372,7 +288,6 @@ local rules =
       + dropRules
       + patchRules
       + patchPrometheusStackRules
-      + renderRunbookBaseURL
     ).spec.groups,
     {},
   );
