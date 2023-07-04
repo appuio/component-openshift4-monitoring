@@ -46,15 +46,6 @@ Choose either `openshift-sdn` or `ovn-kubernetes` depending on the installed net
 If a custom network plugin is used, set any other string as the value for this parameter.
 This ensures neither openshift-sdn nor OVN-Kubernetes monitoring rules are deployed.
 
-== `upstreamRules.clusterSamplesOperator`
-
-[horizontal]
-type:: boolean
-default:: `true`
-
-Whether the Cluster Samples Operator prometheus rules should be included or not.
-
-
 == `enableUserWorkload`
 
 [horizontal]

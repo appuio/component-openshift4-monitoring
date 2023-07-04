@@ -28,7 +28,6 @@ parameters:
     enableUserWorkload: true
     upstreamRules:
       networkPlugin: openshift-sdn
-      clusterSamplesOperator: true
     configs:
       prometheusK8s:
         remoteWrite: []
