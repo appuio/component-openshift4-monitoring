@@ -33,8 +33,6 @@ jobs:
       matrix:
         instance:
           - capacity-alerts
-          - release-4.9
-          - release-4.10
           - release-4.11
           - remote-write
           - user-workload-monitoring
@@ -57,8 +55,6 @@ jobs:
       matrix:
         instance:
           - capacity-alerts
-          - release-4.9
-          - release-4.10
           - release-4.11
           - remote-write
           - user-workload-monitoring

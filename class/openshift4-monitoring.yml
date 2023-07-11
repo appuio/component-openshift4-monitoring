@@ -2,35 +2,15 @@ parameters:
   openshift4_monitoring:
     =_manifest_urls:
       kube-apiserver:
-        release-4.9:
-          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.9/bindata/assets/alerts/api-usage.yaml
-          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.9/bindata/assets/alerts/cpu-utilization.yaml
-          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.9/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
-        release-4.10:
-          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.10/bindata/assets/alerts/api-usage.yaml
-          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.10/bindata/assets/alerts/cpu-utilization.yaml
-          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.10/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
         release-4.11:
           api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/api-usage.yaml
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/cpu-utilization.yaml
           slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
       machine-api-operator:
-        release-4.9:
-          # Release 4.9 has typo in manifest
-          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.10/install/0000_90_machine-api-operator_04_alertrules.yaml
-        release-4.10:
-          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.10/install/0000_90_machine-api-operator_04_alertrules.yaml
         release-4.11:
           prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.11/install/0000_90_machine-api-operator_04_alertrules.yaml
 
       ovn-kubernetes:
-        release-4.9:
-          common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/alert-rules.yaml
-          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/alert-rules-control-plane.yaml
-
-        release-4.10:
-          common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/alert-rules.yaml
-          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/alert-rules-control-plane.yaml
         release-4.11:
           common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
           # We use the "self-hosted" variant of the control-plane alerts, so
