@@ -11,8 +11,6 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
-    manifests_version: release-4.10
-
     capacityAlerts:
       enabled: true
       groupByNodeLabels:
