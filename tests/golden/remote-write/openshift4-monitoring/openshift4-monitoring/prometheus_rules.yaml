@@ -1533,21 +1533,6 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-        - alert: SYN_NodeSystemSaturation
-          annotations:
-            description: |
-              System load per core at {{ $labels.instance }} has been above 2 for the last 15 minutes, is currently at {{ printf "%.2f" $value }}.
-              This might indicate this instance resources saturation and can cause it becoming unresponsive.
-            summary: System saturated, load per core is very high.
-            syn_component: openshift4-monitoring
-          expr: |
-            node_load1{job="node-exporter"}
-            / count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"}) > 2
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
         - alert: SYN_NodeSystemdServiceFailed
           annotations:
             description: Systemd service {{ $labels.name }} has entered failed state
@@ -1691,21 +1676,6 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-openshift-ingress-to-route-controller.rules
       rules:
-        - alert: SYN_IngressWithoutClassName
-          annotations:
-            description: This alert fires when there is an Ingress with an unset IngressClassName
-              for longer than one day.
-            message: Ingress {{ $labels.name }} is missing the IngressClassName for
-              1 day.
-            summary: Ingress without IngressClassName for 1 day
-            syn_component: openshift4-monitoring
-          expr: openshift_ingress_to_route_controller_ingress_without_class_name ==
-            1
-          for: 1d
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
         - alert: SYN_UnmanagedRoutes
           annotations:
             description: This alert fires when there is a Route owned by an unmanaged

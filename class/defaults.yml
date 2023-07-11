@@ -106,6 +106,7 @@ parameters:
         - FailingOperator
         - GarbageCollectorSyncFailed
         - ImageRegistryStorageReconfigured
+        - IngressWithoutClassName
         - KubeCPUOvercommit
         - KubeCPUQuotaOvercommit
         - KubeHpaMaxedOut
@@ -116,6 +117,7 @@ parameters:
         - KubeStateMetricsListErrors
         - NodeRAIDDegraded
         - NodeRAIDDiskFailure
+        - NodeSystemSaturation
         - NodeTextFileCollectorScrapeError
         - PrometheusOperatorListErrors
         - PrometheusOperatorNodeLookupErrors
