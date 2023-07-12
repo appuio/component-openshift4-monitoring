@@ -20,11 +20,11 @@ spec:
           expr: |
             (
               count by (namespace,service) (
-                avg_over_time(up{job="alertmanager-main",namespace="openshift-monitoring"}[5m]) < 0.5
+                avg_over_time(up{job=~"alertmanager-main|alertmanager-user-workload"}[5m]) < 0.5
               )
             /
               count by (namespace,service) (
-                up{job="alertmanager-main",namespace="openshift-monitoring"}
+                up{job=~"alertmanager-main|alertmanager-user-workload"}
               )
             )
             >= 0.5
@@ -38,14 +38,15 @@ spec:
             description: The minimum notification failure rate to {{ $labels.integration
               }} sent from any instance in the {{$labels.job}} cluster is {{ $value
               | humanizePercentage }}.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/AlertmanagerClusterFailedToSendAlerts.md
             summary: All Alertmanager instances in a cluster failed to send notifications
               to a critical integration.
             syn_component: openshift4-monitoring
           expr: |
             min by (namespace,service, integration) (
-              rate(alertmanager_notifications_failed_total{job="alertmanager-main",namespace="openshift-monitoring", integration=~`.*`}[5m])
+              rate(alertmanager_notifications_failed_total{job=~"alertmanager-main|alertmanager-user-workload", integration=~`.*`}[5m])
             /
-              rate(alertmanager_notifications_total{job="alertmanager-main",namespace="openshift-monitoring", integration=~`.*`}[5m])
+              rate(alertmanager_notifications_total{job=~"alertmanager-main|alertmanager-user-workload", integration=~`.*`}[5m])
             )
             > 0.01
           for: 5m
@@ -62,7 +63,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             count by (namespace,service) (
-              count_values by (namespace,service) ("config_hash", alertmanager_config_hash{job="alertmanager-main",namespace="openshift-monitoring"})
+              count_values by (namespace,service) ("config_hash", alertmanager_config_hash{job=~"alertmanager-main|alertmanager-user-workload"})
             )
             != 1
           for: 20m
@@ -80,7 +81,7 @@ spec:
           expr: |
             # Without max_over_time, failed scrapes could create false negatives, see
             # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            max_over_time(alertmanager_config_last_reload_successful{job="alertmanager-main",namespace="openshift-monitoring"}[5m]) == 0
+            max_over_time(alertmanager_config_last_reload_successful{job=~"alertmanager-main|alertmanager-user-workload"}[5m]) == 0
           for: 10m
           labels:
             severity: critical
@@ -91,13 +92,14 @@ spec:
             description: Alertmanager {{ $labels.namespace }}/{{ $labels.pod}} failed
               to send {{ $value | humanizePercentage }} of notifications to {{ $labels.integration
               }}.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/AlertmanagerFailedToSendAlerts.md
             summary: An Alertmanager instance failed to send notifications.
             syn_component: openshift4-monitoring
           expr: |
             (
-              rate(alertmanager_notifications_failed_total{job="alertmanager-main",namespace="openshift-monitoring"}[5m])
+              rate(alertmanager_notifications_failed_total{job=~"alertmanager-main|alertmanager-user-workload"}[5m])
             /
-              rate(alertmanager_notifications_total{job="alertmanager-main",namespace="openshift-monitoring"}[5m])
+              rate(alertmanager_notifications_total{job=~"alertmanager-main|alertmanager-user-workload"}[5m])
             )
             > 0.01
           for: 5m
@@ -115,9 +117,9 @@ spec:
           expr: |
             # Without max_over_time, failed scrapes could create false negatives, see
             # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-              max_over_time(alertmanager_cluster_members{job="alertmanager-main",namespace="openshift-monitoring"}[5m])
+              max_over_time(alertmanager_cluster_members{job=~"alertmanager-main|alertmanager-user-workload"}[5m])
             < on (namespace,service) group_left
-              count by (namespace,service) (max_over_time(alertmanager_cluster_members{job="alertmanager-main",namespace="openshift-monitoring"}[5m]))
+              count by (namespace,service) (max_over_time(alertmanager_cluster_members{job=~"alertmanager-main|alertmanager-user-workload"}[5m]))
           for: 15m
           labels:
             severity: warning
@@ -146,9 +148,10 @@ spec:
       rules:
         - alert: SYN_NodeProxyApplySlow
           annotations:
-            summary: SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}} $labels.node
-              {{"}}"}} is taking too long, on average, to apply kubernetes service
-              rules to iptables.
+            description: Configuration of proxy rules for Kubernetes services in the
+              node is taking too long and stale endpoints may exist.
+            summary: OpenShift SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}}
+              $labels.node {{"}}"}} is taking too long to update proxy rules for services.
             syn_component: openshift4-monitoring
           expr: |
             histogram_quantile(.95, kubeproxy_sync_proxy_rules_duration_seconds_bucket)
@@ -159,8 +162,10 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_NodeProxyApplyStale
           annotations:
-            summary: SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}} $labels.node
-              {{"}}"}} has stale kubernetes service rules in iptables.
+            description: Stale proxy rules for Kubernetes services may increase the
+              time to configure the network and may degrade the network.
+            summary: OpenShift SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}}
+              $labels.node {{"}}"}} has stale Kubernetes service rules.
             syn_component: openshift4-monitoring
           expr: |
             (kubeproxy_sync_proxy_rules_last_queued_timestamp_seconds - kubeproxy_sync_proxy_rules_last_timestamp_seconds)
@@ -173,8 +178,11 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_NodeWithoutSDNController
           annotations:
-            summary: All control plane nodes should be running a sdn controller pod,
-              {{"{{"}} $labels.node {{"}}"}} is not.
+            description: |
+              If at least one OpenShift SDN controller is 'Running', network control plane should be functional but
+              high availability is degraded when a controller is not functional.
+            summary: All control plane nodes should be running an OpenShift SDN controller
+              pod, {{"{{"}} $labels.node {{"}}"}} is not.
             syn_component: openshift4-monitoring
           expr: |
             count(kube_node_role{role="master"} == 1) != count(kube_pod_info{namespace="openshift-sdn",  pod=~"sdn-controller.*"})
@@ -185,7 +193,9 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_NodeWithoutSDNPod
           annotations:
-            summary: All nodes should be running an sdn pod, {{"{{"}} $labels.node
+            description: Network control plane configuration on the node could be
+              degraded.
+            summary: All nodes should be running an OpenShift SDN pod, {{"{{"}} $labels.node
               {{"}}"}} is not.
             syn_component: openshift4-monitoring
           expr: |
@@ -197,8 +207,10 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_SDNPodNotReady
           annotations:
-            summary: SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}} $labels.node
-              {{"}}"}} is not ready.
+            description: Network control plane configuration on the node could be
+              degraded.
+            summary: OpenShift SDN pod {{"{{"}} $labels.pod {{"}}"}} on node {{"{{"}}
+              $labels.node {{"}}"}} is not ready.
             syn_component: openshift4-monitoring
           expr: |
             kube_pod_status_ready{namespace='openshift-sdn', condition='true'} == 0
@@ -464,6 +476,42 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+    - name: syn-extremely-high-individual-control-plane-memory
+      rules:
+        - alert: SYN_ExtremelyHighIndividualControlPlaneMemory
+          annotations:
+            description: The memory utilization per instance within control plane
+              nodes influence the stability, and responsiveness of the cluster. This
+              can lead to cluster instability and slow responses from kube-apiserver
+              or failing requests specially on etcd. Moreover, OOM kill is expected
+              which negatively influences the pod scheduling. If this happens on container
+              level, the descheduler will not be able to detect it, as it works on
+              the pod level. To fix this, increase memory of the affected node of
+              control plane nodes.
+            summary: Extreme memory utilization per node within control plane nodes
+              is extremely high, and could impact responsiveness and stability.
+            syn_component: openshift4-monitoring
+          expr: |
+            (
+              1
+              -
+              sum by (instance) (
+                node_memory_MemFree_bytes
+                + node_memory_Buffers_bytes
+                + node_memory_Cached_bytes
+                AND on (instance)
+                label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+              ) / sum by (instance) (
+                node_memory_MemTotal_bytes
+                AND on (instance)
+                label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+              )
+            ) * 100 > 90
+          for: 45m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
     - name: syn-general.rules
       rules:
         - alert: Watchdog
@@ -481,6 +529,44 @@ spec:
           labels:
             namespace: openshift-monitoring
             severity: none
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: syn-high-overall-control-plane-memory
+      rules:
+        - alert: SYN_HighOverallControlPlaneMemory
+          annotations:
+            description: |
+              The overall memory usage is high.
+              kube-apiserver and etcd might be slow to respond.
+              To fix this, increase memory of the control plane nodes.
+
+              This alert was adjusted to be less sensitive in 4.11.
+              Newer Go versions use more memory, if available, to reduce GC pauses.
+
+              Old memory behavior can be restored by setting `GOGC=63`.
+              See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
+            summary: Memory utilization across all control plane nodes is high, and
+              could impact responsiveness and stability.
+            syn_component: openshift4-monitoring
+          expr: |
+            (
+              1
+              -
+              sum (
+                node_memory_MemFree_bytes
+                + node_memory_Buffers_bytes
+                + node_memory_Cached_bytes
+                AND on (instance)
+                label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+              ) / sum (
+                node_memory_MemTotal_bytes
+                AND on (instance)
+                label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+              )
+            ) * 100 > 80
+          for: 1h
+          labels:
+            severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
     - name: syn-kube-state-metrics
@@ -512,7 +598,7 @@ spec:
             summary: Pod container waiting longer than 1 hour
             syn_component: openshift4-monitoring
           expr: |
-            sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}) > 0
+            sum by (namespace, pod, container, cluster) (kube_pod_container_status_waiting_reason{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}) > 0
           for: 1h
           labels:
             severity: warning
@@ -597,19 +683,6 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-        - alert: SYN_KubeJobCompletion
-          annotations:
-            description: Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking
-              more than 12 hours to complete.
-            summary: Job did not complete in time
-            syn_component: openshift4-monitoring
-          expr: |
-            kube_job_spec_completions{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"} - kube_job_status_succeeded{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}  > 0
-          for: 12h
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
         - alert: SYN_KubeJobFailed
           annotations:
             description: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
@@ -621,6 +694,20 @@ spec:
           expr: |
             kube_job_failed{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}  > 0
           for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_KubeJobNotCompleted
+          annotations:
+            description: Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking
+              more than {{ "43200" | humanizeDuration }} to complete.
+            summary: Job did not complete in time
+            syn_component: openshift4-monitoring
+          expr: |
+            time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
+              and
+            kube_job_status_active{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"} > 0) > 43200
           labels:
             severity: warning
             syn: 'true'
@@ -646,11 +733,11 @@ spec:
             summary: Pod has been in a non-ready state for more than 15 minutes.
             syn_component: openshift4-monitoring
           expr: |
-            sum by (namespace, pod) (
-              max by(namespace, pod) (
+            sum by (namespace, pod, cluster) (
+              max by(namespace, pod, cluster) (
                 kube_pod_status_phase{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics", phase=~"Pending|Unknown"}
-              ) * on(namespace, pod) group_left(owner_kind) topk by(namespace, pod) (
-                1, max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"})
+              ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
+                1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
               )
             ) > 0
           for: 15m
@@ -793,6 +880,59 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+        - alert: SYN_KubePersistentVolumeInodesFillingUp
+          annotations:
+            description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
+              }} in Namespace {{ $labels.namespace }} only has {{ $value | humanizePercentage
+              }} free inodes.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeInodesFillingUp.md
+            summary: PersistentVolumeInodes are filling up.
+            syn_component: openshift4-monitoring
+          expr: |
+            (
+              kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
+                /
+              kubelet_volume_stats_inodes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
+            ) < 0.03
+            and
+            kubelet_volume_stats_inodes_used{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
+            unless on(namespace, persistentvolumeclaim)
+            kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)", access_mode="ReadOnlyMany"} == 1
+            unless on(namespace, persistentvolumeclaim)
+            kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
+          for: 1m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_KubePersistentVolumeInodesFillingUp
+          annotations:
+            description: Based on recent sampling, the PersistentVolume claimed by
+              {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace
+              }} is expected to run out of inodes within four days. Currently {{ $value
+              | humanizePercentage }} of its inodes are free.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeInodesFillingUp.md
+            summary: PersistentVolumeInodes are filling up.
+            syn_component: openshift4-monitoring
+          expr: |
+            (
+              kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
+                /
+              kubelet_volume_stats_inodes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}
+            ) < 0.15
+            and
+            kubelet_volume_stats_inodes_used{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
+            and
+            predict_linear(kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+            unless on(namespace, persistentvolumeclaim)
+            kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)", access_mode="ReadOnlyMany"} == 1
+            unless on(namespace, persistentvolumeclaim)
+            kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
     - name: syn-kubernetes-system
       rules:
         - alert: SYN_KubeClientErrors
@@ -802,9 +942,9 @@ spec:
             summary: Kubernetes API server client is experiencing errors.
             syn_component: openshift4-monitoring
           expr: |
-            (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (instance, job, namespace)
+            (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (cluster, instance, job, namespace)
               /
-            sum(rate(rest_client_requests_total[5m])) by (instance, job, namespace))
+            sum(rate(rest_client_requests_total[5m])) by (cluster, instance, job, namespace))
             > 0.01
           for: 15m
           labels:
@@ -847,7 +987,7 @@ spec:
             summary: Kubernetes aggregated API is down.
             syn_component: openshift4-monitoring
           expr: |
-            (1 - max by(name, namespace)(avg_over_time(aggregator_unavailable_apiservice[10m]))) * 100 < 85
+            (1 - max by(name, namespace, cluster)(avg_over_time(aggregator_unavailable_apiservice[10m]))) * 100 < 85
           for: 5m
           labels:
             severity: warning
@@ -861,7 +1001,7 @@ spec:
             summary: Kubernetes aggregated API has reported errors.
             syn_component: openshift4-monitoring
           expr: |
-            sum by(name, namespace)(increase(aggregator_unavailable_apiservice_total[10m])) > 4
+            sum by(name, namespace, cluster)(increase(aggregator_unavailable_apiservice_total[10m])) > 4
           labels:
             severity: warning
             syn: 'true'
@@ -888,7 +1028,7 @@ spec:
             summary: Node readiness status is flapping.
             syn_component: openshift4-monitoring
           expr: |
-            sum(changes(kube_node_status_condition{status="true",condition="Ready"}[15m])) by (node) > 2
+            sum(changes(kube_node_status_condition{status="true",condition="Ready"}[15m])) by (cluster, node) > 2
           for: 15m
           labels:
             severity: warning
@@ -954,7 +1094,7 @@ spec:
             summary: Kubelet Pod startup latency is too high.
             syn_component: openshift4-monitoring
           expr: |
-            histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (instance, le)) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"} > 60
+            histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (cluster, instance, le)) * on(cluster, instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"} > 60
           for: 15m
           labels:
             severity: warning
@@ -1034,7 +1174,7 @@ spec:
             summary: 'machine {{ $labels.name }} is in phase: {{ $labels.phase }}'
             syn_component: openshift4-monitoring
           expr: |
-            (mapi_machine_created_timestamp_seconds{phase!~"Running|Deleting"}) > 0
+            sum by (name, namespace) (mapi_machine_created_timestamp_seconds{phase!~"Running|Deleting"}) > 0
           for: 60m
           labels:
             severity: warning
@@ -1050,25 +1190,40 @@ spec:
             summary: machine {{ $labels.name }} does not have valid node reference
             syn_component: openshift4-monitoring
           expr: |
-            (mapi_machine_created_timestamp_seconds unless on(node) kube_node_info) > 0
+            sum by (name, namespace) (mapi_machine_created_timestamp_seconds unless on(node) kube_node_info) > 0
           for: 60m
           labels:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-    - name: syn-master-nodes-high-memory-usage
+    - name: syn-mcc-paused-pool-kubelet-ca
       rules:
-        - alert: SYN_MasterNodesHighMemoryUsage
+        - alert: SYN_MachineConfigControllerPausedPoolKubeletCA
           annotations:
-            message: Memory usage of {{ $value | humanize }} on {{ $labels.node }}
-              exceeds 90%. Master nodes starved of memory could result in degraded
-              performance of the control plane.
+            description: Machine config pools have a 'pause' feature, which allows
+              config to be rendered, but prevents it from being rolled out to the
+              nodes. This alert indicates that a certificate rotation has taken place,
+              and the new kubelet-ca certificate bundle has been rendered into a machine
+              config, but because the pool '{{$labels.pool}}' is paused, the config
+              cannot be rolled out to the nodes in that pool. You will notice almost
+              immediately that for nodes in pool '{{$labels.pool}}', pod logs will
+              not be visible in the console and interactive commands (oc log, oc exec,
+              oc debug, oc attach) will not work. You must unpause machine config
+              pool '{{$labels.pool}}' to let the certificates through before the kube-apiserver-to-kubelet-signer
+              certificate expires. You have approximately {{ $value | humanizeDuration
+              }} remaining before this happens and nodes in '{{$labels.pool}}' cease
+              to function properly.
+            runbook_url: https://github.com/openshift/blob/master/alerts/machine-config-operator/MachineConfigControllerPausedPoolKubeletCA.md
+            summary: Paused machine configuration pool '{{$labels.pool}}' is blocking
+              a necessary certificate rotation and must be unpaused before the current
+              kube-apiserver-to-kubelet-signer certificate expires in {{ $value |
+              humanizeDuration }}.
             syn_component: openshift4-monitoring
           expr: |
-            ((sum(node_memory_MemTotal_bytes AND on (instance) label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )) - sum(node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes AND on (instance) label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" ))) / sum(node_memory_MemTotal_bytes AND on (instance) label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )) * 100) > 90
-          for: 15m
+            max by (namespace,pool) (last_over_time(machine_config_controller_paused_pool_kubelet_ca[5m]) - time()) < (86400 * 14) AND max by (namespace,pool) (last_over_time(machine_config_controller_paused_pool_kubelet_ca[5m])) > 0
+          for: 60m
           labels:
-            severity: warning
+            severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
     - name: syn-mcd-drain-error
@@ -1076,8 +1231,8 @@ spec:
         - alert: SYN_MCDDrainError
           annotations:
             message: 'Drain failed on {{ $labels.node }} , updates may be blocked.
-              For more details:  oc logs -f -n {{ $labels.namespace }} {{ $labels.pod
-              }} -c machine-config-daemon'
+              For more details check MachineConfigController pod logs: oc logs -f
+              -n {{ $labels.namespace }} machine-config-controller-xxxxx -c machine-config-controller'
             syn_component: openshift4-monitoring
           expr: |
             mcd_drain_err > 0
@@ -1123,6 +1278,22 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-node-exporter
       rules:
+        - alert: SYN_NodeClockNotSynchronising
+          annotations:
+            description: Clock on {{ $labels.instance }} is not synchronising. Ensure
+              NTP is configured on this host.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeClockNotSynchronising.md
+            summary: Clock not synchronising.
+            syn_component: openshift4-monitoring
+          expr: |
+            min_over_time(node_timex_sync_status[5m]) == 0
+            and
+            node_timex_maxerror_seconds >= 16
+          for: 10m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_NodeClockSkewDetected
           annotations:
             description: Clock on {{ $labels.instance }} is out of sync by more than
@@ -1314,7 +1485,7 @@ spec:
             summary: Network interface is often changing its status
             syn_component: openshift4-monitoring
           expr: |
-            changes(node_network_up{job="node-exporter",device!~"veth.+"}[2m]) > 2
+            changes(node_network_up{job="node-exporter",device!~"veth.+|tunbr"}[2m]) > 2
           for: 2m
           labels:
             severity: warning
@@ -1712,6 +1883,7 @@ spec:
               {{ $labels.remote_name}}:{{ $labels.url }}, which is more than the max
               of {{ printf `prometheus_remote_storage_shards_max{instance="%s",job=~"prometheus-k8s|prometheus-user-workload"}`
               $labels.instance | query | first | value }}.
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
             summary: Prometheus remote write desired shards calculation wants to run
               more than configured max shards.
             syn_component: openshift4-monitoring
@@ -1736,6 +1908,35 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             increase(prometheus_rule_evaluation_failures_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) > 0
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_PrometheusScrapeBodySizeLimitHit
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
+              {{ printf "%.0f" $value }} scrapes in the last 5m because some targets
+              exceeded the configured body_size_limit.
+            summary: Prometheus has dropped some targets that exceeded body size limit.
+            syn_component: openshift4-monitoring
+          expr: |
+            increase(prometheus_target_scrapes_exceeded_body_size_limit_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) > 0
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_PrometheusScrapeSampleLimitHit
+          annotations:
+            description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
+              {{ printf "%.0f" $value }} scrapes in the last 5m because some targets
+              exceeded the configured sample_limit.
+            summary: Prometheus has failed scrapes that have exceeded the configured
+              sample limit.
+            syn_component: openshift4-monitoring
+          expr: |
+            increase(prometheus_target_scrapes_exceeded_sample_limit_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) > 0
           for: 15m
           labels:
             severity: warning
@@ -1805,7 +2006,7 @@ spec:
             summary: Prometheus operator not ready
             syn_component: openshift4-monitoring
           expr: |
-            min by(namespace, controller) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
+            min by (controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
           for: 5m
           labels:
             severity: warning
@@ -1859,7 +2060,7 @@ spec:
             summary: Errors while performing watch operations in controller.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[10m])) / sum by (controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[10m]))) > 0.4
+            (sum by (controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
           for: 15m
           labels:
             severity: warning
