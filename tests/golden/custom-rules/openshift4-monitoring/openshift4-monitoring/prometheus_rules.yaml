@@ -566,7 +566,10 @@ spec:
             ) * 100 > 80
           for: 1h
           labels:
+            foo: bar
+            generic: patch
             severity: warning
+            specific: patch
             syn: 'true'
             syn_component: openshift4-monitoring
     - name: syn-kube-state-metrics

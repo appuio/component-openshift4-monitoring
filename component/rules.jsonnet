@@ -138,11 +138,12 @@ local patchExpr(expr) =
   );
 
 local rulePatches =
-  com.getValueOrDefault(
+  std.get(params.alerts.patchRules, '*', {}) +
+  com.makeMergeable(std.get(
     params.alerts.patchRules,
     params.manifests_version,
     {}
-  );
+  ));
 
 local patchRules = {
   spec+: {

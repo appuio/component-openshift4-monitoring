@@ -13,6 +13,19 @@ parameters:
   openshift4_monitoring:
     manifests_version: release-4.11
 
+    alerts:
+      patchRules:
+        '*':
+          HighOverallControlPlaneMemory:
+            labels:
+              foo: foo
+              generic: patch
+        release-4.11:
+          HighOverallControlPlaneMemory:
+            labels:
+              foo: bar
+              specific: patch
+
     rules:
       group-a:
         "record:foo:sum":

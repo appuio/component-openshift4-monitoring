@@ -539,10 +539,16 @@ spec:
       rules:
         - alert: SYN_HighOverallControlPlaneMemory
           annotations:
-            description: Given three control plane nodes, the overall memory utilization
-              may only be about 2/3 of all available capacity. This is because if
-              a single control plane node fails, the kube-apiserver and etcd my be
-              slow to respond. To fix this, increase memory of the control plane nodes.
+            description: |
+              The overall memory usage is high.
+              kube-apiserver and etcd might be slow to respond.
+              To fix this, increase memory of the control plane nodes.
+
+              This alert was adjusted to be less sensitive in 4.11.
+              Newer Go versions use more memory, if available, to reduce GC pauses.
+
+              Old memory behavior can be restored by setting `GOGC=63`.
+              See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
             summary: Memory utilization across all control plane nodes is high, and
               could impact responsiveness and stability.
             syn_component: openshift4-monitoring
@@ -561,7 +567,7 @@ spec:
                 AND on (instance)
                 label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
               )
-            ) * 100 > 60
+            ) * 100 > 80
           for: 1h
           labels:
             severity: warning
@@ -2003,6 +2009,7 @@ spec:
               {{ $labels.remote_name}}:{{ $labels.url }}, which is more than the max
               of {{ printf `prometheus_remote_storage_shards_max{instance="%s",job=~"prometheus-k8s|prometheus-user-workload"}`
               $labels.instance | query | first | value }}.
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
             summary: Prometheus remote write desired shards calculation wants to run
               more than configured max shards.
             syn_component: openshift4-monitoring
