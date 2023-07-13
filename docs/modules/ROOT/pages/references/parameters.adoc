@@ -337,7 +337,7 @@ The component expects that top-level keys in the parameter correspond to values 
 Additionally, the component supports special top-level key `*`.
 
 Alert patches which are defined under top-level key `*` are applied regardless of the OpenShift 4 version specified in parameter `manifest_versions`.
-Additionally, the component applies all patches under they key which matches the value of parameter `manifest_versions`.
+Additionally, the component applies all patches under the key which matches the value of parameter `manifest_versions`.
 If an alert is patched in both top-level key `*` and the top-level key matching parameter `manifest_versions`, the patches are merged together, with the version-specific patch overriding the generic patch.
 
 
