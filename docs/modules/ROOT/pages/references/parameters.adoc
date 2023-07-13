@@ -329,14 +329,19 @@ customAnnotations:
 
 === `patchRules`
 type:: dict
-keys:: potential values of parameter `manifests_versions`
+keys:: potential values of parameter `manifests_versions` and `*`
 default:: See https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[`class/defaults.yml` on GitHub]
 
 The parameter `patchRules` allows users to customize upstream alerts.
 The component expects that top-level keys in the parameter correspond to values of parameter `manifests_versions`.
-This enables users to selectively patch upstream alerts for a particular OpenShift 4 version.
+Additionally, the component supports special top-level key `*`.
 
-For each version, the component expects alert names as keys and any alert configuration as values.
+Alert patches which are defined under top-level key `*` are applied regardless of the OpenShift 4 version specified in parameter `manifest_versions`.
+Additionally, the component applies all patches under they key which matches the value of parameter `manifest_versions`.
+If an alert is patched in both top-level key `*` and the top-level key matching parameter `manifest_versions`, the patches are merged together, with the version-specific patch overriding the generic patch.
+
+
+The component expects alert names as keys and any alert configuration as values in each top-level key.
 See the Prometheus https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/[alerting rules documentation] for extended documentation on configuring alerting rules.
 
 Example:
@@ -344,7 +349,11 @@ Example:
 [source,yaml]
 ----
 patchRules:
-  release-4.9:
+  '*':
+    PrometheusRemoteWriteBehind:
+      annotations:
+        runbook_url: https://example.com/runbooks/PrometheusRemoteWriteBehind.html
+  release-4.11:
     SystemMemoryExceedsReservation:
       for: 30m
 ----

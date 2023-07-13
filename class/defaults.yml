@@ -151,7 +151,9 @@ parameters:
         - kube-apiserver-slos-basic
       customAnnotations: {}
       patchRules:
-        release-4.11:
+        # rules patched in '*' will be applied regardless of the value of
+        # parameter `manifests_version`.
+        '*':
           HighOverallControlPlaneMemory:
             annotations:
               description: |
@@ -186,6 +188,9 @@ parameters:
           PrometheusRemoteWriteDesiredShards:
             annotations:
               runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
+        release-4.11: {}
+        release-4.12: {}
+        release-4.13: {}
       # Alerts to ignore for user workload monitoring
       ignoreUserWorkload: []
 
