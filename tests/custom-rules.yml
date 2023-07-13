@@ -11,7 +11,7 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
-    manifests_version: release-4.11
+    manifests_version: release-4.13
 
     alerts:
       patchRules:
@@ -20,7 +20,7 @@ parameters:
             labels:
               foo: foo
               generic: patch
-        release-4.11:
+        release-4.13:
           HighOverallControlPlaneMemory:
             labels:
               foo: bar
