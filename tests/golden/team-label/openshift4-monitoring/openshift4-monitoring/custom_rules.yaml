@@ -16,3 +16,10 @@ spec:
             syn: 'true'
             syn_component: openshift4-monitoring
             syn_team: yet_another_team
+        - alert: NoLabels
+          annotations: {}
+          expr: vector(1)
+          labels:
+            syn: 'true'
+            syn_component: openshift4-monitoring
+            syn_team: other_team

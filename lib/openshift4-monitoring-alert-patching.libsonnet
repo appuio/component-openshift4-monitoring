@@ -140,6 +140,12 @@ local patchRule(rule, patches={}, patchName=true) =
         'SYN_' + name
       else
         name;
+    local syn_team_label =
+      if std.objectHas(rule, 'labels') && std.objectHas(rule.labels, 'syn_team')
+      then
+        rule.labels.syn_team
+      else
+        syn_team;
     rule {
       // Change alert names so we don't get multiple alerts with the same
       // name, as the logging operator deploys its own copy of these
@@ -152,7 +158,7 @@ local patchRule(rule, patches={}, patchName=true) =
         syn_component: inv.parameters._instance,
         // mark alert as belonging to the team in whose context the
         // function is called.
-        [if syn_team != '' && !std.objectHas(super.labels, 'syn_team') then 'syn_team']: syn_team,
+        [if syn_team_label != '' then 'syn_team']: syn_team_label,
       },
       annotations+:
         std.get(global_alert_params.customAnnotations, super.alert, {}),
