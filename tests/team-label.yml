@@ -18,3 +18,11 @@ parameters:
       other_team:
         instances:
           - 'openshift4-monitoring'
+
+  openshift4_monitoring:
+    rules:
+      my-rules:
+        "alert:MyAlert":
+          expr: 'vector(1)'
+          labels:
+            syn_team: yet_another_team

@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  annotations: {}
+  labels:
+    name: custom-rules
+  name: custom-rules
+spec:
+  groups:
+    - name: my-rules
+      rules:
+        - alert: MyAlert
+          annotations: {}
+          expr: vector(1)
+          labels:
+            syn: 'true'
+            syn_component: openshift4-monitoring
+            syn_team: yet_another_team

@@ -152,7 +152,7 @@ local patchRule(rule, patches={}, patchName=true) =
         syn_component: inv.parameters._instance,
         // mark alert as belonging to the team in whose context the
         // function is called.
-        [if syn_team != '' then 'syn_team']: syn_team,
+        [if syn_team != '' && !std.objectHas(super.labels, 'syn_team') then 'syn_team']: syn_team,
       },
       annotations+:
         std.get(global_alert_params.customAnnotations, super.alert, {}),
