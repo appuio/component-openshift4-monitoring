@@ -26,3 +26,5 @@ parameters:
           expr: 'vector(1)'
           labels:
             syn_team: yet_another_team
+        "alert:NoLabels":
+          expr: 'vector(1)'
