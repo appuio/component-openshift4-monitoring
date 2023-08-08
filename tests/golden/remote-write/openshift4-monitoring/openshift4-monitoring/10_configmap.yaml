@@ -25,7 +25,9 @@ data:
     "prometheusK8s":
       "externalLabels":
         "cluster_id": "c-green-test-1234"
+        "cluster_name": "Test Cluster 1234"
         "tenant_id": "t-silent-test-1234"
+        "tenant_name": "Test Tenant 1234"
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
       "remoteWrite":
