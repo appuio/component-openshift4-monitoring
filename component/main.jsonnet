@@ -108,6 +108,8 @@ local customRules =
       'alertmanager.yaml': std.manifestYamlDoc(params.alertManagerConfig),
     },
   },
+  [if params.enableAlertmanagerIsolationNetworkPolicy then '20_networkpolicy']: std.map(function(p) com.namespaced('openshift-monitoring', p), import 'networkpolicy.libsonnet'),
+  [if params.enableUserWorkload && params.enableUserWorkloadAlertmanagerIsolationNetworkPolicy then '20_user_workload_networkpolicy']: std.map(function(p) com.namespaced('openshift-user-workload-monitoring', p), import 'networkpolicy.libsonnet'),
   rbac: import 'rbac.libsonnet',
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',

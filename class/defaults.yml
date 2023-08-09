@@ -30,6 +30,8 @@ parameters:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
     enableUserWorkload: true
+    enableAlertmanagerIsolationNetworkPolicy: true
+    enableUserWorkloadAlertmanagerIsolationNetworkPolicy: true
     upstreamRules:
       networkPlugin: openshift-sdn
     configs:
