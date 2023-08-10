@@ -66,16 +66,8 @@ local params = inv.parameters.openshift4_monitoring;
   },
   kube.NetworkPolicy('allow-non-alertmanager') {
     spec: {
-      ingress: [
-        {
-          from: [
-            {
-              podSelector: {},
-              namespaceSelector: {},
-            },
-          ],
-        },
-      ],
+      // from https://kubernetes.io/docs/concepts/services-networking/network-policies/#allow-all-ingress-traffic
+      ingress: [ {} ],
       policyTypes: [
         'Ingress',
       ],

@@ -51,9 +51,7 @@ metadata:
   namespace: openshift-user-workload-monitoring
 spec:
   ingress:
-    - from:
-        - namespaceSelector: {}
-          podSelector: {}
+    - {}
   podSelector:
     matchExpressions:
       - key: app.kubernetes.io/name
