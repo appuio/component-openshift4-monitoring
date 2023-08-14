@@ -12,6 +12,11 @@ data:
             "requests":
               "storage": "2Gi"
     "prometheus":
+      "externalLabels":
+        "cluster_id": "c-green-test-1234-user-workload"
+        "cluster_name": "Test Cluster 1234 User Workload"
+        "tenant_id": "t-silent-test-1234"
+        "tenant_name": "Test Tenant 1234"
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
       "remoteWrite": []

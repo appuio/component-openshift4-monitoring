@@ -69,6 +69,11 @@ parameters:
         volumeClaimTemplate: ${openshift4_monitoring:configs:alertmanagerMain:volumeClaimTemplate}
       prometheusOperator: {}
       prometheus:
+        externalLabels:
+          cluster_id: ${cluster:name}-user-workload
+          cluster_name: "${cluster:display_name} User Workload"
+          tenant_id: ${cluster:tenant}
+          tenant_name: ${cluster:tenant_display_name}
         retention: 8d
         volumeClaimTemplate: ${openshift4_monitoring:configs:prometheusK8s:volumeClaimTemplate}
       thanosRuler: {}
