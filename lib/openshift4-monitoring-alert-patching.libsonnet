@@ -2,9 +2,7 @@
 // arbitrary alert rules to adhere to the format required by the component's
 // approach for allowing us to patch upstream rules.
 local com = import 'lib/commodore.libjsonnet';
-local kap = import 'lib/kapitan.libjsonnet';
-
-local inv = kap.inventory();
+local inv = com.inventory();
 
 local global_alert_params =
   local p =
