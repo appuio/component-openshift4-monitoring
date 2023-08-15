@@ -81,20 +81,17 @@ local syn_team =
  *    is `false`, all recording rules are also removed from the result.
  */
 local filterRules(group, ignoreNames=[], preserveRecordingRules=false) =
-  local filterRecording(rule) =
-    if preserveRecordingRules then
-      true
-    else
-      // only create duplicates of alert rules
-      std.objectHas(rule, 'alert');
   local ignore_set = std.set(global_alert_params.ignoreNames + ignoreNames);
   group {
     rules:
       std.filter(
         // Filter out unwanted rules
         function(rule)
-          filterRecording(rule) &&
-          !std.member(ignore_set, rule.alert),
+          local isAlert = std.objectHas(rule, 'alert');
+          if isAlert then
+            !std.member(ignore_set, rule.alert)
+          else
+            preserveRecordingRules,
         super.rules
       ),
   };
