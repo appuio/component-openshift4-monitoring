@@ -33,6 +33,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_AlertmanagerClusterFailedToSendAlerts
           annotations:
             description: The minimum notification failure rate to {{ $labels.integration
@@ -54,6 +55,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_AlertmanagerConfigInconsistent
           annotations:
             description: Alertmanager instances within the {{$labels.job}} cluster
@@ -71,6 +73,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_AlertmanagerFailedReload
           annotations:
             description: Configuration has failed to load for {{ $labels.namespace
@@ -87,6 +90,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_AlertmanagerFailedToSendAlerts
           annotations:
             description: Alertmanager {{ $labels.namespace }}/{{ $labels.pod}} failed
@@ -107,6 +111,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_AlertmanagerMembersInconsistent
           annotations:
             description: Alertmanager {{ $labels.namespace }}/{{ $labels.pod}} has
@@ -125,6 +130,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-cluster-machine-approver.rules
       rules:
         - alert: SYN_MachineApproverMaxPendingCSRsReached
@@ -144,6 +150,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-cluster-network-operator-sdn.rules
       rules:
         - alert: SYN_NodeProxyApplySlow
@@ -160,6 +167,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeProxyApplyStale
           annotations:
             description: Stale proxy rules for Kubernetes services may increase the
@@ -176,6 +184,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeWithoutSDNController
           annotations:
             description: |
@@ -191,6 +200,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeWithoutSDNPod
           annotations:
             description: Network control plane configuration on the node could be
@@ -205,6 +215,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_SDNPodNotReady
           annotations:
             description: Network control plane configuration on the node could be
@@ -219,6 +230,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-cluster-operators
       rules:
         - alert: SYN_ClusterOperatorDegraded
@@ -246,6 +258,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ClusterOperatorDown
           annotations:
             description: The {{ $labels.name }} operator may be down or disabled because
@@ -264,6 +277,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ClusterOperatorFlapping
           annotations:
             description: The  {{ $labels.name }} operator behavior might cause upgrades
@@ -280,6 +294,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-cluster-version
       rules:
         - alert: SYN_ClusterReleaseNotAccepted
@@ -301,6 +316,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ClusterVersionOperatorDown
           annotations:
             description: The operator may be down or disabled. The cluster will not
@@ -321,6 +337,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeControllerManagerDown
           annotations:
             description: KubeControllerManager has disappeared from Prometheus target
@@ -336,6 +353,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeSchedulerDown
           annotations:
             description: KubeScheduler has disappeared from Prometheus target discovery.
@@ -349,6 +367,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PodDisruptionBudgetLimit
           annotations:
             description: The pod disruption budget is below the minimum disruptions
@@ -364,6 +383,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-control-plane-cpu-utilization
       rules:
         - alert: SYN_ExtremelyHighIndividualControlPlaneCPU
@@ -389,6 +409,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_HighOverallControlPlaneCPU
           annotations:
             description: Given three control plane nodes, the overall CPU utilization
@@ -417,6 +438,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-etcd
       rules:
         - alert: SYN_etcdDatabaseQuotaLowSpace
@@ -435,6 +457,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdHighFsyncDurations
           annotations:
             description: 'etcd cluster "{{ $labels.job }}": 99th percentile fsync
@@ -450,6 +473,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdHighNumberOfFailedProposals
           annotations:
             description: 'etcd cluster "{{ $labels.job }}": {{ $value }} proposal
@@ -464,6 +488,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdMembersDown
           annotations:
             description: 'etcd cluster "{{ $labels.job }}": members are down ({{ $value
@@ -485,6 +510,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdNoLeader
           annotations:
             description: 'etcd cluster "{{ $labels.job }}": member {{ $labels.instance
@@ -499,6 +525,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-extremely-high-individual-control-plane-memory
       rules:
         - alert: SYN_ExtremelyHighIndividualControlPlaneMemory
@@ -536,6 +563,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-general.rules
       rules:
         - alert: Watchdog
@@ -555,6 +583,7 @@ spec:
             severity: none
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-high-overall-control-plane-memory
       rules:
         - alert: SYN_HighOverallControlPlaneMemory
@@ -594,6 +623,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-kube-state-metrics
       rules:
         - alert: SYN_KubeStateMetricsWatchErrors
@@ -613,6 +643,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-kubernetes-apps
       rules:
         - alert: SYN_KubeContainerWaiting
@@ -629,6 +660,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeDaemonSetMisScheduled
           annotations:
             description: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{
@@ -642,6 +674,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeDaemonSetNotScheduled
           annotations:
             description: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{
@@ -657,6 +690,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeDaemonSetRolloutStuck
           annotations:
             description: DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }}
@@ -692,6 +726,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeDeploymentGenerationMismatch
           annotations:
             description: Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment
@@ -708,6 +743,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeDeploymentRolloutStuck
           annotations:
             description: Rollout of deployment {{ $labels.namespace }}/{{ $labels.deployment
@@ -722,6 +758,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeJobFailed
           annotations:
             description: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
@@ -737,6 +774,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeJobNotCompleted
           annotations:
             description: Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking
@@ -751,6 +789,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePodCrashLooping
           annotations:
             description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
@@ -764,6 +803,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePodNotReady
           annotations:
             description: Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in
@@ -785,6 +825,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeStatefulSetGenerationMismatch
           annotations:
             description: StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset
@@ -801,6 +842,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeStatefulSetReplicasMismatch
           annotations:
             description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset
@@ -823,6 +865,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeStatefulSetUpdateNotRolledOut
           annotations:
             description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset
@@ -852,6 +895,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-kubernetes-storage
       rules:
         - alert: SYN_KubePersistentVolumeErrors
@@ -867,6 +911,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePersistentVolumeFillingUp
           annotations:
             description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
@@ -892,6 +937,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePersistentVolumeFillingUp
           annotations:
             description: Based on recent sampling, the PersistentVolume claimed by
@@ -920,6 +966,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePersistentVolumeInodesFillingUp
           annotations:
             description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
@@ -945,6 +992,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePersistentVolumeInodesFillingUp
           annotations:
             description: Based on recent sampling, the PersistentVolume claimed by
@@ -973,6 +1021,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-kubernetes-system
       rules:
         - alert: SYN_KubeClientErrors
@@ -991,6 +1040,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-kubernetes-system-apiserver
       rules:
         - alert: SYN_KubeAPIDown
@@ -1006,6 +1056,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeAPITerminatedRequests
           annotations:
             description: The kubernetes apiserver has terminated {{ $value | humanizePercentage
@@ -1020,6 +1071,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeAggregatedAPIDown
           annotations:
             description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace
@@ -1033,6 +1085,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeAggregatedAPIErrors
           annotations:
             description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace
@@ -1046,6 +1099,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-kubernetes-system-kubelet
       rules:
         - alert: SYN_KubeNodeNotReady
@@ -1061,6 +1115,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeNodeReadinessFlapping
           annotations:
             description: The readiness status of node {{ $labels.node }} has changed
@@ -1074,6 +1129,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeNodeUnreachable
           annotations:
             description: '{{ $labels.node }} is unreachable and some workloads may
@@ -1087,6 +1143,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeletClientCertificateRenewalErrors
           annotations:
             description: Kubelet on node {{ $labels.node }} has failed to renew its
@@ -1100,6 +1157,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeletDown
           annotations:
             description: Kubelet has disappeared from Prometheus target discovery.
@@ -1114,6 +1172,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeletPlegDurationHigh
           annotations:
             description: The Kubelet Pod Lifecycle Event Generator has a 99th percentile
@@ -1127,6 +1186,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeletPodStartUpLatencyHigh
           annotations:
             description: Kubelet Pod startup 99th percentile latency is {{ $value
@@ -1140,6 +1200,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeletServerCertificateRenewalErrors
           annotations:
             description: Kubelet on node {{ $labels.node }} has failed to renew its
@@ -1153,6 +1214,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-machine-api-operator-metrics-collector-up
       rules:
         - alert: SYN_MachineAPIOperatorMetricsCollectionFailing
@@ -1168,6 +1230,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-machine-health-check-unterminated-short-circuit
       rules:
         - alert: SYN_MachineHealthCheckUnterminatedShortCircuit
@@ -1185,6 +1248,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-machine-not-yet-deleted
       rules:
         - alert: SYN_MachineNotYetDeleted
@@ -1203,6 +1267,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-machine-with-no-running-phase
       rules:
         - alert: SYN_MachineWithNoRunningPhase
@@ -1220,6 +1285,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-machine-without-valid-node-ref
       rules:
         - alert: SYN_MachineWithoutValidNode
@@ -1236,6 +1302,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-mcc-drain-error
       rules:
         - alert: SYN_MCCDrainError
@@ -1252,6 +1319,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-mcd-kubelet-health-state-error
       rules:
         - alert: SYN_KubeletHealthState
@@ -1265,6 +1333,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-mcd-pivot-error
       rules:
         - alert: SYN_MCDPivotError
@@ -1281,6 +1350,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-mcd-reboot-error
       rules:
         - alert: SYN_MCDRebootError
@@ -1297,6 +1367,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-node-exporter
       rules:
         - alert: SYN_NodeClockNotSynchronising
@@ -1315,6 +1386,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeClockSkewDetected
           annotations:
             description: Clock at {{ $labels.instance }} is out of sync by more than
@@ -1338,6 +1410,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeDiskIOSaturation
           annotations:
             description: |
@@ -1352,6 +1425,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeFileDescriptorLimit
           annotations:
             description: File descriptors limit at {{ $labels.instance }} is currently
@@ -1368,6 +1442,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeFilesystemAlmostOutOfFiles
           annotations:
             description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint
@@ -1387,6 +1462,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeFilesystemAlmostOutOfSpace
           annotations:
             description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint
@@ -1406,6 +1482,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeFilesystemFilesFillingUp
           annotations:
             description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint
@@ -1428,6 +1505,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeFilesystemSpaceFillingUp
           annotations:
             description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint
@@ -1450,6 +1528,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeFilesystemSpaceFillingUp
           annotations:
             description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint
@@ -1472,6 +1551,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeHighNumberConntrackEntriesUsed
           annotations:
             description: '{{ $value | humanizePercentage }} of conntrack entries are
@@ -1484,6 +1564,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeMemoryHighUtilization
           annotations:
             description: |
@@ -1497,6 +1578,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeMemoryMajorPagesFaults
           annotations:
             description: |
@@ -1511,6 +1593,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeNetworkReceiveErrs
           annotations:
             description: '{{ $labels.instance }} interface {{ $labels.device }} has
@@ -1525,6 +1608,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeNetworkTransmitErrs
           annotations:
             description: '{{ $labels.instance }} interface {{ $labels.device }} has
@@ -1539,6 +1623,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_NodeSystemdServiceFailed
           annotations:
             description: Systemd service {{ $labels.name }} has entered failed state
@@ -1552,6 +1637,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-node-network
       rules:
         - alert: SYN_NodeNetworkInterfaceFlapping
@@ -1568,6 +1654,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-node-utilization
       rules:
         - alert: SYN_node_memory_free_percent
@@ -1582,6 +1669,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-openshift-etcd.rules
       rules:
         - alert: SYN_etcdGRPCRequestsSlow
@@ -1600,6 +1688,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdHighNumberOfFailedGRPCRequests
           annotations:
             description: 'etcd cluster "{{ $labels.job }}": {{ $value }}% of requests
@@ -1618,6 +1707,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdHighNumberOfLeaderChanges
           annotations:
             description: 'etcd cluster "{{ $labels.job }}": {{ $value }} average leader
@@ -1633,6 +1723,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_etcdInsufficientMembers
           annotations:
             description: etcd is reporting fewer instances are available than are
@@ -1654,6 +1745,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-openshift-general.rules
       rules:
         - alert: SYN_TargetDown
@@ -1680,6 +1772,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-openshift-ingress-to-route-controller.rules
       rules:
         - alert: SYN_UnmanagedRoutes
@@ -1696,6 +1789,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-openshift-ingress.rules
       rules:
         - alert: SYN_HAProxyDown
@@ -1711,6 +1805,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_HAProxyReloadFail
           annotations:
             description: This alert fires when HAProxy fails to reload its configuration,
@@ -1726,6 +1821,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_IngressControllerDegraded
           annotations:
             description: This alert fires when the IngressController status is degraded.
@@ -1740,6 +1836,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_IngressControllerUnavailable
           annotations:
             description: This alert fires when the IngressController is not available.
@@ -1754,6 +1851,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-openshift-kubernetes.rules
       rules:
         - alert: SYN_ClusterMonitoringOperatorReconciliationErrors
@@ -1770,6 +1868,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubeDeploymentReplicasMismatch
           annotations:
             description: Deployment {{ $labels.namespace }}/{{ $labels.deployment
@@ -1799,6 +1898,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_KubePodNotScheduled
           annotations:
             description: |-
@@ -1814,6 +1914,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-prometheus
       rules:
         - alert: SYN_PrometheusBadConfig
@@ -1831,6 +1932,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusDuplicateTimestamps
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is dropping
@@ -1845,6 +1947,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusErrorSendingAlertsToSomeAlertmanagers
           annotations:
             description: '{{ printf "%.1f" $value }}% errors while sending alerts
@@ -1866,6 +1969,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusHighQueryLoad
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} query API
@@ -1881,6 +1985,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusLabelLimitHit
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has dropped
@@ -1896,6 +2001,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusMissingRuleEvaluations
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has missed
@@ -1910,6 +2016,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusNotConnectedToAlertmanagers
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is not connected
@@ -1925,6 +2032,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusNotIngestingSamples
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is not ingesting
@@ -1946,6 +2054,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusNotificationQueueRunningFull
           annotations:
             description: Alert notification queue of Prometheus {{$labels.namespace}}/{{$labels.pod}}
@@ -1966,6 +2075,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusOutOfOrderTimestamps
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is dropping
@@ -1980,6 +2090,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusRemoteStorageFailures
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} failed to
@@ -2004,6 +2115,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusRemoteWriteDesiredShards
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} remote write
@@ -2028,6 +2140,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusRuleFailures
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
@@ -2042,6 +2155,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusSDRefreshFailure
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
@@ -2055,6 +2169,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusScrapeBodySizeLimitHit
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
@@ -2069,6 +2184,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusScrapeSampleLimitHit
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
@@ -2084,6 +2200,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusTSDBCompactionsFailing
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has detected
@@ -2097,6 +2214,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusTSDBReloadsFailing
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has detected
@@ -2110,6 +2228,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusTargetLimitHit
           annotations:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has dropped
@@ -2125,6 +2244,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusTargetSyncFailure
           annotations:
             description: '{{ printf "%.0f" $value }} targets in Prometheus {{$labels.namespace}}/{{$labels.pod}}
@@ -2139,6 +2259,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-prometheus-operator
       rules:
         - alert: SYN_PrometheusOperatorNotReady
@@ -2154,6 +2275,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusOperatorReconcileErrors
           annotations:
             description: '{{ $value | humanizePercentage }} of reconciling operations
@@ -2168,6 +2290,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusOperatorRejectedResources
           annotations:
             description: Prometheus operator in {{ $labels.namespace }} namespace
@@ -2182,6 +2305,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusOperatorSyncFailed
           annotations:
             description: Controller {{ $labels.controller }} in {{ $labels.namespace
@@ -2195,6 +2319,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_PrometheusOperatorWatchErrors
           annotations:
             description: Errors while performing watch operations in controller {{$labels.controller}}
@@ -2208,6 +2333,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-system-memory-exceeds-reservation
       rules:
         - alert: SYN_SystemMemoryExceedsReservation
@@ -2229,6 +2355,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-thanos-query
       rules:
         - alert: SYN_ThanosQueryHttpRequestQueryErrorRateHigh
@@ -2248,6 +2375,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ThanosQueryHttpRequestQueryRangeErrorRateHigh
           annotations:
             description: Thanos Query {{$labels.job}} in {{$labels.namespace}} is
@@ -2265,6 +2393,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ThanosQueryOverload
           annotations:
             description: Thanos Query {{$labels.job}} in {{$labels.namespace}} has
@@ -2285,6 +2414,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
     - name: syn-thanos-rule
       rules:
         - alert: SYN_ThanosNoRuleEvaluations
@@ -2302,6 +2432,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ThanosRuleGrpcErrorRate
           annotations:
             description: Thanos Rule {{$labels.job}} in {{$labels.namespace}} is failing
@@ -2320,6 +2451,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ThanosRuleHighRuleEvaluationFailures
           annotations:
             description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}}
@@ -2338,6 +2470,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ThanosRuleQueueIsDroppingAlerts
           annotations:
             description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}}
@@ -2352,6 +2485,7 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_ThanosRuleSenderIsFailingAlerts
           annotations:
             description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}}
@@ -2365,3 +2499,4 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys

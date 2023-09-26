@@ -1,5 +1,7 @@
 parameters:
   openshift4_monitoring:
+    team_fallback: null
+
     =_metadata:
       library_aliases:
         prom.libsonnet: openshift4-monitoring-prom.libsonnet
@@ -99,6 +101,13 @@ parameters:
           equal:
             - namespace
             - alertname
+    alertManagerAutoDiscovery:
+      enabled: true
+      debug_config_map: false
+      team_receiver_format: team_default_%s
+      additional_alert_matchers: []
+      prepend_routes: []
+      append_routes: []
     alerts:
       includeNamespaces:
         - appuio.*

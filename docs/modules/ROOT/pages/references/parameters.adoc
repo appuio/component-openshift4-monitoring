@@ -268,6 +268,74 @@ A dictionary holding the configuration for the AlertManager.
 
 See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configuring-alertmanager[OpenShift docs] for available parameters.
 
+
+== `alertManagerAutoDiscovery`
+
+[horizontal]
+type:: dictionary
+default::
++
+[source,yaml]
+----
+alertManagerAutoDiscovery:
+  enabled: true
+  debug_config_map: false
+  team_receiver_format: team_default_%s
+  additional_alert_matchers: []
+  prepend_routes: []
+  append_routes: []
+----
+
+`alertManagerAutoDiscovery` holds the configuration for the Alertmanager auto-discovery feature.
+
+The auto-discovery routes alerts to the configured teams based on their namespaces and the top-level `syn.teams[*].instances` and `syn.owner` parameters.
+It tries to find the namespaces associated with a Commodore application (called instance in the `syn` configuration) in the applications array, and matches the namespace to the team based on the `syn.teams[*].instances` parameter.
+
+.`syn` Team Example
+[source,yaml]
+----
+syn:
+  owner: daring-donkeys
+  teams:
+    electric-elephants:
+      instances: [postgres]
+----
+
+The auto-discovery feature is enabled by default.
+A ConfigMap can be enabled with `debug_config_map` to debug the auto-discovery feature.
+
+The configuration is merged with the `alertManagerConfig` parameter.
+Route receivers are generated for each team based on the `team_receiver_format` parameter.
+The routes are ordered as follows:
+
+[source]
+----
+alertManagerAutoDiscovery.prepend_routes + generated routes + alertManagerAutoDiscovery.append_routes + alertManagerConfig.routes + route all to syn.owner
+----
+
+`additional_alert_matchers` is a list of additional alert matchers to add to the generated routes.
+This can be used to handle special cases where the auto-discovery feature does not work as expected.
+For example if an alert should go to a different team than the namespace suggests based on a label.
+
+[source,yaml]
+----
+alertManagerAutoDiscovery:
+  additional_alert_matchers:
+    - 'syn_team = ""'
+# becomes
+- continue: true
+  matchers:
+    - syn_team = ""
+    - namespace =~ "my-ns"
+  receiver: team_default_lovable-lizards
+- continue: false
+  matchers:
+    - syn_team = ""
+    - namespace =~ "my-ns"
+  receiver: __component_openshift4_monitoring_null
+----
+
+
 == `alerts`
 
 [horizontal]
