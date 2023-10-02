@@ -1,15 +1,3 @@
-applications:
-  - non-existing
-  - no-ns
-  - ns-string
-  - ns-object
-  - base as ns-in-base
-  - base as ns-overridden
-  - non-existing as still-non-existing
-  - shared-responsibility
-  - same-ns-1
-  - same-ns-2
-
 parameters:
   kapitan:
     dependencies:
@@ -25,59 +13,3 @@ parameters:
   openshift4_monitoring:
     capacityAlerts:
       enabled: true
-    alertManagerConfig:
-      route:
-        routes:
-          - receiver: other
-            matchers:
-              - other = "true"
-    alertManagerAutoDiscovery:
-      debug_config_map: true
-      team_receiver_format: team_default_%s
-      additional_alert_matchers:
-        - 'syn_team = ""'
-      prepend_routes:
-        - matchers:
-            - alertname = Watchdog
-          repeat_interval: 60s
-          receiver: heartbeat
-
-  syn:
-    owner: clumsy-donkeys
-    teams:
-      chubby-cockroaches:
-        instances:
-          - ns-in-base
-          - ns-overridden
-          - shared-responsibility
-      lovable-lizards:
-        instances:
-          - ns-object
-          - shared-responsibility
-          - same-ns-2
-
-  no_ns: {}
-
-  ns_string:
-    namespace: "ns-string"
-
-  ns_object:
-    namespace:
-      name: "ns-object"
-
-  base:
-    namespace: base
-
-  ns_in_base: {}
-
-  ns_overridden:
-    namespace: overridden
-
-  shared_responsibility:
-    namespace: shared-responsibility
-
-  same_ns_1:
-    namespace: same-ns
-
-  same_ns_2:
-    namespace: same-ns

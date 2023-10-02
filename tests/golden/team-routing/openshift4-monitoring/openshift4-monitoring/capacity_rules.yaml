@@ -28,7 +28,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: my_team
+            syn_team: clumsy-donkeys
     - name: syn-MemoryCapacity
       rules:
         - alert: SYN_ClusterLowOnMemory
@@ -48,7 +48,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: my_team
+            syn_team: clumsy-donkeys
     - name: syn-PodCapacity
       rules:
         - alert: SYN_TooManyPods
@@ -68,7 +68,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: my_team
+            syn_team: clumsy-donkeys
     - name: syn-ResourceRequests
       rules:
         - alert: SYN_TooMuchCPURequested
@@ -88,7 +88,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: my_team
+            syn_team: clumsy-donkeys
         - alert: SYN_TooMuchMemoryRequested
           annotations:
             description: The cluster is close to assigning all memory to running pods.
@@ -106,7 +106,7 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: my_team
+            syn_team: clumsy-donkeys
     - name: syn-UnusedCapacity
       rules:
         - alert: SYN_ClusterHasUnusedNodes
@@ -144,4 +144,4 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: my_team
+            syn_team: clumsy-donkeys

@@ -1,6 +1,6 @@
 parameters:
   openshift4_monitoring:
-    team_fallback: null
+    fallback_team: null
 
     =_metadata:
       library_aliases:

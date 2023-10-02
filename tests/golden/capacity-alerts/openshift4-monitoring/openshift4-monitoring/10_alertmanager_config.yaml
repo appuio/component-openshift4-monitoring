@@ -31,32 +31,9 @@ stringData:
       "group_wait": "0s"
       "repeat_interval": "10m"
       "routes":
-      - "matchers":
-        - "alertname = Watchdog"
-        "receiver": "heartbeat"
-        "repeat_interval": "60s"
-      - "continue": true
-        "matchers":
-        - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|shared-responsibility\""
-        "receiver": "team_default_chubby-cockroaches"
-      - "continue": true
-        "matchers":
-        - "syn_team = \"\""
-        - "namespace =~ \"ns-string|same-ns\""
-        "receiver": "team_default_clumsy-donkeys"
-      - "continue": true
-        "matchers":
-        - "syn_team = \"\""
-        - "namespace =~ \"ns-object|shared-responsibility|same-ns\""
-        "receiver": "team_default_lovable-lizards"
       - "continue": false
         "matchers":
-        - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|shared-responsibility|ns-string|same-ns|ns-object|shared-responsibility|same-ns\""
+        - "namespace =~ \"\""
         "receiver": "__component_openshift4_monitoring_null"
-      - "matchers":
-        - "other = \"true\""
-        "receiver": "other"
-      - "receiver": "team_default_clumsy-donkeys"
+      - "receiver": "__component_openshift4_monitoring_null"
 type: Opaque
