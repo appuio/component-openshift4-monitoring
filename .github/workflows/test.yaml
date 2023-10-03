@@ -38,10 +38,10 @@ jobs:
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
           - vsphere
-          - team-label
           - custom-rules
           - release-4.12
           - release-4.13
+          - team-routing
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -62,10 +62,10 @@ jobs:
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
           - vsphere
-          - team-label
           - custom-rules
           - release-4.12
           - release-4.13
+          - team-routing
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}

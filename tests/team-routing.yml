@@ -1,0 +1,84 @@
+applications:
+  - non-existing
+  - no-ns
+  - ns-string
+  - ns-object
+  - base as ns-in-base
+  - base as ns-overridden
+  - non-existing as still-non-existing
+  - same-ns-1
+  - same-ns-2
+
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
+        output_path: vendor/lib/patch-operator.libsonnet
+
+  patch_operator:
+    namespace: syn-patch-operator
+    patch_serviceaccount:
+      name: patch-sa
+
+  syn:
+    owner: clumsy-donkeys
+    teams:
+      chubby-cockroaches:
+        instances:
+          - ns-in-base
+          - ns-overridden
+      lovable-lizards:
+        instances:
+          - ns-object
+          - same-ns-2
+
+  openshift4_monitoring:
+    alertManagerConfig:
+      route:
+        routes:
+          - receiver: other
+            matchers:
+              - other = "true"
+    alertManagerAutoDiscovery:
+      debug_config_map: true
+      team_receiver_format: team_default_%s
+      additional_alert_matchers:
+        - 'syn_team = ""'
+      prepend_routes:
+        - matchers:
+            - alertname = Watchdog
+          repeat_interval: 60s
+          receiver: heartbeat
+
+    rules:
+      my-rules:
+        "alert:MyAlert":
+          expr: 'vector(1)'
+          labels:
+            syn_team: yet_another_team
+        "alert:NoLabels":
+          expr: 'vector(1)'
+
+  no_ns: {}
+
+  ns_string:
+    namespace: "ns-string"
+
+  ns_object:
+    namespace:
+      name: "ns-object"
+
+  base:
+    namespace: base
+
+  ns_in_base: {}
+
+  ns_overridden:
+    namespace: overridden
+
+  same_ns_1:
+    namespace: same-ns
+
+  same_ns_2:
+    namespace: same-ns

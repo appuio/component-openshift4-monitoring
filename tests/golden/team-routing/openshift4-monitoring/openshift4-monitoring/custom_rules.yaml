@@ -22,4 +22,4 @@ spec:
           labels:
             syn: 'true'
             syn_component: openshift4-monitoring
-            syn_team: other_team
+            syn_team: clumsy-donkeys
