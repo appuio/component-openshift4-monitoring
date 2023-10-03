@@ -111,7 +111,7 @@ local prometheusRule(name) =
         local teams = params.syn.teams;
         local teamsForApp = std.foldl(
           function(prev, team)
-            if std.objectHas(teams, team) && std.objectHas(teams[team], 'instances') && std.member(teams[team].instances, app) then
+            if std.objectHas(teams, team) && std.objectHas(teams[team], 'instances') && std.member(com.renderArray(teams[team].instances), app) then
               prev + [ team ]
             else
               prev,

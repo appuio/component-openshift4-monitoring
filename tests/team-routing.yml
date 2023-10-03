@@ -32,6 +32,8 @@ parameters:
         instances:
           - ns-object
           - same-ns-2
+          - ns-in-base
+          - ~ns-in-base
 
   openshift4_monitoring:
     alertManagerConfig:
