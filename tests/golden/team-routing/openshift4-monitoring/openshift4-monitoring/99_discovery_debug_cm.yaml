@@ -35,7 +35,7 @@ data:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"ns-string|same-ns\""
+        - "namespace =~ \"ns-string\""
         "receiver": "team_default_clumsy-donkeys"
       - "continue": true
         "matchers":
@@ -45,7 +45,7 @@ data:
       - "continue": false
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|ns-string|same-ns|ns-object|same-ns\""
+        - "namespace =~ \"base|overridden|ns-string|ns-object|same-ns\""
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""
@@ -75,7 +75,7 @@ data:
     "non-existing as still-non-existing": "clumsy-donkeys"
     "ns-object": "lovable-lizards"
     "ns-string": "clumsy-donkeys"
-    "same-ns-1": "clumsy-donkeys"
+    "same-ns-1": "lovable-lizards"
     "same-ns-2": "lovable-lizards"
   proposed_routes: |-
     - "continue": true
@@ -86,7 +86,7 @@ data:
     - "continue": true
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"ns-string|same-ns\""
+      - "namespace =~ \"ns-string\""
       "receiver": "team_default_clumsy-donkeys"
     - "continue": true
       "matchers":
@@ -96,7 +96,7 @@ data:
     - "continue": false
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"base|overridden|ns-string|same-ns|ns-object|same-ns\""
+      - "namespace =~ \"base|overridden|ns-string|ns-object|same-ns\""
       "receiver": "__component_openshift4_monitoring_null"
 kind: ConfigMap
 metadata:
