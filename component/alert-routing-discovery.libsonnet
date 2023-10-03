@@ -40,11 +40,14 @@ local ownerOrFallbackTeam =
     params.openshift4_monitoring.fallback_team;
 
 // teamToNS is a map from a team to namespaces.
-local teamToNS = std.foldl(
-  function(prev, app)
-    prev { [prom.teamForApplication(app)]+: [ discoverNS(app) ] },
-  inv.applications,
-  {}
+local teamToNS = std.mapWithKey(
+  function(_, a) std.uniq(std.sort(std.prune(a))),
+  std.foldl(
+    function(prev, app)
+      prev { [prom.teamForApplication(app)]+: [ discoverNS(app) ] },
+    inv.applications,
+    {}
+  )
 );
 
 // teamBasedRouting contains discovered routes for teams.

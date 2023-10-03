@@ -43,7 +43,7 @@ stringData:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"ns-string|same-ns\""
+        - "namespace =~ \"ns-string\""
         "receiver": "team_default_clumsy-donkeys"
       - "continue": true
         "matchers":
@@ -53,7 +53,7 @@ stringData:
       - "continue": false
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|ns-string|same-ns|ns-object|same-ns\""
+        - "namespace =~ \"base|overridden|ns-string|ns-object|same-ns\""
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""

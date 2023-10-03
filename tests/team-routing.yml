@@ -31,6 +31,7 @@ parameters:
       lovable-lizards:
         instances:
           - ns-object
+          - same-ns-1
           - same-ns-2
           - ns-in-base
           - ~ns-in-base
