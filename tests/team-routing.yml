@@ -6,7 +6,6 @@ applications:
   - base as ns-in-base
   - base as ns-overridden
   - non-existing as still-non-existing
-  - shared-responsibility
   - same-ns-1
   - same-ns-2
 
@@ -29,11 +28,9 @@ parameters:
         instances:
           - ns-in-base
           - ns-overridden
-          - shared-responsibility
       lovable-lizards:
         instances:
           - ns-object
-          - shared-responsibility
           - same-ns-2
 
   openshift4_monitoring:
@@ -79,9 +76,6 @@ parameters:
 
   ns_overridden:
     namespace: overridden
-
-  shared_responsibility:
-    namespace: shared-responsibility
 
   same_ns_1:
     namespace: same-ns

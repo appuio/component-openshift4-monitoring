@@ -38,7 +38,7 @@ stringData:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|shared-responsibility\""
+        - "namespace =~ \"base|overridden\""
         "receiver": "team_default_chubby-cockroaches"
       - "continue": true
         "matchers":
@@ -48,12 +48,12 @@ stringData:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"ns-object|shared-responsibility|same-ns\""
+        - "namespace =~ \"ns-object|same-ns\""
         "receiver": "team_default_lovable-lizards"
       - "continue": false
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|shared-responsibility|ns-string|same-ns|ns-object|shared-responsibility|same-ns\""
+        - "namespace =~ \"base|overridden|ns-string|same-ns|ns-object|same-ns\""
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""

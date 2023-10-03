@@ -30,7 +30,7 @@ data:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|shared-responsibility\""
+        - "namespace =~ \"base|overridden\""
         "receiver": "team_default_chubby-cockroaches"
       - "continue": true
         "matchers":
@@ -40,19 +40,19 @@ data:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"ns-object|shared-responsibility|same-ns\""
+        - "namespace =~ \"ns-object|same-ns\""
         "receiver": "team_default_lovable-lizards"
       - "continue": false
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|shared-responsibility|ns-string|same-ns|ns-object|shared-responsibility|same-ns\""
+        - "namespace =~ \"base|overridden|ns-string|same-ns|ns-object|same-ns\""
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""
         "receiver": "other"
       - "receiver": "team_default_clumsy-donkeys"
   applications: '["non-existing","no-ns","ns-string","ns-object","base as ns-in-base","base
-    as ns-overridden","non-existing as still-non-existing","shared-responsibility","same-ns-1","same-ns-2"]'
+    as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2"]'
   apps_without_namespaces: |-
     - "no-ns"
     - "non-existing"
@@ -67,34 +67,21 @@ data:
     "ns-string": "ns-string"
     "same-ns-1": "same-ns"
     "same-ns-2": "same-ns"
-    "shared-responsibility": "shared-responsibility"
   discovered_teams: |-
-    "base as ns-in-base":
-    - "chubby-cockroaches"
-    "base as ns-overridden":
-    - "chubby-cockroaches"
-    "no-ns":
-    - "clumsy-donkeys"
-    "non-existing":
-    - "clumsy-donkeys"
-    "non-existing as still-non-existing":
-    - "clumsy-donkeys"
-    "ns-object":
-    - "lovable-lizards"
-    "ns-string":
-    - "clumsy-donkeys"
-    "same-ns-1":
-    - "clumsy-donkeys"
-    "same-ns-2":
-    - "lovable-lizards"
-    "shared-responsibility":
-    - "chubby-cockroaches"
-    - "lovable-lizards"
+    "base as ns-in-base": "chubby-cockroaches"
+    "base as ns-overridden": "chubby-cockroaches"
+    "no-ns": "clumsy-donkeys"
+    "non-existing": "clumsy-donkeys"
+    "non-existing as still-non-existing": "clumsy-donkeys"
+    "ns-object": "lovable-lizards"
+    "ns-string": "clumsy-donkeys"
+    "same-ns-1": "clumsy-donkeys"
+    "same-ns-2": "lovable-lizards"
   proposed_routes: |-
     - "continue": true
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"base|overridden|shared-responsibility\""
+      - "namespace =~ \"base|overridden\""
       "receiver": "team_default_chubby-cockroaches"
     - "continue": true
       "matchers":
@@ -104,12 +91,12 @@ data:
     - "continue": true
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"ns-object|shared-responsibility|same-ns\""
+      - "namespace =~ \"ns-object|same-ns\""
       "receiver": "team_default_lovable-lizards"
     - "continue": false
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"base|overridden|shared-responsibility|ns-string|same-ns|ns-object|shared-responsibility|same-ns\""
+      - "namespace =~ \"base|overridden|ns-string|same-ns|ns-object|same-ns\""
       "receiver": "__component_openshift4_monitoring_null"
 kind: ConfigMap
 metadata:
