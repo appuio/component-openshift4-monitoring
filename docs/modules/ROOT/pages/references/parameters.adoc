@@ -289,7 +289,9 @@ alertManagerAutoDiscovery:
 `alertManagerAutoDiscovery` holds the configuration for the Alertmanager auto-discovery feature.
 
 The auto-discovery routes alerts to the configured teams based on their namespaces and the top-level `syn.teams[*].instances` and `syn.owner` parameters.
-It tries to find the namespaces associated with a Commodore application (called instance in the `syn` configuration) in the applications array, and matches the namespace to the team based on the `syn.teams[*].instances` parameter.
+Auto-discovery first creates a list of Commodore component instances by parsing the `applications` array using the same rules as Commodore itself (see also the https://syn.tools/commodore/reference/architecture.html#_component_instantiation[Commodore component instantiation documentation]).
+For each discovered instance, the component then renders the instance parameters, and reads the cmoponent's namespace from field `namespace` or `namespace.name` in the rendered parameters.
+Finally, routing rules are generated to route alerts from the discovered namespaces to the associated component instance's owning team.
 
 .`syn` Team Example
 [source,yaml]
