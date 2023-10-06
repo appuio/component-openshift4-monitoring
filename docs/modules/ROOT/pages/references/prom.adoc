@@ -123,12 +123,12 @@ spec:
           for: 10m
           labels:
             severity: warning
-            syn: "true" <2>
+            syn: "true" <1>
             syn_component: foocomponent <2>
-            syn_team: footeam <3>
+            syn_team: footeam <2>
 ----
-<2> Alerting rules are patched to match the default configuration for component `openshift4-monitoring`.
-<3> If Project Syn multi-team configuration is present, label `syn_team` is added based on the component instance calling the `generateRules()` function.
+<1> Alerting rules are patched to match the default configuration for component `openshift4-monitoring`.
+<2> If Project Syn multi-team configuration is present, label `syn_team` is added based on the component instance calling the `generateRules()` function.
 
 === Arguments
 
