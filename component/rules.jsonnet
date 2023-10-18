@@ -130,11 +130,30 @@ local annotateRules = {
 local renderedNamespaceSelector =
   std.join('|', com.renderArray(params.alerts.includeNamespaces));
 
+local renderedExcludesSelector =
+  std.join('|', com.renderArray(params.alerts.excludeNamespaces));
+
+local renderedSelector =
+  local hasNsSel = std.length(renderedNamespaceSelector) > 0;
+  local hasExcSel = std.length(renderedExcludesSelector) > 0;
+  (
+    if hasNsSel then
+      'namespace=~"(%s)"' % renderedNamespaceSelector
+    else ''
+
+  ) + (
+    if hasNsSel && hasExcSel then ',' else ''
+  ) + (
+    if std.length(renderedExcludesSelector) > 0 then
+      'namespace!~"(%s)"' % renderedExcludesSelector
+    else ''
+  );
+
 local patchExpr(expr) =
   std.strReplace(
     expr,
     'namespace=~"(openshift-.*|kube-.*|default)"',
-    'namespace=~"(%s)"' % renderedNamespaceSelector
+    renderedSelector
   );
 
 local rulePatches =
