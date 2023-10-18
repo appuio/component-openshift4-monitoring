@@ -116,6 +116,7 @@ parameters:
         - kube-.*
         - openshift-.*
         - syn.*
+      excludeNamespaces: []
       ignoreNames:
         - AlertmanagerReceiversNotConfigured
         - CannotRetrieveUpdates

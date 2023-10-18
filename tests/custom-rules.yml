@@ -14,6 +14,8 @@ parameters:
     manifests_version: release-4.13
 
     alerts:
+      excludeNamespaces:
+        - openshift-adp
       patchRules:
         '*':
           HighOverallControlPlaneMemory:
