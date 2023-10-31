@@ -79,6 +79,11 @@ parameters:
         retention: 8d
         volumeClaimTemplate: ${openshift4_monitoring:configs:prometheusK8s:volumeClaimTemplate}
       thanosRuler: {}
+
+    remoteWriteDefaults:
+      cluster: {}
+      userWorkload: {}
+
     alertManagerConfig:
       route:
         group_wait: 0s
