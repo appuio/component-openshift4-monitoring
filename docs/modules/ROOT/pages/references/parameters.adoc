@@ -266,7 +266,7 @@ inhibit_rules:
 
 A dictionary holding the configuration for the AlertManager.
 
-See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configuring-alertmanager[OpenShift docs] for available parameters.
+See the https://docs.openshift.com/container-platform/latest/monitoring/managing-alerts.html#applying-custom-alertmanager-configuration_managing-alerts[OpenShift docs] for available parameters.
 
 
 == `alertManagerAutoDiscovery`
