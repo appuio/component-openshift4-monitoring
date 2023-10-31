@@ -32,6 +32,9 @@ data:
         "node-role.kubernetes.io/infra": ""
       "remoteWrite":
       - "name": "backwards-compatibility"
+        "queueConfig":
+          "maxShards": 80
+          "minShards": 5
       - "basicAuth":
           "password":
             "key": "password"
@@ -42,6 +45,8 @@ data:
         "headers":
           "X-Scope-OrgID": "example"
         "name": "example"
+        "queueConfig":
+          "maxShards": 70
         "url": "https://prometheus.example.com/api/v1/write"
         "writeRelabelConfigs":
         - "action": "keep"

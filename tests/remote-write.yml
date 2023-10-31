@@ -23,10 +23,20 @@ parameters:
           username: prometheus
           password: prometheus
 
+    remoteWriteDefaults:
+      cluster:
+        queueConfig:
+          maxShards: 80
+      userWorkload:
+        queueConfig:
+          maxShards: 20
+
     configs:
       prometheusK8s:
         remoteWrite:
           - name: backwards-compatibility
+            queueConfig:
+              minShards: 5
         _remoteWrite:
           example:
             url: https://prometheus.example.com/api/v1/write
@@ -52,6 +62,8 @@ parameters:
               password:
                 name: remote-write
                 key: password
+            queueConfig:
+              maxShards: 70
 
     configsUserWorkload:
       prometheus:
