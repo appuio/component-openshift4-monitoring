@@ -266,7 +266,7 @@ inhibit_rules:
 
 A dictionary holding the configuration for the AlertManager.
 
-See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html#configuring-alertmanager[OpenShift docs] for available parameters.
+See the https://docs.openshift.com/container-platform/latest/monitoring/managing-alerts.html#applying-custom-alertmanager-configuration_managing-alerts[OpenShift docs] for available parameters.
 
 
 == `alertManagerAutoDiscovery`
@@ -353,7 +353,7 @@ default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/
 
 List of namespace patterns to use for alerts which have `namespace=~"(openshift-.\*|kube-.*|default)"` in the upstream rule.
 The component generates a regex pattern from the list by concatenating all elements into a large OR-regex.
-To inject the custom regex, the component searches for the exact string `namespace=~"(openshift-.\*|kube-.*|default)"` in field `expr` of each alert rule and replaces it with the regex generated from the parameter.
+To inject the custom regex, the component searches for the exact string `namespace=~"(openshift-.\*|kube-.*|default)"` in field `expr` of each alert rule and replaces it with the regex generated from this parameter and parameter `excludeNamespaces`.
 
 The component processes the list with `com.renderArray()` to allow users to drop entries in the hierarchy.
 
@@ -371,6 +371,36 @@ includeNamespaces:
 ----
 
 The component will generate namespace selector `namespace=~"(default|syn.*)"` from this input configuration.
+
+=== `excludeNamespaces`
+
+[horizontal]
+type:: list
+default:: `[]`
+
+List of namespace patterns to exclude for alerts which have `namespace=~"(openshift-.\*|kube-.*|default)"` in the upstream rule.
+The component generates a regex pattern from the list by concatenating all elements into a large OR-regex.
+To inject the custom regex, the component searches for the exact string `namespace=~"(openshift-.\*|kube-.*|default)"` in field `expr` of each alert rule and replaces it with the regex generated from this parameter and parameter `includeNamespaces`.
+
+The component processes the list with `com.renderArray()` to allow users to drop entries in the hierarchy.
+
+IMPORTANT: The component doesn't validate that the list entries are valid regex patterns.
+
+==== Example
+
+We assume that the input config has patterns `default` and `openshift.*` and `syn.*` for `includeNamespaces` and `openshift-adp` for `excludeNamespaces`:
+
+[source,yaml]
+----
+includeNamespaces:
+  - default
+  - openshift.*
+  - syn.*
+excludeNamespaces:
+  - openshift-adp
+----
+
+The component will generate namespace selector `namespace=~"(default|openshift.*|syn.*)",namespace!~"(openshift-adp)"` from this input configuration.
 
 === `ignoreNames`
 
@@ -681,3 +711,31 @@ default:: `{}`
 A dict of secrets to create in the namespace.
 The key is the name of the secret, the value is the content of the secret.
 The value must be a dict with a key `stringData` which is a dict of key/value pairs to add to the secret.
+
+== `remoteWriteDefaults`
+
+[horizontal]
+type:: dict
+default::
++
+[source,yaml]
+----
+remoteWriteDefaults:
+  cluster: {}
+  userWorkload: {}
+----
+example::
++
+[source,yaml]
+----
+remoteWriteDefaults:
+  cluster:
+    queueConfig:
+      maxShards: 80
+  userWorkload:
+    queueConfig:
+      maxShards: 20
+----
+
+A dict of default remote write configurations for the Prometheus component.
+Those values are merged into each remote write configuration in `configs.prometheusK8s.remoteWrite` and `configsUserWorkload.prometheus.remoteWrite`.

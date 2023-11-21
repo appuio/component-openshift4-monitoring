@@ -50,7 +50,7 @@ then remoteWriteConfig {
 }
 else remoteWriteConfig;
 
-local patchRemoteWrite(promConfig) = promConfig {
+local patchRemoteWrite(promConfig, defaults) = promConfig {
   _remoteWrite+:: {},
 } + {
   local rwd = super._remoteWrite,
@@ -58,6 +58,11 @@ local patchRemoteWrite(promConfig) = promConfig {
     function(name) rwd[name] != null,
     function(name) transformRelabelConfigs(rwd[name] { name: name }),
     std.objectFields(rwd)
+  ),
+} + {
+  remoteWrite: std.map(
+    function(rw) defaults + com.makeMergeable(rw),
+    super.remoteWrite,
   ),
 };
 
@@ -80,7 +85,7 @@ local customRules =
           } + std.mapWithKey(
             function(field, value) value + params.defaultConfig,
             params.configs {
-              prometheusK8s: patchRemoteWrite(super.prometheusK8s),
+              prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
             }
           ),
         ),
@@ -96,7 +101,7 @@ local customRules =
           std.mapWithKey(
             function(field, value) value + params.defaultConfig,
             params.configsUserWorkload {
-              prometheus: patchRemoteWrite(super.prometheus),
+              prometheus: patchRemoteWrite(super.prometheus, params.remoteWriteDefaults.userWorkload),
             }
           )
         ),
