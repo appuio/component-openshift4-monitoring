@@ -46,7 +46,7 @@ spec:
             min by (namespace,service, integration) (
               rate(alertmanager_notifications_failed_total{job=~"alertmanager-main|alertmanager-user-workload", integration=~`.*`}[5m])
             /
-              rate(alertmanager_notifications_total{job=~"alertmanager-main|alertmanager-user-workload", integration=~`.*`}[5m])
+              ignoring (reason) group_left rate(alertmanager_notifications_total{job=~"alertmanager-main|alertmanager-user-workload", integration=~`.*`}[5m])
             )
             > 0.01
           for: 5m
@@ -99,7 +99,7 @@ spec:
             (
               rate(alertmanager_notifications_failed_total{job=~"alertmanager-main|alertmanager-user-workload"}[5m])
             /
-              rate(alertmanager_notifications_total{job=~"alertmanager-main|alertmanager-user-workload"}[5m])
+              ignoring (reason) group_left rate(alertmanager_notifications_total{job=~"alertmanager-main|alertmanager-user-workload"}[5m])
             )
             > 0.01
           for: 5m
@@ -410,7 +410,7 @@ spec:
             summary: etcd cluster database is running full.
             syn_component: openshift4-monitoring
           expr: |
-            (last_over_time(etcd_mvcc_db_total_size_in_bytes{job=~".*etcd.*"}[5m]) / last_over_time(etcd_server_quota_backend_bytes{job=~".*etcd.*"}[5m]))*100 > 95
+            (last_over_time(etcd_mvcc_db_total_size_in_bytes[5m]) / last_over_time(etcd_server_quota_backend_bytes[5m]))*100 > 95
           for: 10m
           labels:
             severity: critical
@@ -1297,6 +1297,19 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-node-exporter
       rules:
+        - alert: SYN_NodeBondingDegraded
+          annotations:
+            description: Bonding interface {{ $labels.master }} on {{ $labels.instance
+              }} is in degraded state due to one or more slave failures.
+            summary: Bonding interface is degraded
+            syn_component: openshift4-monitoring
+          expr: |
+            (node_bonding_slaves - node_bonding_active) != 0
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_NodeClockNotSynchronising
           annotations:
             description: Clock at {{ $labels.instance }} is not synchronising. Ensure
@@ -2146,7 +2159,7 @@ spec:
             summary: Prometheus operator not ready
             syn_component: openshift4-monitoring
           expr: |
-            min by (cluster,controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
+            min by (controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
           for: 5m
           labels:
             severity: warning
@@ -2160,7 +2173,7 @@ spec:
             summary: Errors while reconciling controller.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (cluster,controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (cluster,controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
+            (sum by (controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
           for: 10m
           labels:
             severity: warning
@@ -2200,7 +2213,7 @@ spec:
             summary: Errors while performing watch operations in controller.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
+            (sum by (controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
           for: 15m
           labels:
             severity: warning
