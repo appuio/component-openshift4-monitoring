@@ -241,7 +241,7 @@ parameters:
     images:
       oc:
         image: quay.io/appuio/oc
-        tag: v4.12
+        tag: v4.14
 
 
     capacityAlerts:
