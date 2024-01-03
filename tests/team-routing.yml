@@ -38,6 +38,10 @@ parameters:
 
   openshift4_monitoring:
     alertManagerConfig:
+      receivers:
+        - name: foo
+          opsgenie_configs:
+            - source: null
       route:
         routes:
           - receiver: other
