@@ -900,8 +900,8 @@ spec:
       rules:
         - alert: SYN_KubePersistentVolumeErrors
           annotations:
-            description: The persistent volume {{ $labels.persistentvolume }} has
-              status {{ $labels.phase }}.
+            description: The persistent volume {{ $labels.persistentvolume }} on Cluster
+              {{ $labels.cluster }} has status {{ $labels.phase }}.
             summary: PersistentVolume is having issues with provisioning.
             syn_component: openshift4-monitoring
           expr: |
@@ -915,8 +915,8 @@ spec:
         - alert: SYN_KubePersistentVolumeFillingUp
           annotations:
             description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
-              }} in Namespace {{ $labels.namespace }} is only {{ $value | humanizePercentage
-              }} free.
+              }} in Namespace {{ $labels.namespace }} on Cluster {{ $labels.cluster
+              }} is only {{ $value | humanizePercentage }} free.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeFillingUp.md
             summary: PersistentVolume is filling up.
             syn_component: openshift4-monitoring
@@ -928,9 +928,9 @@ spec:
             ) < 0.03
             and
             kubelet_volume_stats_used_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)", access_mode="ReadOnlyMany"} == 1
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
           for: 1m
           labels:
@@ -942,8 +942,8 @@ spec:
           annotations:
             description: Based on recent sampling, the PersistentVolume claimed by
               {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace
-              }} is expected to fill up within four days. Currently {{ $value | humanizePercentage
-              }} is available.
+              }} on Cluster {{ $labels.cluster }} is expected to fill up within four
+              days. Currently {{ $value | humanizePercentage }} is available.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeFillingUp.md
             summary: PersistentVolume is filling up.
             syn_component: openshift4-monitoring
@@ -957,9 +957,9 @@ spec:
             kubelet_volume_stats_used_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
             and
             predict_linear(kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)", access_mode="ReadOnlyMany"} == 1
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
           for: 1h
           labels:
@@ -970,8 +970,8 @@ spec:
         - alert: SYN_KubePersistentVolumeInodesFillingUp
           annotations:
             description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
-              }} in Namespace {{ $labels.namespace }} only has {{ $value | humanizePercentage
-              }} free inodes.
+              }} in Namespace {{ $labels.namespace }} on Cluster {{ $labels.cluster
+              }} only has {{ $value | humanizePercentage }} free inodes.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeInodesFillingUp.md
             summary: PersistentVolumeInodes are filling up.
             syn_component: openshift4-monitoring
@@ -983,9 +983,9 @@ spec:
             ) < 0.03
             and
             kubelet_volume_stats_inodes_used{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)", access_mode="ReadOnlyMany"} == 1
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
           for: 1m
           labels:
@@ -997,8 +997,9 @@ spec:
           annotations:
             description: Based on recent sampling, the PersistentVolume claimed by
               {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace
-              }} is expected to run out of inodes within four days. Currently {{ $value
-              | humanizePercentage }} of its inodes are free.
+              }} on Cluster {{ $labels.cluster }} is expected to run out of inodes
+              within four days. Currently {{ $value | humanizePercentage }} of its
+              inodes are free.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeInodesFillingUp.md
             summary: PersistentVolumeInodes are filling up.
             syn_component: openshift4-monitoring
@@ -1012,9 +1013,9 @@ spec:
             kubelet_volume_stats_inodes_used{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"} > 0
             and
             predict_linear(kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)", access_mode="ReadOnlyMany"} == 1
-            unless on(namespace, persistentvolumeclaim)
+            unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
           for: 1h
           labels:
@@ -2295,7 +2296,7 @@ spec:
             description: '{{ $value | humanizePercentage }} of reconciling operations
               failed for {{ $labels.controller }} controller in {{ $labels.namespace
               }} namespace.'
-            summary: Errors while reconciling controller.
+            summary: Errors while reconciling objects.
             syn_component: openshift4-monitoring
           expr: |
             (sum by (controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
@@ -2315,6 +2316,21 @@ spec:
           expr: |
             min_over_time(prometheus_operator_managed_resources{state="rejected",job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) > 0
           for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
+        - alert: SYN_PrometheusOperatorStatusUpdateErrors
+          annotations:
+            description: '{{ $value | humanizePercentage }} of status update operations
+              failed for {{ $labels.controller }} controller in {{ $labels.namespace
+              }} namespace.'
+            summary: Errors while updating objects status.
+            syn_component: openshift4-monitoring
+          expr: |
+            (sum by (controller,namespace) (rate(prometheus_operator_status_update_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_status_update_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
+          for: 10m
           labels:
             severity: warning
             syn: 'true'

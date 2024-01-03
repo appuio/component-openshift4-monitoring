@@ -17,6 +17,7 @@ data:
       "target_match_re":
         "severity": "info"
     "receivers":
+    - "name": "foo"
     - "name": "__component_openshift4_monitoring_null"
     "route":
       "group_interval": "5s"

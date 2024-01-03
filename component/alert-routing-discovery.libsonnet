@@ -73,7 +73,7 @@ local teamBasedRouting = std.map(
 
 local alertmanagerConfig =
   local routes = std.get(params.openshift4_monitoring.alertManagerConfig.route, 'routes', []);
-  params.openshift4_monitoring.alertManagerConfig {
+  std.prune(params.openshift4_monitoring.alertManagerConfig) {
     receivers+: [ { name: nullReceiver } ],
     route+: {
       routes: adParams.prepend_routes + teamBasedRouting + adParams.append_routes + routes + if ownerOrFallbackTeam != null then [ {

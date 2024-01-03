@@ -268,6 +268,8 @@ A dictionary holding the configuration for the AlertManager.
 
 See the https://docs.openshift.com/container-platform/latest/monitoring/managing-alerts.html#applying-custom-alertmanager-configuration_managing-alerts[OpenShift docs] for available parameters.
 
+The component will silently drop any fields in the provided config which are empty.
+The component treats `null` as empty for scalar fields.
 
 == `alertManagerAutoDiscovery`
 
