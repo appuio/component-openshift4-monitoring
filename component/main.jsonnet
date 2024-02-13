@@ -83,7 +83,7 @@ local customRules =
           {
             enableUserWorkload: params.enableUserWorkload,
           } + std.mapWithKey(
-            function(field, value) value + params.defaultConfig,
+            function(field, value) params.defaultConfig + com.makeMergeable(value),
             params.configs {
               prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
             }
@@ -99,7 +99,7 @@ local customRules =
       data: {
         'config.yaml': std.manifestYamlDoc(
           std.mapWithKey(
-            function(field, value) value + params.defaultConfig,
+            function(field, value) params.defaultConfig + com.makeMergeable(value),
             params.configsUserWorkload {
               prometheus: patchRemoteWrite(super.prometheus, params.remoteWriteDefaults.userWorkload),
             }

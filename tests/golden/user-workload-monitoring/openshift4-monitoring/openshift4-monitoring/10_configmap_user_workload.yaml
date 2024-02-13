@@ -18,9 +18,14 @@ data:
         "tenant_id": "t-silent-test-1234"
         "tenant_name": "Test Tenant 1234"
       "nodeSelector":
+        "appuio.io/dedicated": "monitoring"
         "node-role.kubernetes.io/infra": ""
       "remoteWrite": []
       "retention": "8d"
+      "tolerations":
+      - "effect": "NoSchedule"
+        "key": "appuio.io/dedicated"
+        "operator": "Exists"
       "volumeClaimTemplate":
         "spec":
           "resources":

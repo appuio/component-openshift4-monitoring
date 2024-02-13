@@ -859,8 +859,9 @@ spec:
       rules:
         - alert: SYN_KubePersistentVolumeErrors
           annotations:
-            description: The persistent volume {{ $labels.persistentvolume }} on Cluster
-              {{ $labels.cluster }} has status {{ $labels.phase }}.
+            description: The persistent volume {{ $labels.persistentvolume }} {{ with
+              $labels.cluster -}} on Cluster {{ . }} {{- end }} has status {{ $labels.phase
+              }}.
             summary: PersistentVolume is having issues with provisioning.
             syn_component: openshift4-monitoring
           expr: |
@@ -873,8 +874,9 @@ spec:
         - alert: SYN_KubePersistentVolumeFillingUp
           annotations:
             description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
-              }} in Namespace {{ $labels.namespace }} on Cluster {{ $labels.cluster
-              }} is only {{ $value | humanizePercentage }} free.
+              }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}}
+              on Cluster {{ . }} {{- end }} is only {{ $value | humanizePercentage
+              }} free.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeFillingUp.md
             summary: PersistentVolume is filling up.
             syn_component: openshift4-monitoring
@@ -899,8 +901,9 @@ spec:
           annotations:
             description: Based on recent sampling, the PersistentVolume claimed by
               {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace
-              }} on Cluster {{ $labels.cluster }} is expected to fill up within four
-              days. Currently {{ $value | humanizePercentage }} is available.
+              }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected
+              to fill up within four days. Currently {{ $value | humanizePercentage
+              }} is available.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeFillingUp.md
             summary: PersistentVolume is filling up.
             syn_component: openshift4-monitoring
@@ -926,8 +929,9 @@ spec:
         - alert: SYN_KubePersistentVolumeInodesFillingUp
           annotations:
             description: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim
-              }} in Namespace {{ $labels.namespace }} on Cluster {{ $labels.cluster
-              }} only has {{ $value | humanizePercentage }} free inodes.
+              }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}}
+              on Cluster {{ . }} {{- end }} only has {{ $value | humanizePercentage
+              }} free inodes.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeInodesFillingUp.md
             summary: PersistentVolumeInodes are filling up.
             syn_component: openshift4-monitoring
@@ -952,9 +956,9 @@ spec:
           annotations:
             description: Based on recent sampling, the PersistentVolume claimed by
               {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace
-              }} on Cluster {{ $labels.cluster }} is expected to run out of inodes
-              within four days. Currently {{ $value | humanizePercentage }} of its
-              inodes are free.
+              }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected
+              to run out of inodes within four days. Currently {{ $value | humanizePercentage
+              }} of its inodes are free.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePersistentVolumeInodesFillingUp.md
             summary: PersistentVolumeInodes are filling up.
             syn_component: openshift4-monitoring
@@ -1950,7 +1954,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              rate(prometheus_tsdb_head_samples_appended_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) <= 0
+              sum without(type) (rate(prometheus_tsdb_head_samples_appended_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m])) <= 0
             and
               (
                 sum without(scrape_job) (prometheus_target_metadata_cache_entries{job=~"prometheus-k8s|prometheus-user-workload"}) > 0

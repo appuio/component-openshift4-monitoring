@@ -26,3 +26,11 @@ parameters:
         - PrometheusScrapeBodySizeLimitHit
         - PrometheusScrapeSampleLimitHit
         - PrometheusTargetSyncFailure
+    configsUserWorkload:
+      prometheus:
+        nodeSelector:
+          appuio.io/dedicated: monitoring
+        tolerations:
+          - key: "appuio.io/dedicated"
+            operator: "Exists"
+            effect: "NoSchedule"
