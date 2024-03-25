@@ -16,15 +16,18 @@ parameters:
       # rules are fairly similar.
       release-4.12: release-4.13
       release-4.13: release-4.13
+      release-4.14: release-4.14
     =_etcd_operator_version_map:
       release-4.11: release-4.11
       release-4.12: release-4.12
       release-4.13: release-4.13
+      release-4.14: release-4.14
     # no release branches newer than 4.9 exist
     =_operator_lifecycle_manager_map:
       release-4.11: release-4.9
       release-4.12: release-4.9
       release-4.13: release-4.9
+      release-4.14: release-4.9
     jsonnetfile_parameters:
       cmo_version: ${openshift4_monitoring:_cluster_monitoring_operator_version_map:${openshift4_monitoring:manifests_version}}
       etcd_version: ${openshift4_monitoring:_etcd_operator_version_map:${openshift4_monitoring:manifests_version}}

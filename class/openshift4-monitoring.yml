@@ -14,6 +14,10 @@ parameters:
           api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.13/bindata/assets/alerts/api-usage.yaml
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.13/bindata/assets/alerts/cpu-utilization.yaml
           slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.13/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
+        release-4.14:
+          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/api-usage.yaml
+          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/cpu-utilization.yaml
+          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
 
       machine-api-operator:
         release-4.11:
@@ -22,6 +26,8 @@ parameters:
           prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.12/install/0000_90_machine-api-operator_04_alertrules.yaml
         release-4.13:
           prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.13/install/0000_90_machine-api-operator_04_alertrules.yaml
+        release-4.14:
+          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.14/install/0000_90_machine-api-operator_04_alertrules.yaml
 
       ovn-kubernetes:
         release-4.11:
@@ -35,6 +41,11 @@ parameters:
           # we don't have to worry about unresolved gotemplate references.
           control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
         release-4.13:
+          common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
+          # We use the "self-hosted" variant of the control-plane alerts, so
+          # we don't have to worry about unresolved gotemplate references.
+          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
+        release-4.14:
           common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
           # We use the "self-hosted" variant of the control-plane alerts, so
           # we don't have to worry about unresolved gotemplate references.
