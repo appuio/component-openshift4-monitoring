@@ -49,7 +49,7 @@ parameters:
           common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
           # We use the "self-hosted" variant of the control-plane alerts, so
           # we don't have to worry about unresolved gotemplate references.
-          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
+          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/release-4.13/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
 
   kapitan:
     dependencies:
