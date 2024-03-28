@@ -9,7 +9,7 @@ while IFS= read -r silence; do
   body=$(printf %s "$silence" | \
     jq \
       --arg startsAt "$(date -u +'%Y-%m-%dT%H:%M:%S' --date '-1 min')" \
-      --arg endsAt "$(date -u +'%Y-%m-%dT%H:%M:%S' --date '+1 year')" \
+      --arg endsAt "$(date -u +'%Y-%m-%dT%H:%M:%S' --date '+1 day')" \
       --arg createdBy "Kubernetes object \`cronjob/silence\` in the monitoring namespace" \
       '.startsAt = $startsAt | .endsAt = $endsAt | .createdBy = $createdBy'
   )
