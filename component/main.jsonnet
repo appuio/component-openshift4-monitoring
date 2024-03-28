@@ -112,7 +112,15 @@ local customRules =
       namespace: ns,
     },
     stringData: {
-      'alertmanager.yaml': if params.alertManagerAutoDiscovery.enabled then std.manifestYamlDoc(alertDiscovery.alertmanagerConfig) else alertDiscovery.alertmanagerConfig,
+      'alertmanager.yaml': std.manifestYamlDoc(
+        if params.alertManagerAutoDiscovery.enabled then
+          alertDiscovery.alertmanagerConfig
+        else
+          // We prune the user-provided config in the alert-discovery
+          // implementation. To avoid surprises, we explicitly prune the
+          // user-provided config here, if discovery is disabled.
+          std.prune(params.alertManagerConfig)
+      ),
     },
   },
   [if params.alertManagerAutoDiscovery.enabled && params.alertManagerAutoDiscovery.debug_config_map then '99_discovery_debug_cm']: alertDiscovery.debugConfigMap,
