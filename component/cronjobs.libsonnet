@@ -59,7 +59,7 @@ local makeCronjob(name, args) =
           },
         },
       },
-    } + com.makeMergeable(if std.objectHas(args, "config") then args.config else {}),
+    } + com.makeMergeable(std.get(args, "config", {}),
   ];
 
 local cronjobs = std.flattenArrays([
