@@ -15,7 +15,7 @@ local makeCronjob(name, args) =
       'script.sh': args.script,
     },
   };
-  local image = if std.objectHas(args, "image") then
+  local image = if std.objectHas(args, 'image') then
     args.image.image + ':' + args.image.tag else
     params.images.oc.image + ':' + params.images.oc.tag;
   [
@@ -59,7 +59,7 @@ local makeCronjob(name, args) =
           },
         },
       },
-    } + com.makeMergeable(std.get(args, "config", {}),
+    } + com.makeMergeable(std.get(args, 'config', {})),
   ];
 
 local cronjobs = std.flattenArrays([

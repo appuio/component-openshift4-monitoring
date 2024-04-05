@@ -798,15 +798,15 @@ Any additional custom configuration for the cronjob.
 [source,yaml]
 ----
 cronjobs:
-    my-cronjob:
-      schedule: "1 * * * *"
-      image:
-        image: quay.io/appuio/oc
-        tag: v4.13
-      script: |
-        #!/bin/sh
-        echo "this is an example"
-      config:
-        spec:
-          failedJobsHistoryLimit: 1
+  my-cronjob:
+    schedule: "1 * * * *"
+    image:
+      image: quay.io/appuio/oc
+      tag: v4.13
+    script: |
+      #!/bin/sh
+      echo "this is an example"
+    config:
+      spec:
+        failedJobsHistoryLimit: 1
 ----
