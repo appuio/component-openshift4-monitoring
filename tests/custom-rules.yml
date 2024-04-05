@@ -53,3 +53,23 @@ parameters:
       group_e:
         "record:foo:sum": null
         "record:bar:sum": null
+
+    # add test cases for cronjobs here to keep the number of test instances in check
+    cronjobs:
+      foo:
+        schedule: "1 * * * *"
+        script: |
+          #!/bin/sh
+          echo foo
+      bar:
+        schedule: "27 * * * *"
+        image:
+          image: quay.io/appuio/oc
+          tag: v4.13
+        script: |
+          #!/bin/sh
+          echo bar
+        config:
+          spec:
+            failedJobsHistoryLimit: 27
+      baz: null
