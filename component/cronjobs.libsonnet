@@ -15,6 +15,9 @@ local makeCronjob(name, args) =
       'script.sh': args.script,
     },
   };
+  local image = if std.objectHas(args, "image") then
+    args.image.image + ':' + args.image.tag else
+    params.images.oc.image + ':' + params.images.oc.tag;
   [
     scriptSecret,
     kube.CronJob(name) {
@@ -32,7 +35,7 @@ local makeCronjob(name, args) =
                 restartPolicy: 'Never',
                 containers_+: {
                   silence: kube.Container('job') {
-                    image: args.image.image + ':' + args.image.tag,
+                    image: image,
                     command: [ '/usr/local/bin/script.sh' ],
                     volumeMounts_+: {
                       scripts: {
