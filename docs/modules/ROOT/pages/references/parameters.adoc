@@ -793,7 +793,7 @@ default:: `{}`
 
 Any additional custom configuration for the cronjob.
 
-== Example
+=== Example
 
 [source,yaml]
 ----
