@@ -69,6 +69,8 @@ local patchRemoteWrite(promConfig, defaults) = promConfig {
 local customRules =
   prom.generateRules('custom-rules', params.rules);
 
+local cronjobs = import 'cronjobs.libsonnet';
+
 {
   '00_namespace_labels': ns_patch,
   '01_secrets': secrets,
@@ -132,4 +134,5 @@ local customRules =
   silence: import 'silence.jsonnet',
   [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
   [if std.length(customRules.spec.groups) > 0 then 'custom_rules']: customRules,
+  [if std.length(cronjobs.cronjobs) > 0 then 'cronjobs']: cronjobs.cronjobs,
 }

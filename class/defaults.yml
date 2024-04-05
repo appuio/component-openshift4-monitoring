@@ -411,3 +411,5 @@ parameters:
                 reserved: 4
 
     secrets: {}
+
+    cronjobs: {}

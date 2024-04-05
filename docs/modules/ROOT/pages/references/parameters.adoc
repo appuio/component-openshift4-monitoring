@@ -741,3 +741,72 @@ remoteWriteDefaults:
 
 A dict of default remote write configurations for the Prometheus component.
 Those values are merged into each remote write configuration in `configs.prometheusK8s.remoteWrite` and `configsUserWorkload.prometheus.remoteWrite`.
+
+
+== `cronjobs`
+
+[horizontal]
+type:: dict
+
+A dict of arbitrary cronjobs to create in the `openshift-monitoring` namespace.
+The key is the name of the cronjob and the values are its configuration options as shown below.
+
+=== `schedule`
+
+[horizontal]
+type:: string
+
+Schedule of the CronJob in cron syntax.
+
+=== `script`
+
+[horizontal]
+type:: string
+
+The script to execute as part of the cronjob.
+
+=== `image`
+
+[horizontal]
+type:: dict
+default:: `images.oc` from https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[`class/defaults.yml`]
+
+=== `image.image`
+
+[horizontal]
+type:: string
+
+The image used by the cronjob.
+
+=== `image.tag`
+
+[horizontal]
+type:: string
+
+The image tag used by the cronjob.
+
+=== `config`
+
+[horizontal]
+type:: dict
+default:: `{}`
+
+Any additional custom configuration for the cronjob.
+
+=== Example
+
+[source,yaml]
+----
+cronjobs:
+  my-cronjob:
+    schedule: "1 * * * *"
+    image:
+      image: quay.io/appuio/oc
+      tag: v4.13
+    script: |
+      #!/bin/sh
+      echo "this is an example"
+    config:
+      spec:
+        failedJobsHistoryLimit: 1
+----
