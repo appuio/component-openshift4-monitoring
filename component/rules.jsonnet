@@ -52,6 +52,40 @@ local upstreamManifests = std.flattenArrays(
   ]
 );
 
+// Currently this function can only render the following gotemplate
+// expressions:
+// * '{{"{{"}}' -> '{{'
+// * '{{"}}"}}' -> '}}'
+local simpleRenderGoTemplate(groups) =
+  // We only try to render gotemplates in the rule groups listed in this
+  // variable.
+  local rulegroups = [
+    'cluster-network-operator-master.rules',
+    'cluster-network-operator-ovn.rules',
+  ];
+  [
+    if std.member(rulegroups, g.name) then
+      g {
+        rules: [
+          if std.objectHas(r, 'alert') then
+            // only try to render templates in alerting rules
+            r {
+              annotations+: {
+                summary: std.strReplace(
+                  std.strReplace(r.annotations.summary, '{{"{{"}}', '{{'), '{{"}}"}}', '}}'
+                ),
+              },
+            }
+          else
+            r
+          for r in g.rules
+        ],
+      }
+    else
+      g
+    for g in groups
+  ];
+
 local additionalRules = {
   spec+: {
     groups+: [ {
@@ -84,7 +118,9 @@ local additionalRules = {
       function(obj)
         if com.getValueOrDefault(obj, 'kind', '') == 'PrometheusRule' then
           // handle case for empty PrometheusRule objects
-          com.getValueOrDefault(obj, 'spec', { groups: [] }).groups
+          local groups =
+            com.getValueOrDefault(obj, 'spec', { groups: [] }).groups;
+          simpleRenderGoTemplate(groups)
         else if std.objectHas(obj, 'groups') then
           obj.groups
         else
