@@ -82,14 +82,16 @@ local cronjobs = import 'cronjobs.libsonnet';
       },
       data: {
         'config.yaml': std.manifestYamlDoc(
-          {
-            enableUserWorkload: params.enableUserWorkload,
-          } + std.mapWithKey(
-            function(field, value) params.defaultConfig + com.makeMergeable(value),
-            params.configs {
-              prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
-            }
-          ),
+          std.prune(
+            {
+              enableUserWorkload: params.enableUserWorkload,
+            } + std.mapWithKey(
+              function(field, value) params.defaultConfig + com.makeMergeable(value),
+              params.configs {
+                prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
+              }
+            ),
+          )
         ),
       },
     },
