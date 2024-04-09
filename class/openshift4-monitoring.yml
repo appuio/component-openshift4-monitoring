@@ -47,9 +47,15 @@ parameters:
           control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
         release-4.14:
           common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
-          # We use the "self-hosted" variant of the control-plane alerts, so
-          # we don't have to worry about unresolved gotemplate references.
-          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/release-4.13/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
+          # We handle the gotemplate stuff in Jsonnet for now, since Jinja
+          # can't deal with gotemplate expressions like `{{.OvnkubeMasterReplicas}}`.
+          # The only templates that are in the alerting rules can be handled
+          # with a simple string replace.
+          # By default we use the `multi-zone-interconnect` rules for 4.14,
+          # since those rules match the rules that are deployed by default
+          # when selecting OVNKubernetes as the network plugin during
+          # installation.
+          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/release-4.14/bindata/network/ovn-kubernetes/self-hosted/multi-zone-interconnect/alert-rules-control-plane.yaml
 
   kapitan:
     dependencies:
