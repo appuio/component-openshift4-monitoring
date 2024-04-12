@@ -10,22 +10,13 @@ parameters:
     # TODO: select based on reported OCP version once we have dynamic facts
     manifests_version: release-4.13
     =_cluster_monitoring_operator_version_map:
-      release-4.11: release-4.11
-      # CMO Jsonnet dependencies for 4.12 are broken, we fail forward to
-      # 4.13 CMO Jsonnet. From a cursory inspection, the 4.12 and 4.13 alert
-      # rules are fairly similar.
-      release-4.12: release-4.13
       release-4.13: release-4.13
       release-4.14: release-4.14
     =_etcd_operator_version_map:
-      release-4.11: release-4.11
-      release-4.12: release-4.12
       release-4.13: release-4.13
       release-4.14: release-4.14
     # no release branches newer than 4.9 exist
     =_operator_lifecycle_manager_map:
-      release-4.11: release-4.9
-      release-4.12: release-4.9
       release-4.13: release-4.9
       release-4.14: release-4.9
     jsonnetfile_parameters:
@@ -215,8 +206,6 @@ parameters:
           PrometheusRemoteWriteDesiredShards:
             annotations:
               runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
-        release-4.11: {}
-        release-4.12: {}
         release-4.13: {}
         release-4.14: {}
       # Alerts to ignore for user workload monitoring

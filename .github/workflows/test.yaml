@@ -33,13 +33,11 @@ jobs:
       matrix:
         instance:
           - capacity-alerts
-          - release-4.11
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
           - vsphere
           - custom-rules
-          - release-4.12
           - release-4.13
           - team-routing
           - release-4.14
@@ -58,13 +56,11 @@ jobs:
       matrix:
         instance:
           - capacity-alerts
-          - release-4.11
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
           - vsphere
           - custom-rules
-          - release-4.12
           - release-4.13
           - team-routing
           - release-4.14
