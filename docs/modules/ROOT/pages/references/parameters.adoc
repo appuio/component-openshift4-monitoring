@@ -107,6 +107,8 @@ alertmanagerMain:
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[monitoring components].
 
+The component will remove empty fields (`null`, and empty lists or objects) from the provided configuration.
+
 See the https://docs.openshift.com/container-platform/latest/monitoring/cluster_monitoring/configuring-the-monitoring-stack.html[OpenShift docs] for available parameters.
 
 This table shows the monitoring components you can configure and the keys used to specify the components:

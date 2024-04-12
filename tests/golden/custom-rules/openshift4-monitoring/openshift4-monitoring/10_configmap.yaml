@@ -30,7 +30,6 @@ data:
         "tenant_name": "Test Tenant 1234"
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
-      "remoteWrite": []
       "retention": "8d"
       "volumeClaimTemplate":
         "spec":
