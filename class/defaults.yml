@@ -8,7 +8,7 @@ parameters:
         alert-patching.libsonnet: openshift4-monitoring-alert-patching.libsonnet
     namespace: openshift-monitoring
     # TODO: select based on reported OCP version once we have dynamic facts
-    manifests_version: release-4.13
+    manifests_version: release-4.14
     =_cluster_monitoring_operator_version_map:
       release-4.13: release-4.13
       release-4.14: release-4.14

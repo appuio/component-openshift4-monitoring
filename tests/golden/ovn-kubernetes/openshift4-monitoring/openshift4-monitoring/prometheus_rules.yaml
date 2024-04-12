@@ -146,34 +146,34 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-cluster-network-operator-master.rules
       rules:
-        - alert: SYN_NoOvnMasterLeader
+        - alert: SYN_NoOvnClusterManagerLeader
           annotations:
             description: |
               Networking control plane is degraded. Networking configuration updates applied to the cluster will not be
               implemented while there is no OVN Kubernetes leader. Existing workloads should continue to have connectivity.
               OVN-Kubernetes control plane is not functional.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NoOvnMasterLeader.md
-            summary: There is no ovn-kubernetes master leader.
+            summary: There is no ovn-kubernetes cluster manager leader.
             syn_component: openshift4-monitoring
           expr: |
             # Without max_over_time, failed scrapes could create false negatives, see
             # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            max by (namespace) (max_over_time(ovnkube_master_leader[5m])) == 0
+            max by (namespace) (max_over_time(ovnkube_clustermanager_leader[5m])) == 0
           for: 5m
           labels:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
-        - alert: SYN_NoRunningOvnMaster
+        - alert: SYN_NoRunningOvnControlPlane
           annotations:
             description: |
               Networking control plane is degraded. Networking configuration updates applied to the cluster will not be
               implemented while there are no OVN Kubernetes pods.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NoRunningOvnMaster.md
-            summary: There is no running ovn-kubernetes master.
+            summary: There is no running ovn-kubernetes control plane.
             syn_component: openshift4-monitoring
           expr: |
-            absent(up{job="ovnkube-master", namespace="openshift-ovn-kubernetes"} == 1)
+            absent(up{job="ovnkube-control-plane", namespace="openshift-ovn-kubernetes"} == 1)
           for: 5m
           labels:
             namespace: openshift-ovn-kubernetes
@@ -193,331 +193,10 @@ spec:
           expr: |
             # Without max_over_time, failed scrapes could create false negatives, see
             # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            time() - max_over_time(ovnkube_master_nb_e2e_timestamp[5m]) > 120
+            time() - max_over_time(ovnkube_controller_nb_e2e_timestamp[5m]) > 120
           for: 10m
           labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseClusterIDError
-          annotations:
-            description: More than one OVN northbound database cluster ID indicates
-              degraded OVN database high availability and possible database split
-              brain.
-            summary: Multiple OVN northbound database cluster IDs exist.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(count(min_over_time(ovn_db_cluster_id{db_name="OVN_Northbound"}[5m])) by (cluster_id, namespace)) by (namespace) > 1
-          for: 5m
-          labels:
             severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseClusterMemberError
-          annotations:
-            description: OVN northbound database server(s) has not been a RAFT cluster
-              member for a period of time which may indicate degraded OVN database
-              high availability cluster.
-            summary: OVN northbound database server(s) has not been a member of the
-              databases high availability for a period of time.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            min_over_time(cluster:ovn_db_nbdb_not_cluster_member:abs[5m]) != 0
-          for: 5m
-          labels:
-            namespace: openshift-ovn-kubernetes
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseInboundConnectionError
-          annotations:
-            description: OVN northbound database server(s) is experiencing inbound
-              RAFT connectivity errors which may indicate degraded OVN database high
-              availability.
-            summary: OVN northbound database server(s) is experiencing inbound RAFT
-              connectivity errors.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            # ..error_total is set to zero when error resolves itself
-            min_over_time(ovn_db_cluster_inbound_connections_error_total{db_name="OVN_Northbound"}[5m]) > 0
-          for: 5m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseInboundConnectionMissing
-          annotations:
-            description: OVN northbound database server(s) do not have expected number
-              of inbound connections for a RAFT cluster which may indicate degraded
-              OVN database high availability.
-            summary: OVN northbound database server(s) do not have expected number
-              of inbound RAFT connections.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Expected sum of inbound connections is number of control plane nodes * number of control plane nodes minus one
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            min_over_time(cluster:ovn_db_nbdb_missing_inbound_connections:abs[5m]) != 0
-          for: 5m
-          labels:
-            namespace: openshift-ovn-kubernetes
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseLeaderError
-          annotations:
-            description: OVN northbound database(s) have no RAFT leader. Networking
-              control plane is degraded.
-            summary: OVN northbound database(s) have no RAFT leader
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(max_over_time(ovn_db_cluster_server_role{db_name="OVN_Northbound", server_role="leader"}[5m])) by (namespace) == 0
-          for: 5m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseMultipleLeadersError
-          annotations:
-            description: OVN northbound database(s) have multiple RAFT leaders which
-              may indicate degraded OVN database high availability.
-            summary: OVN northbound database(s) have multiple RAFT leaders
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(min_over_time(ovn_db_cluster_server_role{db_name="OVN_Northbound", server_role="leader"}[1m])) by (leader, namespace) > 1
-          for: 5m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseOutboundConnectionError
-          annotations:
-            description: OVN northbound database server(s) outbound RAFT connectivity
-              errors may indicate degraded OVN database high availability.
-            summary: OVN northbound database server(s) is experiencing outbound RAFT
-              connectivity errors.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            # ..error_total is set to zero when error resolves itself
-            min_over_time(ovn_db_cluster_outbound_connections_error_total{db_name="OVN_Northbound"}[5m]) > 0
-          for: 5m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseOutboundConnectionMissing
-          annotations:
-            description: OVN northbound database server(s) do not have expected number
-              of outbound connections for a RAFT cluster which may indicate degraded
-              OVN database high availability.
-            summary: OVN northbound database server(s) do not have expected number
-              of outbound RAFT connections.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Expected sum of outbound connections is number of control plane nodes * number of control plane nodes minus one
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            min_over_time(cluster:ovn_db_nbdb_missing_outbound_connections:abs[5m]) != 0
-          for: 5m
-          labels:
-            namespace: openshift-ovn-kubernetes
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthboundDatabaseTermLag
-          annotations:
-            description: OVN northbound database(s) RAFT term have not been equal
-              which may indicate degraded OVN database high availability.
-            summary: OVN northbound databases RAFT term have not been equal for a
-              period of time.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            max(max_over_time(ovn_db_cluster_term{db_name="OVN_Northbound"}[5m])) by (namespace) - min(max_over_time(ovn_db_cluster_term{db_name="OVN_Northbound"}[5m])) by (namespace) > 0
-          for: 25m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesNorthdInactive
-          annotations:
-            description: Exactly one OVN northd must have an active status within
-              the high availability set. Networking control plane is degraded.
-            summary: Exactly one OVN northd instance must have an active status.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(ovn_northd_status == 1) by (namespace) != 1
-          for: 5m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseClusterIDError
-          annotations:
-            description: More than one OVN southbound database cluster ID indicates
-              degraded OVN database high availability and possible database split
-              brain.
-            summary: Multiple OVN southbound database cluster IDs exist.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(count(min_over_time(ovn_db_cluster_id{db_name="OVN_Southbound"}[5m])) by (cluster_id, namespace)) by (namespace) > 1
-          for: 5m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseClusterMemberError
-          annotations:
-            description: OVN southbound database server(s) has not been a RAFT cluster
-              member for a period of time which may indicate degraded OVN database
-              high availability.
-            summary: OVN southbound database server(s) has not been a member of the
-              databases high availability for a period of time.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            min_over_time(cluster:ovn_db_sbdb_not_cluster_member:abs[5m]) != 0
-          for: 5m
-          labels:
-            namespace: openshift-ovn-kubernetes
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseInboundConnectionError
-          annotations:
-            description: OVN southbound database server(s) is experiencing inbound
-              RAFT connectivity errors which may indicate degraded OVN database high
-              availability.
-            summary: OVN southbound database server(s) is experiencing inbound RAFT
-              connectivity errors.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            # ..error_total is set to zero when error resolves itself
-            min_over_time(ovn_db_cluster_inbound_connections_error_total{db_name="OVN_Southbound"}[5m]) > 0
-          for: 5m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseInboundConnectionMissing
-          annotations:
-            description: OVN southbound database server(s) do not have expected number
-              of inbound connections for a RAFT cluster which may indicate degraded
-              OVN database high availability.
-            summary: OVN southbound database server(s) do not have expected number
-              of inbound RAFT connections.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Expected sum of inbound connections is number of control plane nodes * number of control plane nodes minus one
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            min_over_time(cluster:ovn_db_sbdb_missing_inbound_connections:abs[5m]) != 0
-          for: 5m
-          labels:
-            namespace: openshift-ovn-kubernetes
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseLeaderError
-          annotations:
-            description: OVN southbound database(s) have no leader. Networking control
-              plane is degraded.
-            summary: OVN southbound database(s) have no RAFT leader
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(max_over_time(ovn_db_cluster_server_role{db_name="OVN_Southbound", server_role="leader"}[5m])) by (namespace) == 0
-          for: 5m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseMultipleLeadersError
-          annotations:
-            description: OVN southbound database(s) have multiple RAFT leaders which
-              may indicate degraded OVN database high availability.
-            summary: OVN southbound database(s) have multiple RAFT leaders
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            count(min_over_time(ovn_db_cluster_server_role{db_name="OVN_Southbound", server_role="leader"}[1m])) by (leader, namespace) > 1
-          for: 5m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseOutboundConnectionError
-          annotations:
-            description: OVN southbound database server(s) outbound RAFT connectivity
-              errors which may indicate degraded OVN database high availability.
-            summary: OVN southbound database server(s) is experiencing outbound RAFT
-              connectivity errors.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            # ..error_total is set to zero when error resolves itself
-            min_over_time(ovn_db_cluster_outbound_connections_error_total{db_name="OVN_Southbound"}[5m]) > 0
-          for: 5m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseOutboundConnectionMissing
-          annotations:
-            description: OVN southbound database server(s) do not have expected number
-              of outbound connections for a RAFT cluster which may indicate degraded
-              OVN database high availability.
-            summary: OVN southbound database server(s) do not have expected number
-              of outbound RAFT connections.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Expected sum of outbound connections is number of control plane nodes * number of control plane nodes minus one
-            # Without min_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            min_over_time(cluster:ovn_db_sbdb_missing_outbound_connections:abs[5m]) != 0
-          for: 5m
-          labels:
-            namespace: openshift-ovn-kubernetes
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_OVNKubernetesSouthboundDatabaseTermLag
-          annotations:
-            description: OVN southbound database(s) RAFT term have not been equal
-              which may indicate degraded OVN database high availability.
-            summary: OVN southbound databases RAFT term have not been equal for a
-              period of time.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            max(max_over_time(ovn_db_cluster_term{db_name="OVN_Southbound"}[5m])) by (namespace) - min(max_over_time(ovn_db_cluster_term{db_name="OVN_Southbound"}[5m])) by (namespace) > 0
-          for: 25m
-          labels:
-            severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
         - alert: SYN_SouthboundStale
@@ -533,10 +212,10 @@ spec:
           expr: |
             # Without max_over_time, failed scrapes could create false negatives, see
             # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            max_over_time(ovnkube_master_nb_e2e_timestamp[5m]) - max_over_time(ovnkube_master_sb_e2e_timestamp[5m]) > 120
+            max_over_time(ovnkube_controller_nb_e2e_timestamp[5m]) - max_over_time(ovnkube_controller_sb_e2e_timestamp[5m]) > 120
           for: 10m
           labels:
-            severity: warning
+            severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
         - alert: SYN_V4SubnetAllocationThresholdExceeded
@@ -593,6 +272,7 @@ spec:
           annotations:
             description: |
               Networking is degraded on nodes when OVN controller is not connected to OVN southbound database connection. No networking control plane updates will be applied to the node.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/OVNKubernetesControllerDisconnectedSouthboundDatabase.md
             summary: Networking control plane is degraded on node {{ $labels.node
               }} because OVN controller is not connected to OVN southbound database.
             syn_component: openshift4-monitoring
@@ -703,7 +383,7 @@ spec:
         - alert: SYN_ClusterOperatorDown
           annotations:
             description: The {{ $labels.name }} operator may be down or disabled because
-              ${{ $labels.reason }}, and the components it manages may be unavailable
+              {{ $labels.reason }}, and the components it manages may be unavailable
               or degraded.  Cluster upgrades may not complete. For more information
               refer to 'oc get -o yaml clusteroperator {{ $labels.name }}'{{ with
               $console_url := "console_url" | query }}{{ if ne (len (label "url" (first
@@ -739,7 +419,7 @@ spec:
         - alert: SYN_ClusterReleaseNotAccepted
           annotations:
             description: The desired cluster release has not been accepted because
-              ${{ $labels.reason }}, and the cluster will continue to reconcile an
+              {{ $labels.reason }}, and the cluster will continue to reconcile an
               earlier release instead of moving towards that desired release.  For
               more information refer to 'oc adm upgrade'{{ with $console_url := "console_url"
               | query }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or
@@ -793,6 +473,7 @@ spec:
         - alert: SYN_KubeSchedulerDown
           annotations:
             description: KubeScheduler has disappeared from Prometheus target discovery.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-kube-scheduler-operator/KubeSchedulerDown.md
             summary: Target disappeared from Prometheus target discovery.
             syn_component: openshift4-monitoring
           expr: |
@@ -1064,6 +745,7 @@ spec:
             > 0.01
           for: 15m
           labels:
+            namespace: openshift-monitoring
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1530,6 +1212,7 @@ spec:
             sum(changes(kube_node_status_condition{job="kube-state-metrics",status="true",condition="Ready"}[15m])) by (cluster, node) > 2
           for: 15m
           labels:
+            namespace: kube-system
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1583,6 +1266,7 @@ spec:
             node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile{quantile="0.99"} >= 10
           for: 5m
           labels:
+            namespace: kube-system
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1596,6 +1280,7 @@ spec:
             histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (cluster, instance, le)) * on(cluster, instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"} > 60
           for: 15m
           labels:
+            namespace: kube-system
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1624,7 +1309,7 @@ spec:
             mapi_mao_collector_up == 0
           for: 5m
           labels:
-            severity: critical
+            severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
     - name: syn-machine-health-check-unterminated-short-circuit
@@ -1699,13 +1384,34 @@ spec:
       rules:
         - alert: SYN_MCCDrainError
           annotations:
-            message: 'Drain failed on {{ $labels.exported_node }} , updates may be
-              blocked. For more details check MachineConfigController pod logs: oc
-              logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx -c
-              machine-config-controller'
+            description: 'Drain failed on {{ $labels.exported_node }} , updates may
+              be blocked. For more details check MachineConfigController pod logs:
+              oc logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx
+              -c machine-config-controller'
+            summary: Alerts the user to a failed node drain. Always triggers when
+              the failure happens one or more times.
             syn_component: openshift4-monitoring
           expr: |
             mcc_drain_err > 0
+          labels:
+            namespace: openshift-machine-config-operator
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: syn-mcc-pool-alert
+      rules:
+        - alert: SYN_MCCPoolAlert
+          annotations:
+            description: 'Node {{ $labels.exported_node }} has triggered a pool alert
+              due to a label change. For more details check MachineConfigController
+              pod logs: oc logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx
+              -c machine-config-controller'
+            summary: Triggers when nodes in a pool have overlapping labels such as
+              master, worker, and a custom label therefore a choice must be made as
+              to which is honored.
+            syn_component: openshift4-monitoring
+          expr: |
+            mcc_pool_alert > 0
           labels:
             namespace: openshift-machine-config-operator
             severity: warning
@@ -1715,7 +1421,9 @@ spec:
       rules:
         - alert: SYN_KubeletHealthState
           annotations:
-            message: Kubelet health failure threshold reached
+            description: Kubelet health failure threshold reached
+            summary: This keeps track of Kubelet health failures, and tallys them.
+              The warning is triggered if 2 or more failures occur.
             syn_component: openshift4-monitoring
           expr: |
             mcd_kubelet_state > 2
@@ -1728,9 +1436,11 @@ spec:
       rules:
         - alert: SYN_MCDPivotError
           annotations:
-            message: 'Error detected in pivot logs on {{ $labels.node }} , upgrade
+            description: 'Error detected in pivot logs on {{ $labels.node }} , upgrade
               may be blocked. For more details:  oc logs -f -n {{ $labels.namespace
               }} {{ $labels.pod }} -c machine-config-daemon '
+            summary: Alerts the user when an error is detected upon pivot. This triggers
+              if the pivot errors are above zero for 2 minutes.
             syn_component: openshift4-monitoring
           expr: |
             mcd_pivot_errors_total > 0
@@ -1744,9 +1454,11 @@ spec:
       rules:
         - alert: SYN_MCDRebootError
           annotations:
-            message: 'Reboot failed on {{ $labels.node }} , update may be blocked.
+            description: 'Reboot failed on {{ $labels.node }} , update may be blocked.
               For more details:  oc logs -f -n {{ $labels.namespace }} {{ $labels.pod
               }} -c machine-config-daemon '
+            summary: Alerts the user that a node failed to reboot one or more times
+              over a span of 5 minutes.
             syn_component: openshift4-monitoring
           expr: |
             mcd_reboots_failed_total > 0
@@ -1806,20 +1518,6 @@ spec:
               deriv(node_timex_offset_seconds{job="node-exporter"}[5m]) <= 0
             )
           for: 10m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_NodeDiskIOSaturation
-          annotations:
-            description: |
-              Disk IO queue (aqu-sq) is high on {{ $labels.device }} at {{ $labels.instance }}, has been above 10 for the last 30 minutes, is currently at {{ printf "%.2f" $value }}.
-              This symptom might indicate disk saturation.
-            summary: Disk IO queue is high.
-            syn_component: openshift4-monitoring
-          expr: |
-            rate(node_disk_io_time_weighted_seconds_total{job="node-exporter", device=~"mmcblk.p.+|nvme.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+"}[5m]) > 10
-          for: 30m
           labels:
             severity: warning
             syn: 'true'
@@ -1956,19 +1654,6 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-        - alert: SYN_NodeMemoryHighUtilization
-          annotations:
-            description: |
-              Memory is filling up at {{ $labels.instance }}, has been above 90% for the last 15 minutes, is currently at {{ printf "%.2f" $value }}%.
-            summary: Host is running out of memory.
-            syn_component: openshift4-monitoring
-          expr: |
-            100 - (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"} * 100) > 90
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
         - alert: SYN_NodeMemoryMajorPagesFaults
           annotations:
             description: |
@@ -2019,7 +1704,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             node_systemd_unit_state{job="node-exporter", state="failed"} == 1
-          for: 5m
+          for: 15m
           labels:
             severity: warning
             syn: 'true'
@@ -2620,7 +2305,7 @@ spec:
             summary: Prometheus operator not ready
             syn_component: openshift4-monitoring
           expr: |
-            min by (controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
+            min by (cluster,controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
           for: 5m
           labels:
             severity: warning
@@ -2634,7 +2319,7 @@ spec:
             summary: Errors while reconciling objects.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
+            (sum by (cluster,controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (cluster,controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
           for: 10m
           labels:
             severity: warning
@@ -2662,7 +2347,7 @@ spec:
             summary: Errors while updating objects status.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_status_update_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_status_update_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
+            (sum by (cluster,controller,namespace) (rate(prometheus_operator_status_update_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (cluster,controller,namespace) (rate(prometheus_operator_status_update_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
           for: 10m
           labels:
             severity: warning
@@ -2688,7 +2373,7 @@ spec:
             summary: Errors while performing watch operations in controller.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
+            (sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
           for: 15m
           labels:
             severity: warning
@@ -2698,7 +2383,7 @@ spec:
       rules:
         - alert: SYN_SystemMemoryExceedsReservation
           annotations:
-            message: System memory usage of {{ $value | humanize }} on {{ $labels.node
+            description: System memory usage of {{ $value | humanize }} on {{ $labels.node
               }} exceeds 95% of the reservation. Reserved memory ensures system processes
               can function even when the node is fully allocated and protects against
               workload out of memory events impacting the proper functioning of the
@@ -2706,6 +2391,8 @@ spec:
               configurations and should be increased (https://docs.openshift.com/container-platform/latest/nodes/nodes/nodes-nodes-managing.html)
               when running nodes with high numbers of pods (either due to rate of
               change or at steady state).
+            summary: Alerts the user when, for 15 miutes, a specific node is using
+              more memory than is reserved
             syn_component: openshift4-monitoring
           expr: |
             sum by (node) (container_memory_rss{id="/system.slice"}) > ((sum by (node) (kube_node_status_capacity{resource="memory"} - kube_node_status_allocatable{resource="memory"})) * 0.95)
