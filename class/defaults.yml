@@ -235,7 +235,14 @@ parameters:
       oc:
         image: quay.io/appuio/oc
         tag: v4.14
-
+      node_exporter:
+        registry: quay.io
+        repository: prometheus/node-exporter
+        tag: v1.8.1
+      kube_rbac_proxy:
+        registry: quay.io
+        repository: brancz/kube-rbac-proxy
+        tag: v0.18.0
 
     capacityAlerts:
       enabled: true
@@ -402,3 +409,15 @@ parameters:
     secrets: {}
 
     cronjobs: {}
+
+    customNodeExporter:
+      enabled: false
+      collectors:
+        - network_route
+      args: []
+      metricRelabelings:
+        # only keep routes for host interfaces (assumes that host interfaces
+        # are `ensX` which should hold on RHCOS)
+        - action: keep
+          sourceLabels: ['__name__', 'device']
+          regex: 'node_network_route.*;ens.*'

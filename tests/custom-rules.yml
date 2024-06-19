@@ -13,6 +13,9 @@ parameters:
   openshift4_monitoring:
     manifests_version: release-4.13
 
+    customNodeExporter:
+      enabled: true
+
     alerts:
       excludeNamespaces:
         - openshift-adp
