@@ -137,4 +137,7 @@ local cronjobs = import 'cronjobs.libsonnet';
   [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
   [if std.length(customRules.spec.groups) > 0 then 'custom_rules']: customRules,
   [if std.length(cronjobs.cronjobs) > 0 then 'cronjobs']: cronjobs.cronjobs,
+  // TODO: enable flag
+  [if params.customNodeExporter.enabled then 'appuio_node_exporter']:
+    (import 'custom-node-exporter.libsonnet'),
 }

@@ -36,6 +36,39 @@
         "automerge",
         "bump:patch"
       ]
+    },
+    {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "matchCurrentVersion": "/^v?0\\./",
+      "automerge": true,
+      "platformAutomerge": false,
+      "labels": [
+        "dependency",
+        "automerge",
+        "bump:patch"
+      ],
+      "matchPackagePatterns": [
+        "^quay.io/brancz/kube-rbac-proxy$"
+      ]
+    },
+    {
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "automerge": true,
+      "platformAutomerge": false,
+      "labels": [
+        "dependency",
+        "automerge",
+        "bump:minor"
+      ],
+      "matchPackagePatterns": [
+        "^quay.io/appuio/oc$",
+        "^quay.io/brancz/kube-rbac-proxy$",
+        "^quay.io/prometheus/node-exporter$"
+      ]
     }
   ]
 }

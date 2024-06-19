@@ -812,3 +812,59 @@ cronjobs:
       spec:
         failedJobsHistoryLimit: 1
 ----
+
+== `customNodeExporter`
+
+This parameter allows users to deploy an additional node-exporter DaemonSet.
+We provide this option, since OpenShift's cluster-monitoring stack currently doesn't allow users to customize the bundled node-exporter DaemonSet.
+
+Currently, the parameter is tailored to allow users to run an additional node-exporter which enables collectors that aren't enabled in the default node exporter.
+
+The configuration is rendered by using the same Jsonnet that's used by the OpenShift cluster-monitoring stack to generate the default node-exporter DaemonSet.
+The component further customizes the resulting manifests to ensure that there's no conflicts between the default node-exporter and the additional node-exporter.
+
+The additional node-exporter is deployed in the namespace indicated by parameter `namespace`.
+By default this is namespace `openshift-monitoring`.
+The component also deploys a `ServiceMonitor` which ensures that the additional node-exporter is scraped by the cluster-monitoring stack's Prometheus.
+
+Users can configure arbitrary recording and alerting rules which use metrics scraped from the additional node-exporter via parameter `rules`.
+
+=== `enabled`
+
+[horizontal]
+type:: bool
+default:: `false`
+
+Whether to deploy the additional node-exporter.
+
+=== `collectors`
+
+[horizontal]
+type:: list
+default:: `["network_route"]`
+
+Which collectors to enable in the additional node-exporter.
+By default, all collectors are disabled.
+Users can remove entries from this list by providing an existing entry prefixed with `~`.
+
+=== `args`
+[horizontal]
+type:: list
+default:: `[]`
+
+
+Additional command line arguments to pass to the additional node-exporter.
+Please note that specifying `--[no-]collector.<name>` here will break the DaemonSet, since `node-exporter` doesn't support specifying these flags multiple times.
+Users should use parameter `customNodeExporter.collectors` to enable collectors.
+
+=== `metricRelabelings`
+
+[horizontal]
+type:: list
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+
+This parameter allows users to specify the content of field `metricRelabelings` of the `ServiceMonitor` which is created for the additional node-exporter.
+By default, the component drops all metrics except `node_network_route*` metrics for host devices prefixed with `ens`.
+Since this component only applies to OpenShift 4, we know that any node's host interfaces will use device names that are prefixed with `ens`.
+
+Users are encouraged to extend or overwrite this parameter to ensure all the metrics they're interested in are actually scraped by Prometheus.
