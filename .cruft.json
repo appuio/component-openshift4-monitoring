@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/projectsyn/commodore-component-template.git",
-  "commit": "ea12efff947bce80cf31a3f1ed4412eab40e8b33",
+  "commit": "26ee71e475cca036551c68a6c6b2285fe86139a0",
   "checkout": "main",
   "context": {
     "cookiecutter": {
@@ -16,8 +16,8 @@
       "automerge_patch": "y",
       "automerge_patch_v0": "n",
       "automerge_patch_regexp_blocklist": "",
-      "automerge_patch_v0_regexp_allowlist": "",
-      "automerge_minor_regexp_allowlist": "",
+      "automerge_patch_v0_regexp_allowlist": "^quay.io/brancz/kube-rbac-proxy$",
+      "automerge_minor_regexp_allowlist": "^quay.io/appuio/oc$;^quay.io/brancz/kube-rbac-proxy$;^quay.io/prometheus/node-exporter$",
       "auto_release": "y",
       "copyright_holder": "VSHN AG <info@vshn.ch>",
       "copyright_year": "2021",
