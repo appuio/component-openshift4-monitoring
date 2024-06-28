@@ -1657,8 +1657,8 @@ spec:
               Please check that there is enough memory available at this instance.
             summary: Memory major page faults are occurring at very high rate.
             syn_component: openshift4-monitoring
-          expr: |
-            rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > 500
+          expr: rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance)
+            (count by (instance) (node_cpu_info{}) * 100)
           for: 15m
           labels:
             severity: warning
@@ -2029,6 +2029,20 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             avg_over_time(prometheus_engine_queries{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) / max_over_time(prometheus_engine_queries_concurrent_max{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) > 0.8
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_PrometheusKubernetesListWatchFailures
+          annotations:
+            description: Kubernetes service discovery of Prometheus {{$labels.namespace}}/{{$labels.pod}}
+              is experiencing {{ printf "%.0f" $value }} failures with LIST/WATCH
+              requests to the Kubernetes API in the last 5 minutes.
+            summary: Requests in Kubernetes SD are failing.
+            syn_component: openshift4-monitoring
+          expr: |
+            increase(prometheus_sd_kubernetes_failures_total{job=~"prometheus-k8s|prometheus-user-workload"}[5m]) > 0
           for: 15m
           labels:
             severity: warning
