@@ -206,6 +206,9 @@ parameters:
           PrometheusRemoteWriteDesiredShards:
             annotations:
               runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
+          NodeMemoryMajorPagesFaults:
+            # Only alert for >100*cores major page faults/node instead of >500/node
+            expr: rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance) (count by (instance) (node_cpu_info{}) * 100)
         release-4.13: {}
         release-4.14: {}
       # Alerts to ignore for user workload monitoring
