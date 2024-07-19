@@ -834,7 +834,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              max without (revision) (
+              max by(namespace, statefulset) (
                 kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-adp)",job="kube-state-metrics"}
                   unless
                 kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-adp)",job="kube-state-metrics"}

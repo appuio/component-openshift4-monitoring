@@ -2,14 +2,6 @@ parameters:
   openshift4_monitoring:
     =_manifest_urls:
       kube-apiserver:
-        release-4.11:
-          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/api-usage.yaml
-          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/cpu-utilization.yaml
-          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
-        release-4.12:
-          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.12/bindata/assets/alerts/api-usage.yaml
-          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.12/bindata/assets/alerts/cpu-utilization.yaml
-          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.12/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
         release-4.13:
           api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.13/bindata/assets/alerts/api-usage.yaml
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.13/bindata/assets/alerts/cpu-utilization.yaml
@@ -18,28 +10,20 @@ parameters:
           api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/api-usage.yaml
           cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/cpu-utilization.yaml
           slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
+        release-4.15:
+          api-usage: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.15/bindata/assets/alerts/api-usage.yaml
+          cpu-utilization: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.15/bindata/assets/alerts/cpu-utilization.yaml
+          slos: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.15/bindata/assets/alerts/kube-apiserver-slos-basic.yaml
 
       machine-api-operator:
-        release-4.11:
-          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.11/install/0000_90_machine-api-operator_04_alertrules.yaml
-        release-4.12:
-          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.12/install/0000_90_machine-api-operator_04_alertrules.yaml
         release-4.13:
           prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.13/install/0000_90_machine-api-operator_04_alertrules.yaml
         release-4.14:
           prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.14/install/0000_90_machine-api-operator_04_alertrules.yaml
+        release-4.15:
+          prometheus: https://raw.githubusercontent.com/openshift/machine-api-operator/release-4.15/install/0000_90_machine-api-operator_04_alertrules.yaml
 
       ovn-kubernetes:
-        release-4.11:
-          common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
-          # We use the "self-hosted" variant of the control-plane alerts, so
-          # we don't have to worry about unresolved gotemplate references.
-          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
-        release-4.12:
-          common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
-          # We use the "self-hosted" variant of the control-plane alerts, so
-          # we don't have to worry about unresolved gotemplate references.
-          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
         release-4.13:
           common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
           # We use the "self-hosted" variant of the control-plane alerts, so
@@ -56,11 +40,24 @@ parameters:
           # when selecting OVNKubernetes as the network plugin during
           # installation.
           control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/release-4.14/bindata/network/ovn-kubernetes/self-hosted/multi-zone-interconnect/alert-rules-control-plane.yaml
+        release-4.15:
+          common: https://raw.githubusercontent.com/openshift/cluster-network-operator/${openshift4_monitoring:manifests_version}/bindata/network/ovn-kubernetes/common/alert-rules.yaml
+          # We handle the gotemplate stuff in Jsonnet for now, since Jinja
+          # can't deal with gotemplate expressions like `{{.OvnkubeMasterReplicas}}`.
+          # The only templates that are in the alerting rules can be handled
+          # with a simple string replace.
+          control_plane: https://raw.githubusercontent.com/openshift/cluster-network-operator/release-4.15/bindata/network/ovn-kubernetes/self-hosted/alert-rules-control-plane.yaml
+
+      cloud-credential-operator:
+        release-4.13: https://raw.githubusercontent.com/openshift/cloud-credential-operator/release-4.13/manifests/0000_90_cloud-credential-operator_04_alertrules.yaml
+        release-4.14: https://raw.githubusercontent.com/openshift/cloud-credential-operator/release-4.14/manifests/0000_90_cloud-credential-operator_04_alertrules.yaml
+        release-4.15: https://raw.githubusercontent.com/openshift/cloud-credential-operator/release-4.15/manifests/0000_90_cloud-credential-operator_03_alertrules.yaml
+
 
   kapitan:
     dependencies:
       - type: https
-        source: https://raw.githubusercontent.com/openshift/cloud-credential-operator/${openshift4_monitoring:manifests_version}/manifests/0000_90_cloud-credential-operator_04_alertrules.yaml
+        source: ${openshift4_monitoring:_manifest_urls:cloud-credential-operator:${openshift4_monitoring:manifests_version}}
         output_path: dependencies/openshift4-monitoring/manifests/${openshift4_monitoring:manifests_version}/cloud-credential-operator.yaml
       # Download cluster-version-operator rules YAML to folder
       # `manifests_requiring_prerendering/`, because we cannot prerender

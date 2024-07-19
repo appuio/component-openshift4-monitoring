@@ -392,13 +392,17 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_HighOverallControlPlaneCPU
           annotations:
-            description: |-
-              On a multi-node cluster with three control plane nodes, the overall CPU utilization may only be about 2/3 of all available capacity. This is because if a single control plane node fails, the remaining two must handle the load of the cluster in order to be HA. If the cluster is using more than 2/3 of all capacity, if one control plane node fails, the remaining two are likely to fail when they take the load. To fix this, increase the CPU and memory on your control plane nodes.
-              On a single node OpenShift (SNO) cluster, this alert will also fire if the 2/3 of the CPU cores of the node are in use by any workload. This level of CPU utlization of an SNO cluster is probably not a problem under most circumstances, but high levels of utilization may result in degraded performance. To manage this alert or silence it in case of false positives see the following link:  https://docs.openshift.com/container-platform/latest/monitoring/managing-alerts.html
+            description: Given three control plane nodes, the overall CPU utilization
+              may only be about 2/3 of all available capacity. This is because if
+              a single control plane node fails, the remaining two must handle the
+              load of the cluster in order to be HA. If the cluster is using more
+              than 2/3 of all capacity, if one control plane node fails, the remaining
+              two are likely to fail when they take the load. To fix this, increase
+              the CPU and memory on your control plane nodes.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-kube-apiserver-operator/ExtremelyHighIndividualControlPlaneCPU.md
-            summary: CPU utilization across all control plane nodes is more than 60%
-              of the total available CPU. Control plane node outage may cause a cascading
-              failure; increase available CPU.
+            summary: CPU utilization across all three control plane nodes is higher
+              than two control plane nodes can sustain; a single control plane node
+              outage may cause a cascading failure; increase available CPU.
             syn_component: openshift4-monitoring
           expr: |
             sum(
@@ -829,7 +833,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              max without (revision) (
+              max by(namespace, statefulset) (
                 kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   unless
                 kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
