@@ -1,0 +1,39 @@
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  annotations: {}
+  labels:
+    name: alertmanager-main
+  name: alertmanager-main
+  namespace: openshift-monitoring
+stringData:
+  alertmanager.yaml: |-
+    "inhibit_rules":
+    - "equal":
+      - "namespace"
+      - "alertname"
+      "source_match":
+        "severity": "critical"
+      "target_match_re":
+        "severity": "warning|info"
+    - "equal":
+      - "namespace"
+      - "alertname"
+      "source_match":
+        "severity": "warning"
+      "target_match_re":
+        "severity": "info"
+    "receivers":
+    - "name": "__component_openshift4_monitoring_null"
+    "route":
+      "group_interval": "5s"
+      "group_wait": "0s"
+      "repeat_interval": "10m"
+      "routes":
+      - "continue": false
+        "matchers":
+        - "namespace =~ \"\""
+        "receiver": "__component_openshift4_monitoring_null"
+      - "receiver": "__component_openshift4_monitoring_null"
+type: Opaque
