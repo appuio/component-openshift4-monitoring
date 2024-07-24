@@ -7,21 +7,15 @@ parameters:
         prom.libsonnet: openshift4-monitoring-prom.libsonnet
         alert-patching.libsonnet: openshift4-monitoring-alert-patching.libsonnet
     namespace: openshift-monitoring
-    # TODO: select based on reported OCP version once we have dynamic facts
-    manifests_version: release-4.14
-    =_cluster_monitoring_operator_version_map:
-      release-4.13: release-4.13
-      release-4.14: release-4.14
-    =_etcd_operator_version_map:
-      release-4.13: release-4.13
-      release-4.14: release-4.14
+    manifests_version: release-4.15
     # no release branches newer than 4.9 exist
     =_operator_lifecycle_manager_map:
       release-4.13: release-4.9
       release-4.14: release-4.9
+      release-4.15: release-4.9
     jsonnetfile_parameters:
-      cmo_version: ${openshift4_monitoring:_cluster_monitoring_operator_version_map:${openshift4_monitoring:manifests_version}}
-      etcd_version: ${openshift4_monitoring:_etcd_operator_version_map:${openshift4_monitoring:manifests_version}}
+      cmo_version: ${openshift4_monitoring:manifests_version}
+      etcd_version: ${openshift4_monitoring:manifests_version}
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
@@ -211,6 +205,7 @@ parameters:
             expr: rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance) (count by (instance) (node_cpu_info{}) * 100)
         release-4.13: {}
         release-4.14: {}
+        release-4.15: {}
       # Alerts to ignore for user workload monitoring
       ignoreUserWorkload: []
 
@@ -237,7 +232,7 @@ parameters:
     images:
       oc:
         image: quay.io/appuio/oc
-        tag: v4.14
+        tag: v4.15
       node_exporter:
         registry: quay.io
         repository: prometheus/node-exporter

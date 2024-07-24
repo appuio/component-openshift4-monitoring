@@ -221,6 +221,25 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-cluster-operators
       rules:
+        - alert: SYN_CannotEvaluateConditionalUpdates
+          annotations:
+            description: Failure to evaluate conditional update matches means that
+              Cluster Version Operator cannot decide whether an update path is recommended
+              or not.
+            summary: Cluster Version Operator cannot evaluate conditional update matches
+              for {{ $value | humanizeDuration }}.
+            syn_component: openshift4-monitoring
+          expr: |
+            max by (version, condition, status, reason)
+            (
+              (
+                time()-cluster_version_conditional_update_condition_seconds{condition="Recommended", status="Unknown"}
+              ) >= 3600
+            )
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_ClusterOperatorDegraded
           annotations:
             description: The {{ $labels.name }} operator is degraded because {{ $labels.reason
@@ -392,13 +411,17 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_HighOverallControlPlaneCPU
           annotations:
-            description: |-
-              On a multi-node cluster with three control plane nodes, the overall CPU utilization may only be about 2/3 of all available capacity. This is because if a single control plane node fails, the remaining two must handle the load of the cluster in order to be HA. If the cluster is using more than 2/3 of all capacity, if one control plane node fails, the remaining two are likely to fail when they take the load. To fix this, increase the CPU and memory on your control plane nodes.
-              On a single node OpenShift (SNO) cluster, this alert will also fire if the 2/3 of the CPU cores of the node are in use by any workload. This level of CPU utlization of an SNO cluster is probably not a problem under most circumstances, but high levels of utilization may result in degraded performance. To manage this alert or silence it in case of false positives see the following link:  https://docs.openshift.com/container-platform/latest/monitoring/managing-alerts.html
+            description: Given three control plane nodes, the overall CPU utilization
+              may only be about 2/3 of all available capacity. This is because if
+              a single control plane node fails, the remaining two must handle the
+              load of the cluster in order to be HA. If the cluster is using more
+              than 2/3 of all capacity, if one control plane node fails, the remaining
+              two are likely to fail when they take the load. To fix this, increase
+              the CPU and memory on your control plane nodes.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-kube-apiserver-operator/ExtremelyHighIndividualControlPlaneCPU.md
-            summary: CPU utilization across all control plane nodes is more than 60%
-              of the total available CPU. Control plane node outage may cause a cascading
-              failure; increase available CPU.
+            summary: CPU utilization across all three control plane nodes is higher
+              than two control plane nodes can sustain; a single control plane node
+              outage may cause a cascading failure; increase available CPU.
             syn_component: openshift4-monitoring
           expr: |
             sum(
@@ -426,7 +449,7 @@ spec:
             summary: etcd cluster database is running full.
             syn_component: openshift4-monitoring
           expr: |
-            (last_over_time(etcd_mvcc_db_total_size_in_bytes[5m]) / last_over_time(etcd_server_quota_backend_bytes[5m]))*100 > 95
+            (last_over_time(etcd_mvcc_db_total_size_in_bytes{job=~".*etcd.*"}[5m]) / last_over_time(etcd_server_quota_backend_bytes{job=~".*etcd.*"}[5m]))*100 > 95
           for: 10m
           labels:
             severity: critical
@@ -829,7 +852,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              max without (revision) (
+              max by(namespace, statefulset) (
                 kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   unless
                 kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
@@ -1352,10 +1375,12 @@ spec:
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeClockNotSynchronising.md
             summary: Clock not synchronising.
             syn_component: openshift4-monitoring
-          expr: |
+          expr: |-
+            (
             min_over_time(node_timex_sync_status{job="node-exporter"}[5m]) == 0
             and
             node_timex_maxerror_seconds{job="node-exporter"} >= 16
+            ) and on() absent(up{job="ptp-monitor-service"})
           for: 10m
           labels:
             severity: critical
@@ -1367,7 +1392,8 @@ spec:
               0.05s. Ensure NTP is configured correctly on this host.
             summary: Clock skew detected.
             syn_component: openshift4-monitoring
-          expr: |
+          expr: |-
+            (
             (
               node_timex_offset_seconds{job="node-exporter"} > 0.05
             and
@@ -1379,6 +1405,7 @@ spec:
             and
               deriv(node_timex_offset_seconds{job="node-exporter"}[5m]) <= 0
             )
+            ) and on() absent(up{job="ptp-monitor-service"})
           for: 10m
           labels:
             severity: warning

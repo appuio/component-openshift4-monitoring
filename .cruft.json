@@ -1,13 +1,13 @@
 {
   "template": "https://github.com/projectsyn/commodore-component-template.git",
-  "commit": "26ee71e475cca036551c68a6c6b2285fe86139a0",
+  "commit": "2ae1bc3383f211eee5f20a963f5ac74725d85d5b",
   "checkout": "main",
   "context": {
     "cookiecutter": {
       "name": "OpenShift4 Monitoring",
       "slug": "openshift4-monitoring",
       "parameter_key": "openshift4_monitoring",
-      "test_cases": "capacity-alerts remote-write user-workload-monitoring capacity-alerts-with-node-labels vsphere custom-rules release-4.13 team-routing release-4.14 ovn-kubernetes",
+      "test_cases": "capacity-alerts remote-write user-workload-monitoring capacity-alerts-with-node-labels vsphere custom-rules release-4.13 team-routing release-4.14 ovn-kubernetes release-4.15",
       "add_lib": "y",
       "add_pp": "n",
       "add_golden": "y",
