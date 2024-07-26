@@ -70,5 +70,15 @@
         "^quay.io/prometheus/node-exporter$"
       ]
     }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": "^class/defaults.yml$",
+      "matchStrings": [
+        "# renovate repo=(?<depName>[^\\s}]+).*\n.+version: (?<currentValue>[^\\s}]+)"
+      ],
+      "datasourceTemplate": "git-tags"
+    }
   ]
 }
