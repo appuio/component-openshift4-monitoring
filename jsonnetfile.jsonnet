@@ -11,6 +11,17 @@
       version: std.extVar('cmo_version'),
       name: 'cluster-monitoring-operator',
     },
+    if std.extVar('kube_state_metrics_version') != null && std.extVar('kube_state_metrics_version') != '' then
+      {
+        source: {
+          git: {
+            remote: 'https://github.com/kubernetes/kube-state-metrics',
+            subdir: 'jsonnet',
+          },
+        },
+        version: std.extVar('kube_state_metrics_version'),
+        name: 'kube-state-metrics',
+      },
     if std.extVar('etcd_version') != '' then
       {
         source: {
