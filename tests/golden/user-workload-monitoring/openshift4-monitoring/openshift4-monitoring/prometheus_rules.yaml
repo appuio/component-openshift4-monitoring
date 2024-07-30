@@ -2045,6 +2045,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} failed to
               send {{ printf "%.1f" $value }}% of the samples to {{ $labels.remote_name}}:{{
               $labels.url }}
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusRemoteStorageFailures.md
             summary: Prometheus fails to send samples to remote storage.
             syn_component: openshift4-monitoring
           expr: |
@@ -2120,6 +2121,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
               {{ printf "%.0f" $value }} scrapes in the last 5m because some targets
               exceeded the configured body_size_limit.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusScrapeBodySizeLimitHit.md
             summary: Prometheus has dropped some targets that exceeded body size limit.
             syn_component: openshift4-monitoring
           expr: |
@@ -2233,6 +2235,7 @@ spec:
             description: Prometheus operator in {{ $labels.namespace }} namespace
               rejected {{ printf "%0.0f" $value }} {{ $labels.controller }}/{{ $labels.resource
               }} resources.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusOperatorRejectedResources.md
             summary: Resources rejected by Prometheus operator
             syn_component: openshift4-monitoring
           expr: |
