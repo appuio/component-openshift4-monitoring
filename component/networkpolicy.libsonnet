@@ -36,8 +36,6 @@ local params = inv.parameters.openshift4_monitoring;
               port: 9097,
             },
           ],
-        },
-        {
           from: [
             {
               namespaceSelector: {},

@@ -8,7 +8,9 @@ metadata:
   namespace: openshift-user-workload-monitoring
 spec:
   ingress:
-    - ports:
+    - from:
+        - namespaceSelector: {}
+      ports:
         - port: 9092
           protocol: TCP
         - port: 9093
@@ -17,8 +19,6 @@ spec:
           protocol: TCP
         - port: 9097
           protocol: TCP
-    - from:
-        - namespaceSelector: {}
   podSelector:
     matchLabels:
       app.kubernetes.io/name: alertmanager
