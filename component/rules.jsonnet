@@ -113,6 +113,23 @@ local additionalRules = {
             message: '{{ $labels.instance }}: Memory usage more than 97% (current value is: {{ $value | humanizePercentage }})%',
           },
         },
+        {
+          alert: 'NodeTcpMemoryUtilizationHigh',
+          expr: 'node_sockstat_TCP_mem_bytes > on(instance) node_memory_MemTotal_bytes*0.0625',
+          'for': '30m',
+          labels: {
+            severity: 'critical',
+          },
+          annotations: {
+            message: 'TCP memory usage is high on {{ $labels.instance }}',
+            description: |||
+              TCP memory usage exceeds the TCP memory pressure threshold on node {{ $labels.instance }}.
+
+              Check the node for processes with unusual amounts of TCP sockets.
+            |||,
+            runbook_url: 'https://hub.syn.tools/openshift4-monitoring/runbooks/tcp-memory-usage.html',
+          },
+        },
       ],
     } ] + std.flatMap(
       function(obj)

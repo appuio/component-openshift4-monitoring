@@ -1704,6 +1704,22 @@ spec:
             syn_team: clumsy-donkeys
     - name: syn-node-utilization
       rules:
+        - alert: SYN_NodeTcpMemoryUtilizationHigh
+          annotations:
+            description: |
+              TCP memory usage exceeds the TCP memory pressure threshold on node {{ $labels.instance }}.
+
+              Check the node for processes with unusual amounts of TCP sockets.
+            message: TCP memory usage is high on {{ $labels.instance }}
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/tcp-memory-usage.html
+            syn_component: openshift4-monitoring
+          expr: node_sockstat_TCP_mem_bytes > on(instance) node_memory_MemTotal_bytes*0.0625
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
         - alert: SYN_node_memory_free_percent
           annotations:
             message: '{{ $labels.instance }}: Memory usage more than 97% (current
