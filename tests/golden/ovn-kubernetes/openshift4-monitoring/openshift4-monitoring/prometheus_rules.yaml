@@ -150,9 +150,9 @@ spec:
           annotations:
             description: |
               Networking control plane is degraded. Networking configuration updates applied to the cluster will not be
-              implemented while there is no OVN Kubernetes leader. Existing workloads should continue to have connectivity.
+              implemented while there is no OVN Kubernetes cluster manager leader. Existing workloads should continue to have connectivity.
               OVN-Kubernetes control plane is not functional.
-            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NoOvnMasterLeader.md
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NoOvnClusterManagerLeader.md
             summary: There is no ovn-kubernetes cluster manager leader.
             syn_component: openshift4-monitoring
           expr: |
@@ -168,8 +168,8 @@ spec:
           annotations:
             description: |
               Networking control plane is degraded. Networking configuration updates applied to the cluster will not be
-              implemented while there are no OVN Kubernetes pods.
-            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NoRunningOvnMaster.md
+              implemented while there are no OVN Kubernetes control plane pods.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NoRunningOvnControlPlane.md
             summary: There is no running ovn-kubernetes control plane.
             syn_component: openshift4-monitoring
           expr: |
@@ -177,44 +177,6 @@ spec:
           for: 5m
           labels:
             namespace: openshift-ovn-kubernetes
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_NorthboundStale
-          annotations:
-            description: |
-              Networking control plane is degraded. Networking configuration updates applied to the cluster will not be
-              implemented. Existing workloads should continue to have connectivity. OVN-Kubernetes control plane and/or
-              OVN northbound database may not be functional.
-            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NorthboundStaleAlert.md
-            summary: ovn-kubernetes has not written anything to the northbound database
-              for too long.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            time() - max_over_time(ovnkube_controller_nb_e2e_timestamp[5m]) > 120
-          for: 10m
-          labels:
-            severity: critical
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_SouthboundStale
-          annotations:
-            description: |
-              Networking control plane is degraded. Networking configuration updates may not be applied to the cluster or
-              taking a long time to apply. This usually means there is a large load on OVN component 'northd' or it is not
-              functioning.
-            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/SouthboundStaleAlert.md
-            summary: ovn-northd has not successfully synced any changes to the southbound
-              DB for too long.
-            syn_component: openshift4-monitoring
-          expr: |
-            # Without max_over_time, failed scrapes could create false negatives, see
-            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
-            max_over_time(ovnkube_controller_nb_e2e_timestamp[5m]) - max_over_time(ovnkube_controller_sb_e2e_timestamp[5m]) > 120
-          for: 10m
-          labels:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -264,6 +226,26 @@ spec:
             (kube_node_info unless on(node) (kube_pod_info{namespace="openshift-ovn-kubernetes",pod=~"ovnkube-node.*"}
             or kube_node_labels{label_kubernetes_io_os="windows"})) > 0
           for: 20m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_NorthboundStale
+          annotations:
+            description: |
+              OVN-Kubernetes controller and/or OVN northbound database may cause a
+              degraded networking control plane for the affected node. Existing
+              workloads should continue to have connectivity but new workloads may
+              be impacted.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/NorthboundStaleAlert.md
+            summary: OVN-Kubernetes controller {{ $labels.instance }} has not successfully
+              synced any changes to the northbound database for too long.
+            syn_component: openshift4-monitoring
+          expr: |
+            # Without max_over_time, failed scrapes could create false negatives, see
+            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
+            time() - max_over_time(ovnkube_controller_nb_e2e_timestamp[5m]) > 120
+          for: 10m
           labels:
             severity: warning
             syn: 'true'
@@ -341,6 +323,21 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+        - alert: SYN_OVNKubernetesNorthdInactive
+          annotations:
+            description: |
+              An inactive OVN northd instance may cause a degraded networking
+              control plane for the affected node. Existing workloads should
+              continue to have connectivity but new workloads may be impacted.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/OVNKubernetesNorthdInactive.md
+            summary: OVN northd {{ $labels.instance }} is not active.
+            syn_component: openshift4-monitoring
+          expr: count(ovn_northd_status != 1) BY (instance, name, namespace) > 0
+          for: 10m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_OVNKubernetesResourceRetryFailure
           annotations:
             description: |
@@ -349,6 +346,26 @@ spec:
             summary: OVN Kubernetes failed to apply networking control plane configuration.
             syn_component: openshift4-monitoring
           expr: increase(ovnkube_resource_retry_failures_total[10m]) > 0
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_SouthboundStale
+          annotations:
+            description: |
+              OVN-Kubernetes controller and/or OVN northbound database may cause a
+              degraded networking control plane for the affected node. Existing
+              workloads should continue to have connectivity but new workloads may
+              be impacted.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-network-operator/SouthboundStaleAlert.md
+            summary: OVN northd {{ $labels.instance }} has not successfully synced
+              any changes to the southbound database for too long.
+            syn_component: openshift4-monitoring
+          expr: |
+            # Without max_over_time, failed scrapes could create false negatives, see
+            # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
+            max_over_time(ovnkube_controller_nb_e2e_timestamp[5m]) - max_over_time(ovnkube_controller_sb_e2e_timestamp[5m]) > 120
+          for: 10m
           labels:
             severity: warning
             syn: 'true'
@@ -1750,10 +1767,25 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-node-utilization
       rules:
+        - alert: SYN_NodeTcpMemoryUtilizationHigh
+          annotations:
+            description: |
+              TCP memory usage exceeds the TCP memory pressure threshold on node {{ $labels.instance }}.
+
+              Check the node for processes with unusual amounts of TCP sockets.
+            message: TCP memory usage is high on {{ $labels.instance }}
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/tcp-memory-usage.html
+            syn_component: openshift4-monitoring
+          expr: node_sockstat_TCP_mem_bytes > on(instance) node_memory_MemTotal_bytes*0.0625
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_node_memory_free_percent
           annotations:
-            message: '{{ $labels.node }}: Memory usage more than 97% (current value
-              is: {{ $value | humanizePercentage }})%'
+            message: '{{ $labels.instance }}: Memory usage more than 97% (current
+              value is: {{ $value | humanizePercentage }})%'
             syn_component: openshift4-monitoring
           expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes
             > 0.97
