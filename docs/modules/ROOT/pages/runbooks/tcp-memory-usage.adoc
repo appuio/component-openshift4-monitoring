@@ -1,0 +1,112 @@
+= SYN_NodeTcpMemoryUtilizationTooHigh
+
+== icon:glasses[] Overview
+
+This alert indicates that the node for which it fires has unusually high TCP memory utilization.
+The alert is currently configured to fire when a node's TCP memory usage exceeds the kernel TCP memory "pressure" threshold which is set to 6.25% of the node's available memory on RHEL8 and RHEL9.
+See this https://access.redhat.com/solutions/6964027[Red Hat solution] for further details.
+
+== icon:search[] Investigate
+
+* Investigate the historical TCP memory usage of nodes on the cluster.
+Use the following metric to do so.
++
+[source]
+----
+node_sockstat_TCP_mem_bytes
+----
+
+* Login to the node and switch to the host namespace
++
+[source,bash]
+----
+oc debug node/<nodename> --as=cluster-admin -n syn-debug-nodes
+# Wait for pod to start
+chroot /host
+----
+
+* Check TCP memory usage directly on the node
++
+[source,shell]
+----
+# cat /proc/net/sockstat
+sockets: used 542
+TCP: inuse 155 orphan 0 tw 260 alloc 1545 mem 0
+UDP: inuse 7 mem 2
+UDPLITE: inuse 0
+RAW: inuse 2
+FRAG: inuse 0 memory 0
+----
++
+NOTE: This file shows memory usage (field `mem`) in 4 KiB pages.
+
+* Check TCP socket stats summary directly on the node
++
+[source,shell]
+----
+# ss -s
+Total: 537
+TCP:   1749 (estab 157, closed 1568, orphaned 0, timewait 231)
+
+Transport Total     IP        IPv6
+RAW	  3         2         1
+UDP	  11        7         4
+TCP	  181       155       26
+INET	  195       164       31
+FRAG	  0         0         0
+----
+
+* You can try to identify pods with unusually high TCP memory usage by running the following bash snippet on the node.
++
+[source,bash]
+----
+# Iterate through all pods which are running (state SANDBOX_READY) on the node
+for p in $(crictl pods -o json | jq -r '.items[]|select(.state=="SANDBOX_READY").id'); do
+  # Extract the network namespace name (a UUID) from the pod metadata
+  netns=$(crictl inspectp $p | jq -r '.info.runtimeSpec.linux.namespaces[]|select(.type=="network").path|split("/")[-1]')
+  # only compute and show socket memory usage for pods that don't use the host
+  # network namespace.
+  if [ "$netns" != "" ]; then
+    # Print the pod name
+    crictl inspectp $p | jq '.status.metadata.name'
+    # List active TCP sockets in the network namespace of the pod, and sum up
+    # the amount of TCP memory used by all the sockets. The awk expression
+    # excludes fields rb, wb and d, which indicate the maximum allocatable
+    # buffer sizes and amount of dropped packets, from the output of ss -tm
+    ss -N $netns -tm | grep skmem | cut -d: -f2 | tr -d 'a-z()' | \
+      awk -F, 'START { count=0; sum=0 } { count+=1; sum+=$1+$3+$5+$6+$7+$8 } END { printf "%d sockets use %d bytes of TCP memory\n", count, sum }'
+  fi
+done
+----
++
+[NOTE]
+====
+This snippet computes the _current_ TCP memory usage based on the values reported by `ss -tm`.
+So far, we've not been able to conclusively determine that this will actually highlight the root cause for high TCP memory usage on a node.
+However, the snippet is still a starting point to start digging.
+====
++
+TIP: If you find a better snippet to identify pods with high TCP memory usage please update this runbook.
+
+* If you don't see any outliers in TCP memory usage, you can try to find processes which have a large discrepancy between open socket file descriptors and active sockets as reported by `ss`.
+You can extract a container's primary process with the following command.
++
+[source,bash]
+----
+crictl inspect <container_id> | jq '.info.pid'
+----
++
+To determine the number of socket FDs which are held by a process, you can use the following oneliner.
++
+[source,bash]
+----
+ls -l /proc/<PID>/fd | grep socket | wc -l <1>
+----
+<1> Substitute `<PID>` with the PID of the process you want to look at.
+
+== icon:wrench[] Tune
+
+If this alert isn't actionable, noisy, or was raised too late you might want to tune it.
+
+Currently, the alert can be tuned through component-openshift4's `patchRules` mechanism.
+Most likely, you'll want to either tune the threshold or the duration for which the threshold must be exceeded for the alert to fire.

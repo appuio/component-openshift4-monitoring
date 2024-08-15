@@ -19,3 +19,4 @@
 * xref:runbooks/cpucapacity.adoc[CPU Capacity Alert]
 * xref:runbooks/unusedcapacity.adoc[Node Capacity Alert]
 * xref:runbooks/remotewrite.adoc[Prometheus RemoteWrite Alert]
+* xref:runbooks/tcp-memory-usage.adoc[NodeTcpMemoryUtilizationTooHigh Alert]
