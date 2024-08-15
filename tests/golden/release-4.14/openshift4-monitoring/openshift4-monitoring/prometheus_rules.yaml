@@ -1595,8 +1595,8 @@ spec:
       rules:
         - alert: SYN_node_memory_free_percent
           annotations:
-            message: '{{ $labels.node }}: Memory usage more than 97% (current value
-              is: {{ $value | humanizePercentage }})%'
+            message: '{{ $labels.instance }}: Memory usage more than 97% (current
+              value is: {{ $value | humanizePercentage }})%'
             syn_component: openshift4-monitoring
           expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes
             > 0.97

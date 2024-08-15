@@ -110,7 +110,7 @@ local additionalRules = {
             severity: 'critical',
           },
           annotations: {
-            message: '{{ $labels.node }}: Memory usage more than 97% (current value is: {{ $value | humanizePercentage }})%',
+            message: '{{ $labels.instance }}: Memory usage more than 97% (current value is: {{ $value | humanizePercentage }})%',
           },
         },
       ],
