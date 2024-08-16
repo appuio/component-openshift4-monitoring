@@ -152,7 +152,7 @@ spec:
               fi
               echo "ts=$(date -Iseconds) num_cpus=$NUM_CPUS gomaxprocs=$GOMAXPROCS"
               exec /bin/node_exporter "$0" "$@"
-          image: quay.io/prometheus/node-exporter:v1.8.1
+          image: quay.io/prometheus/node-exporter:v1.8.2
           name: appuio-node-exporter
           resources:
             limits:
@@ -231,7 +231,7 @@ spec:
           env:
             - name: TMPDIR
               value: /tmp
-          image: quay.io/prometheus/node-exporter:v1.8.1
+          image: quay.io/prometheus/node-exporter:v1.8.2
           name: init-textfile
           resources:
             requests:
