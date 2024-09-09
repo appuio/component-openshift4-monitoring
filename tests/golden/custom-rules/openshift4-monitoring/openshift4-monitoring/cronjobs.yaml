@@ -99,7 +99,7 @@ spec:
               command:
                 - /usr/local/bin/script.sh
               env: []
-              image: quay.io/appuio/oc:v4.15
+              image: quay.io/appuio/oc:v4.16
               imagePullPolicy: IfNotPresent
               name: job
               ports: []
