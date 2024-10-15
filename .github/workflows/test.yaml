@@ -38,7 +38,6 @@ jobs:
           - capacity-alerts-with-node-labels
           - vsphere
           - custom-rules
-          - release-4.13
           - team-routing
           - release-4.14
           - ovn-kubernetes
@@ -63,7 +62,6 @@ jobs:
           - capacity-alerts-with-node-labels
           - vsphere
           - custom-rules
-          - release-4.13
           - team-routing
           - release-4.14
           - ovn-kubernetes
