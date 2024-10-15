@@ -221,22 +221,44 @@ spec:
             syn_component: openshift4-monitoring
     - name: syn-cluster-operators
       rules:
+        - alert: SYN_CannotEvaluateConditionalUpdates
+          annotations:
+            description: Failure to evaluate conditional update matches means that
+              Cluster Version Operator cannot decide whether an update path is recommended
+              or not.
+            summary: Cluster Version Operator cannot evaluate conditional update matches
+              for {{ $value | humanizeDuration }}.
+            syn_component: openshift4-monitoring
+          expr: |
+            max by (version, condition, status, reason)
+            (
+              (
+                time()-cluster_version_conditional_update_condition_seconds{condition="Recommended", status="Unknown"}
+              ) >= 3600
+            )
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_ClusterOperatorDegraded
           annotations:
             description: The {{ $labels.name }} operator is degraded because {{ $labels.reason
               }}, and the components it manages may have reduced quality of service.  Cluster
-              upgrades may not complete. For more information refer to 'oc get -o
-              yaml clusteroperator {{ $labels.name }}'{{ with $console_url := "console_url"
-              | query }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or
-              {{ label "url" (first $console_url ) }}/settings/cluster/{{ end }}{{
-              end }}.
+              upgrades may not complete. For more information refer to '{{ if eq $labels.name
+              "version" }}oc adm upgrade{{ else }}oc get -o yaml clusteroperator {{
+              $labels.name }}{{ end }}'{{ with $console_url := "console_url" | query
+              }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or {{ label
+              "url" (first $console_url ) }}/settings/cluster/{{ end }}{{ end }}.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/ClusterOperatorDegraded.md
             summary: Cluster operator has been degraded for 30 minutes.
             syn_component: openshift4-monitoring
           expr: |
             max by (namespace, name, reason)
             (
               (
-                cluster_operator_conditions{job="cluster-version-operator", condition="Degraded"}
+                cluster_operator_conditions{job="cluster-version-operator", name!="version", condition="Degraded"}
+                or on (namespace, name)
+                cluster_operator_conditions{job="cluster-version-operator", name="version", condition="Failing"}
                 or on (namespace, name)
                 group by (namespace, name) (cluster_operator_up{job="cluster-version-operator"})
               ) == 1
@@ -249,12 +271,14 @@ spec:
         - alert: SYN_ClusterOperatorDown
           annotations:
             description: The {{ $labels.name }} operator may be down or disabled because
-              ${{ $labels.reason }}, and the components it manages may be unavailable
+              {{ $labels.reason }}, and the components it manages may be unavailable
               or degraded.  Cluster upgrades may not complete. For more information
-              refer to 'oc get -o yaml clusteroperator {{ $labels.name }}'{{ with
-              $console_url := "console_url" | query }}{{ if ne (len (label "url" (first
-              $console_url ) ) ) 0}} or {{ label "url" (first $console_url ) }}/settings/cluster/{{
+              refer to '{{ if eq $labels.name "version" }}oc adm upgrade{{ else }}oc
+              get -o yaml clusteroperator {{ $labels.name }}{{ end }}'{{ with $console_url
+              := "console_url" | query }}{{ if ne (len (label "url" (first $console_url
+              ) ) ) 0}} or {{ label "url" (first $console_url ) }}/settings/cluster/{{
               end }}{{ end }}.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/ClusterOperatorDown.md
             summary: Cluster operator has not been available for 10 minutes.
             syn_component: openshift4-monitoring
           expr: |
@@ -267,10 +291,11 @@ spec:
         - alert: SYN_ClusterOperatorFlapping
           annotations:
             description: The  {{ $labels.name }} operator behavior might cause upgrades
-              to be unstable. For more information refer to 'oc get -o yaml clusteroperator
-              {{ $labels.name }}'{{ with $console_url := "console_url" | query }}{{
-              if ne (len (label "url" (first $console_url ) ) ) 0}} or {{ label "url"
-              (first $console_url ) }}/settings/cluster/{{ end }}{{ end }}.
+              to be unstable. For more information refer to '{{ if eq $labels.name
+              "version" }}oc adm upgrade{{ else }}oc get -o yaml clusteroperator {{
+              $labels.name }}{{ end }}'{{ with $console_url := "console_url" | query
+              }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or {{ label
+              "url" (first $console_url ) }}/settings/cluster/{{ end }}{{ end }}.
             summary: Cluster operator up status is changing often.
             syn_component: openshift4-monitoring
           expr: |
@@ -285,7 +310,7 @@ spec:
         - alert: SYN_ClusterReleaseNotAccepted
           annotations:
             description: The desired cluster release has not been accepted because
-              ${{ $labels.reason }}, and the cluster will continue to reconcile an
+              {{ $labels.reason }}, and the cluster will continue to reconcile an
               earlier release instead of moving towards that desired release.  For
               more information refer to 'oc adm upgrade'{{ with $console_url := "console_url"
               | query }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or
@@ -339,6 +364,7 @@ spec:
         - alert: SYN_KubeSchedulerDown
           annotations:
             description: KubeScheduler has disappeared from Prometheus target discovery.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-kube-scheduler-operator/KubeSchedulerDown.md
             summary: Target disappeared from Prometheus target discovery.
             syn_component: openshift4-monitoring
           expr: |
@@ -429,7 +455,7 @@ spec:
             summary: etcd cluster database is running full.
             syn_component: openshift4-monitoring
           expr: |
-            (last_over_time(etcd_mvcc_db_total_size_in_bytes[5m]) / last_over_time(etcd_server_quota_backend_bytes[5m]))*100 > 95
+            (last_over_time(etcd_mvcc_db_total_size_in_bytes{job=~".*etcd.*"}[5m]) / last_over_time(etcd_server_quota_backend_bytes{job=~".*etcd.*"}[5m]))*100 > 95
           for: 10m
           labels:
             severity: critical
@@ -610,6 +636,7 @@ spec:
             > 0.01
           for: 15m
           labels:
+            namespace: openshift-monitoring
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -831,7 +858,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              max by(namespace, statefulset) (
+              max by(namespace, statefulset, job, cluster) (
                 kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   unless
                 kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
@@ -1019,7 +1046,7 @@ spec:
               }} of its incoming requests.
             syn_component: openshift4-monitoring
           expr: |
-            sum(rate(apiserver_request_terminations_total{job="apiserver"}[10m]))  / (  sum(rate(apiserver_request_total{job="apiserver"}[10m])) + sum(rate(apiserver_request_terminations_total{job="apiserver"}[10m])) ) > 0.20
+            sum by(cluster) (rate(apiserver_request_terminations_total{job="apiserver"}[10m])) / ( sum by(cluster) (rate(apiserver_request_total{job="apiserver"}[10m])) + sum by(cluster) (rate(apiserver_request_terminations_total{job="apiserver"}[10m])) ) > 0.20
           for: 5m
           labels:
             severity: warning
@@ -1043,6 +1070,7 @@ spec:
             description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace
               }} has reported errors. It has appeared unavailable {{ $value | humanize
               }} times averaged over the past 10m.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubeAggregatedAPIErrors.md
             summary: Kubernetes aggregated API has reported errors.
             syn_component: openshift4-monitoring
           expr: |
@@ -1076,6 +1104,7 @@ spec:
             sum(changes(kube_node_status_condition{job="kube-state-metrics",status="true",condition="Ready"}[15m])) by (cluster, node) > 2
           for: 15m
           labels:
+            namespace: kube-system
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1129,6 +1158,7 @@ spec:
             node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile{quantile="0.99"} >= 10
           for: 5m
           labels:
+            namespace: kube-system
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1142,6 +1172,7 @@ spec:
             histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (cluster, instance, le)) * on(cluster, instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"} > 60
           for: 15m
           labels:
+            namespace: kube-system
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
@@ -1170,7 +1201,7 @@ spec:
             mapi_mao_collector_up == 0
           for: 5m
           labels:
-            severity: critical
+            severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
     - name: syn-machine-health-check-unterminated-short-circuit
@@ -1241,17 +1272,56 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+    - name: syn-mcc-boot-image-update-error
+      rules:
+        - alert: SYN_MCCBootImageUpdateError
+          annotations:
+            description: 'The boot images of Machineset {{ $labels.machineset }} could
+              not be updated. For more details check MachineConfigController pod logs:
+              oc logs -n {{ $labels.namespace }} -f $(oc get pod -o name -l=''k8s-app=machine-config-controller''
+              -n openshift-machine-config-operator) | grep machine_set'
+            summary: Triggers when machineset boot images could not be updated
+            syn_component: openshift4-monitoring
+          expr: |
+            mcc_bootimage_update_error > 0
+          for: 30m
+          labels:
+            namespace: openshift-machine-config-operator
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
     - name: syn-mcc-drain-error
       rules:
         - alert: SYN_MCCDrainError
           annotations:
-            message: 'Drain failed on {{ $labels.exported_node }} , updates may be
-              blocked. For more details check MachineConfigController pod logs: oc
-              logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx -c
-              machine-config-controller'
+            description: 'Drain failed on {{ $labels.exported_node }} , updates may
+              be blocked. For more details check MachineConfigController pod logs:
+              oc logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx
+              -c machine-config-controller'
+            summary: Alerts the user to a failed node drain. Always triggers when
+              the failure happens one or more times.
             syn_component: openshift4-monitoring
           expr: |
             mcc_drain_err > 0
+          labels:
+            namespace: openshift-machine-config-operator
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: syn-mcc-pool-alert
+      rules:
+        - alert: SYN_MCCPoolAlert
+          annotations:
+            description: 'Node {{ $labels.exported_node }} has triggered a pool alert
+              due to a label change. For more details check MachineConfigController
+              pod logs: oc logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx
+              -c machine-config-controller'
+            summary: Triggers when nodes in a pool have overlapping labels such as
+              master, worker, and a custom label therefore a choice must be made as
+              to which is honored.
+            syn_component: openshift4-monitoring
+          expr: |
+            mcc_pool_alert > 0
           labels:
             namespace: openshift-machine-config-operator
             severity: warning
@@ -1261,10 +1331,31 @@ spec:
       rules:
         - alert: SYN_KubeletHealthState
           annotations:
-            message: Kubelet health failure threshold reached
+            description: Kubelet health failure threshold reached
+            summary: This keeps track of Kubelet health failures, and tallys them.
+              The warning is triggered if 2 or more failures occur.
             syn_component: openshift4-monitoring
           expr: |
             mcd_kubelet_state > 2
+          labels:
+            namespace: openshift-machine-config-operator
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: syn-mcd-missing-mc
+      rules:
+        - alert: SYN_MissingMachineConfig
+          annotations:
+            description: Could not find config {{ $labels.mc }} in-cluster, this likely
+              indicates the MachineConfigs in-cluster has changed during the install
+              process.  If you are seeing this when installing the cluster, please
+              compare the in-cluster rendered machineconfigs to /etc/mcs-machine-config-content.json
+            summary: This keeps track of Machine Config failures. Specifically a common
+              failure on install when a rendered Machine Config is missing. Triggered
+              when this error happens once.
+            syn_component: openshift4-monitoring
+          expr: |
+            mcd_missing_mc > 0
           labels:
             namespace: openshift-machine-config-operator
             severity: warning
@@ -1274,9 +1365,11 @@ spec:
       rules:
         - alert: SYN_MCDPivotError
           annotations:
-            message: 'Error detected in pivot logs on {{ $labels.node }} , upgrade
+            description: 'Error detected in pivot logs on {{ $labels.node }} , upgrade
               may be blocked. For more details:  oc logs -f -n {{ $labels.namespace
               }} {{ $labels.pod }} -c machine-config-daemon '
+            summary: Alerts the user when an error is detected upon pivot. This triggers
+              if the pivot errors are above zero for 2 minutes.
             syn_component: openshift4-monitoring
           expr: |
             mcd_pivot_errors_total > 0
@@ -1290,9 +1383,11 @@ spec:
       rules:
         - alert: SYN_MCDRebootError
           annotations:
-            message: 'Reboot failed on {{ $labels.node }} , update may be blocked.
+            description: 'Reboot failed on {{ $labels.node }} , update may be blocked.
               For more details:  oc logs -f -n {{ $labels.namespace }} {{ $labels.pod
               }} -c machine-config-daemon '
+            summary: Alerts the user that a node failed to reboot one or more times
+              over a span of 5 minutes.
             syn_component: openshift4-monitoring
           expr: |
             mcd_reboots_failed_total > 0
@@ -1324,10 +1419,12 @@ spec:
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/NodeClockNotSynchronising.md
             summary: Clock not synchronising.
             syn_component: openshift4-monitoring
-          expr: |
+          expr: |-
+            (
             min_over_time(node_timex_sync_status{job="node-exporter"}[5m]) == 0
             and
             node_timex_maxerror_seconds{job="node-exporter"} >= 16
+            ) and on() absent(up{job="ptp-monitor-service"})
           for: 10m
           labels:
             severity: critical
@@ -1339,7 +1436,8 @@ spec:
               0.05s. Ensure NTP is configured correctly on this host.
             summary: Clock skew detected.
             syn_component: openshift4-monitoring
-          expr: |
+          expr: |-
+            (
             (
               node_timex_offset_seconds{job="node-exporter"} > 0.05
             and
@@ -1351,21 +1449,8 @@ spec:
             and
               deriv(node_timex_offset_seconds{job="node-exporter"}[5m]) <= 0
             )
+            ) and on() absent(up{job="ptp-monitor-service"})
           for: 10m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
-        - alert: SYN_NodeDiskIOSaturation
-          annotations:
-            description: |
-              Disk IO queue (aqu-sq) is high on {{ $labels.device }} at {{ $labels.instance }}, has been above 10 for the last 30 minutes, is currently at {{ printf "%.2f" $value }}.
-              This symptom might indicate disk saturation.
-            summary: Disk IO queue is high.
-            syn_component: openshift4-monitoring
-          expr: |
-            rate(node_disk_io_time_weighted_seconds_total{job="node-exporter", device=~"mmcblk.p.+|nvme.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+"}[5m]) > 10
-          for: 30m
           labels:
             severity: warning
             syn: 'true'
@@ -1502,19 +1587,6 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
-        - alert: SYN_NodeMemoryHighUtilization
-          annotations:
-            description: |
-              Memory is filling up at {{ $labels.instance }}, has been above 90% for the last 15 minutes, is currently at {{ printf "%.2f" $value }}%.
-            summary: Host is running out of memory.
-            syn_component: openshift4-monitoring
-          expr: |
-            100 - (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"} * 100) > 90
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: openshift4-monitoring
         - alert: SYN_NodeMemoryMajorPagesFaults
           annotations:
             description: |
@@ -1565,7 +1637,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             node_systemd_unit_state{job="node-exporter", state="failed"} == 1
-          for: 5m
+          for: 15m
           labels:
             severity: warning
             syn: 'true'
@@ -1687,6 +1759,31 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+        - alert: SYN_etcdSignerCAExpirationCritical
+          annotations:
+            description: etcd is reporting the signer ca "{{ $labels.name }}" to have
+              less than year  (({{ printf "%.f" $value }} days) of validity left.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-etcd-operator/etcdSignerCAExpirationCritical.md
+            summary: etcd has critical signer ca expiration
+            syn_component: openshift4-monitoring
+          expr: avg(openshift_etcd_operator_signer_expiration_days) by (name) < 365
+          for: 1h
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_etcdSignerCAExpirationWarning
+          annotations:
+            description: etcd is reporting the signer ca "{{ $labels.name }}" to have
+              less than two years (({{ printf "%.f" $value }} days) of validity left.
+            summary: etcd signer ca is about to expire
+            syn_component: openshift4-monitoring
+          expr: avg(openshift_etcd_operator_signer_expiration_days) by (name) < 730
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
     - name: syn-openshift-general.rules
       rules:
         - alert: SYN_TargetDown
@@ -1697,6 +1794,7 @@ spec:
               network connectivity issues, down nodes, or failures within these components.
               Assess the health of the infrastructure and nodes running these targets
               and then contact support.'
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/TargetDown.md
             summary: Some targets were not reachable from the monitoring server for
               an extended period of time.
             syn_component: openshift4-monitoring
@@ -1719,7 +1817,8 @@ spec:
           annotations:
             description: This alert fires when there is a Route owned by an unmanaged
               Ingress.
-            message: Route {{ $labels.name }} is owned by an unmanaged Ingress.
+            message: Route {{ $labels.namespace }}/{{ $labels.name }} is owned by
+              an unmanaged Ingress.
             summary: Route owned by an Ingress no longer managed
             syn_component: openshift4-monitoring
           expr: openshift_ingress_to_route_controller_route_with_unmanaged_owner ==
@@ -1869,6 +1968,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is dropping
               {{ printf "%.4g" $value  }} samples/s with different values but duplicated
               timestamp.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusDuplicateTimestamps.md
             summary: Prometheus is dropping samples with duplicate timestamps.
             syn_component: openshift4-monitoring
           expr: |
@@ -2032,6 +2132,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} failed to
               send {{ printf "%.1f" $value }}% of the samples to {{ $labels.remote_name}}:{{
               $labels.url }}
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusRemoteStorageFailures.md
             summary: Prometheus fails to send samples to remote storage.
             syn_component: openshift4-monitoring
           expr: |
@@ -2107,6 +2208,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} has failed
               {{ printf "%.0f" $value }} scrapes in the last 5m because some targets
               exceeded the configured body_size_limit.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusScrapeBodySizeLimitHit.md
             summary: Prometheus has dropped some targets that exceeded body size limit.
             syn_component: openshift4-monitoring
           expr: |
@@ -2195,7 +2297,7 @@ spec:
             summary: Prometheus operator not ready
             syn_component: openshift4-monitoring
           expr: |
-            min by (controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
+            min by (cluster,controller,namespace) (max_over_time(prometheus_operator_ready{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]) == 0)
           for: 5m
           labels:
             severity: warning
@@ -2209,7 +2311,7 @@ spec:
             summary: Errors while reconciling objects.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
+            (sum by (cluster,controller,namespace) (rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (cluster,controller,namespace) (rate(prometheus_operator_reconcile_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
           for: 10m
           labels:
             severity: warning
@@ -2220,6 +2322,7 @@ spec:
             description: Prometheus operator in {{ $labels.namespace }} namespace
               rejected {{ printf "%0.0f" $value }} {{ $labels.controller }}/{{ $labels.resource
               }} resources.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusOperatorRejectedResources.md
             summary: Resources rejected by Prometheus operator
             syn_component: openshift4-monitoring
           expr: |
@@ -2237,7 +2340,7 @@ spec:
             summary: Errors while updating objects status.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_status_update_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (controller,namespace) (rate(prometheus_operator_status_update_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
+            (sum by (cluster,controller,namespace) (rate(prometheus_operator_status_update_errors_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) / (sum by (cluster,controller,namespace) (rate(prometheus_operator_status_update_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.1
           for: 10m
           labels:
             severity: warning
@@ -2263,7 +2366,7 @@ spec:
             summary: Errors while performing watch operations in controller.
             syn_component: openshift4-monitoring
           expr: |
-            (sum by (controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
+            (sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
           for: 15m
           labels:
             severity: warning
@@ -2273,7 +2376,7 @@ spec:
       rules:
         - alert: SYN_SystemMemoryExceedsReservation
           annotations:
-            message: System memory usage of {{ $value | humanize }} on {{ $labels.node
+            description: System memory usage of {{ $value | humanize }} on {{ $labels.node
               }} exceeds 95% of the reservation. Reserved memory ensures system processes
               can function even when the node is fully allocated and protects against
               workload out of memory events impacting the proper functioning of the
@@ -2281,6 +2384,8 @@ spec:
               configurations and should be increased (https://docs.openshift.com/container-platform/latest/nodes/nodes/nodes-nodes-managing.html)
               when running nodes with high numbers of pods (either due to rate of
               change or at steady state).
+            summary: Alerts the user when, for 15 miutes, a specific node is using
+              more memory than is reserved
             syn_component: openshift4-monitoring
           expr: |
             sum by (node) (container_memory_rss{id="/system.slice"}) > ((sum by (node) (kube_node_status_capacity{resource="memory"} - kube_node_status_allocatable{resource="memory"})) * 0.95)
@@ -2330,9 +2435,9 @@ spec:
           annotations:
             description: Thanos Query {{$labels.job}} in {{$labels.namespace}} has
               been overloaded for more than 15 minutes. This may be a symptom of excessive
-              simultanous complex requests, low performance of the Prometheus API,
+              simultaneous complex requests, low performance of the Prometheus API,
               or failures within these components. Assess the health of the Thanos
-              query instances, the connnected Prometheus instances, look for potential
+              query instances, the connected Prometheus instances, look for potential
               senders of these requests and then contact support.
             summary: Thanos query reaches its maximum capacity serving concurrent
               requests.
