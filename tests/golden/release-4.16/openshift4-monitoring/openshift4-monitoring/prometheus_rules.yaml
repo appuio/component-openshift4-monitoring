@@ -244,18 +244,21 @@ spec:
           annotations:
             description: The {{ $labels.name }} operator is degraded because {{ $labels.reason
               }}, and the components it manages may have reduced quality of service.  Cluster
-              upgrades may not complete. For more information refer to 'oc get -o
-              yaml clusteroperator {{ $labels.name }}'{{ with $console_url := "console_url"
-              | query }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or
-              {{ label "url" (first $console_url ) }}/settings/cluster/{{ end }}{{
-              end }}.
+              upgrades may not complete. For more information refer to '{{ if eq $labels.name
+              "version" }}oc adm upgrade{{ else }}oc get -o yaml clusteroperator {{
+              $labels.name }}{{ end }}'{{ with $console_url := "console_url" | query
+              }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or {{ label
+              "url" (first $console_url ) }}/settings/cluster/{{ end }}{{ end }}.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/ClusterOperatorDegraded.md
             summary: Cluster operator has been degraded for 30 minutes.
             syn_component: openshift4-monitoring
           expr: |
             max by (namespace, name, reason)
             (
               (
-                cluster_operator_conditions{job="cluster-version-operator", condition="Degraded"}
+                cluster_operator_conditions{job="cluster-version-operator", name!="version", condition="Degraded"}
+                or on (namespace, name)
+                cluster_operator_conditions{job="cluster-version-operator", name="version", condition="Failing"}
                 or on (namespace, name)
                 group by (namespace, name) (cluster_operator_up{job="cluster-version-operator"})
               ) == 1
@@ -270,10 +273,12 @@ spec:
             description: The {{ $labels.name }} operator may be down or disabled because
               {{ $labels.reason }}, and the components it manages may be unavailable
               or degraded.  Cluster upgrades may not complete. For more information
-              refer to 'oc get -o yaml clusteroperator {{ $labels.name }}'{{ with
-              $console_url := "console_url" | query }}{{ if ne (len (label "url" (first
-              $console_url ) ) ) 0}} or {{ label "url" (first $console_url ) }}/settings/cluster/{{
+              refer to '{{ if eq $labels.name "version" }}oc adm upgrade{{ else }}oc
+              get -o yaml clusteroperator {{ $labels.name }}{{ end }}'{{ with $console_url
+              := "console_url" | query }}{{ if ne (len (label "url" (first $console_url
+              ) ) ) 0}} or {{ label "url" (first $console_url ) }}/settings/cluster/{{
               end }}{{ end }}.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/ClusterOperatorDown.md
             summary: Cluster operator has not been available for 10 minutes.
             syn_component: openshift4-monitoring
           expr: |
@@ -286,10 +291,11 @@ spec:
         - alert: SYN_ClusterOperatorFlapping
           annotations:
             description: The  {{ $labels.name }} operator behavior might cause upgrades
-              to be unstable. For more information refer to 'oc get -o yaml clusteroperator
-              {{ $labels.name }}'{{ with $console_url := "console_url" | query }}{{
-              if ne (len (label "url" (first $console_url ) ) ) 0}} or {{ label "url"
-              (first $console_url ) }}/settings/cluster/{{ end }}{{ end }}.
+              to be unstable. For more information refer to '{{ if eq $labels.name
+              "version" }}oc adm upgrade{{ else }}oc get -o yaml clusteroperator {{
+              $labels.name }}{{ end }}'{{ with $console_url := "console_url" | query
+              }}{{ if ne (len (label "url" (first $console_url ) ) ) 0}} or {{ label
+              "url" (first $console_url ) }}/settings/cluster/{{ end }}{{ end }}.
             summary: Cluster operator up status is changing often.
             syn_component: openshift4-monitoring
           expr: |
@@ -1064,6 +1070,7 @@ spec:
             description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace
               }} has reported errors. It has appeared unavailable {{ $value | humanize
               }} times averaged over the past 10m.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubeAggregatedAPIErrors.md
             summary: Kubernetes aggregated API has reported errors.
             syn_component: openshift4-monitoring
           expr: |
@@ -1265,6 +1272,24 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+    - name: syn-mcc-boot-image-update-error
+      rules:
+        - alert: SYN_MCCBootImageUpdateError
+          annotations:
+            description: 'The boot images of Machineset {{ $labels.machineset }} could
+              not be updated. For more details check MachineConfigController pod logs:
+              oc logs -n {{ $labels.namespace }} -f $(oc get pod -o name -l=''k8s-app=machine-config-controller''
+              -n openshift-machine-config-operator) | grep machine_set'
+            summary: Triggers when machineset boot images could not be updated
+            syn_component: openshift4-monitoring
+          expr: |
+            mcc_bootimage_update_error > 0
+          for: 30m
+          labels:
+            namespace: openshift-machine-config-operator
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
     - name: syn-mcc-drain-error
       rules:
         - alert: SYN_MCCDrainError
@@ -1312,6 +1337,25 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             mcd_kubelet_state > 2
+          labels:
+            namespace: openshift-machine-config-operator
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: syn-mcd-missing-mc
+      rules:
+        - alert: SYN_MissingMachineConfig
+          annotations:
+            description: Could not find config {{ $labels.mc }} in-cluster, this likely
+              indicates the MachineConfigs in-cluster has changed during the install
+              process.  If you are seeing this when installing the cluster, please
+              compare the in-cluster rendered machineconfigs to /etc/mcs-machine-config-content.json
+            summary: This keeps track of Machine Config failures. Specifically a common
+              failure on install when a rendered Machine Config is missing. Triggered
+              when this error happens once.
+            syn_component: openshift4-monitoring
+          expr: |
+            mcd_missing_mc > 0
           labels:
             namespace: openshift-machine-config-operator
             severity: warning
@@ -1715,6 +1759,31 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+        - alert: SYN_etcdSignerCAExpirationCritical
+          annotations:
+            description: etcd is reporting the signer ca "{{ $labels.name }}" to have
+              less than year  (({{ printf "%.f" $value }} days) of validity left.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-etcd-operator/etcdSignerCAExpirationCritical.md
+            summary: etcd has critical signer ca expiration
+            syn_component: openshift4-monitoring
+          expr: avg(openshift_etcd_operator_signer_expiration_days) by (name) < 365
+          for: 1h
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_etcdSignerCAExpirationWarning
+          annotations:
+            description: etcd is reporting the signer ca "{{ $labels.name }}" to have
+              less than two years (({{ printf "%.f" $value }} days) of validity left.
+            summary: etcd signer ca is about to expire
+            syn_component: openshift4-monitoring
+          expr: avg(openshift_etcd_operator_signer_expiration_days) by (name) < 730
+          for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
     - name: syn-openshift-general.rules
       rules:
         - alert: SYN_TargetDown
@@ -1725,6 +1794,7 @@ spec:
               network connectivity issues, down nodes, or failures within these components.
               Assess the health of the infrastructure and nodes running these targets
               and then contact support.'
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/TargetDown.md
             summary: Some targets were not reachable from the monitoring server for
               an extended period of time.
             syn_component: openshift4-monitoring
@@ -1747,7 +1817,8 @@ spec:
           annotations:
             description: This alert fires when there is a Route owned by an unmanaged
               Ingress.
-            message: Route {{ $labels.name }} is owned by an unmanaged Ingress.
+            message: Route {{ $labels.namespace }}/{{ $labels.name }} is owned by
+              an unmanaged Ingress.
             summary: Route owned by an Ingress no longer managed
             syn_component: openshift4-monitoring
           expr: openshift_ingress_to_route_controller_route_with_unmanaged_owner ==
@@ -1897,6 +1968,7 @@ spec:
             description: Prometheus {{$labels.namespace}}/{{$labels.pod}} is dropping
               {{ printf "%.4g" $value  }} samples/s with different values but duplicated
               timestamp.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/PrometheusDuplicateTimestamps.md
             summary: Prometheus is dropping samples with duplicate timestamps.
             syn_component: openshift4-monitoring
           expr: |

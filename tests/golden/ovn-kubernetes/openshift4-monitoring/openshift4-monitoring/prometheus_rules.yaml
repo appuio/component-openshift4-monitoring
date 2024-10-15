@@ -1003,7 +1003,7 @@ spec:
             syn_component: openshift4-monitoring
           expr: |
             (
-              max by(namespace, statefulset) (
+              max by(namespace, statefulset, job, cluster) (
                 kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   unless
                 kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
@@ -1191,7 +1191,7 @@ spec:
               }} of its incoming requests.
             syn_component: openshift4-monitoring
           expr: |
-            sum(rate(apiserver_request_terminations_total{job="apiserver"}[10m]))  / (  sum(rate(apiserver_request_total{job="apiserver"}[10m])) + sum(rate(apiserver_request_terminations_total{job="apiserver"}[10m])) ) > 0.20
+            sum by(cluster) (rate(apiserver_request_terminations_total{job="apiserver"}[10m])) / ( sum by(cluster) (rate(apiserver_request_total{job="apiserver"}[10m])) + sum by(cluster) (rate(apiserver_request_terminations_total{job="apiserver"}[10m])) ) > 0.20
           for: 5m
           labels:
             severity: warning

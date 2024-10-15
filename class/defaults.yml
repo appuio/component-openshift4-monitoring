@@ -10,9 +10,9 @@ parameters:
     manifests_version: release-4.15
     # no release branches newer than 4.9 exist
     =_operator_lifecycle_manager_map:
-      release-4.13: release-4.9
       release-4.14: release-4.9
       release-4.15: release-4.9
+      release-4.16: release-4.9
     jsonnetfile_parameters:
       cmo_version: ${openshift4_monitoring:manifests_version}
       etcd_version: ${openshift4_monitoring:manifests_version}
@@ -205,9 +205,9 @@ parameters:
           NodeMemoryMajorPagesFaults:
             # Only alert for >100*cores major page faults/node instead of >500/node
             expr: rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance) (count by (instance) (node_cpu_info{}) * 100)
-        release-4.13: {}
         release-4.14: {}
         release-4.15: {}
+        release-4.16: {}
       # Alerts to ignore for user workload monitoring
       ignoreUserWorkload: []
 

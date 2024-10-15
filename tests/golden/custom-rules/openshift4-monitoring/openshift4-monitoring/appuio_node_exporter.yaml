@@ -4,7 +4,6 @@ metadata:
   labels:
     app.kubernetes.io/part-of: openshift4-monitoring
   name: appuio-node-exporter
-  namespace: openshift-monitoring
 rules:
   - apiGroups:
       - authentication.k8s.io
@@ -33,7 +32,6 @@ metadata:
   labels:
     app.kubernetes.io/part-of: openshift4-monitoring
   name: appuio-node-exporter
-  namespace: openshift-monitoring
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -59,6 +57,7 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: appuio-node-exporter
+        openshift.io/required-scc: node-exporter
       labels:
         app.kubernetes.io/managed-by: cluster-monitoring-operator
         app.kubernetes.io/part-of: openshift4-monitoring
@@ -152,6 +151,9 @@ spec:
               fi
               echo "ts=$(date -Iseconds) num_cpus=$NUM_CPUS gomaxprocs=$GOMAXPROCS"
               exec /bin/node_exporter "$0" "$@"
+          env:
+            - name: DBUS_SYSTEM_BUS_ADDRESS
+              value: unix:path=/host/root/var/run/dbus/system_bus_socket
           image: quay.io/prometheus/node-exporter:v1.8.2
           name: appuio-node-exporter
           resources:
@@ -162,7 +164,6 @@ spec:
               cpu: 8m
               memory: 32Mi
           securityContext: {}
-          terminationMessagePolicy: FallbackToLogsOnError
           volumeMounts:
             - mountPath: /host/sys
               mountPropagation: HostToContainer
@@ -177,7 +178,6 @@ spec:
               readOnly: true
           workingDir: /var/node_exporter/textfile
         - args:
-            - --logtostderr
             - --secure-listen-address=[$(IP)]:9199
             - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
             - --upstream=http://127.0.0.1:9199/
@@ -209,7 +209,8 @@ spec:
             runAsGroup: 65532
             runAsNonRoot: true
             runAsUser: 65532
-          terminationMessagePolicy: FallbackToLogsOnError
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
             - mountPath: /etc/tls/private
               name: node-exporter-tls
@@ -240,7 +241,6 @@ spec:
           securityContext:
             privileged: true
             runAsUser: 0
-          terminationMessagePolicy: FallbackToLogsOnError
           volumeMounts:
             - mountPath: /var/node_exporter/textfile
               name: node-exporter-textfile
@@ -306,6 +306,8 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
+    openshift.io/description: Expose the `/metrics` endpoint on port 9199. This port
+      is for internal use, and no other usage is guaranteed.
     service.beta.openshift.io/serving-cert-secret-name: appuio-node-exporter-tls
   labels:
     app.kubernetes.io/part-of: openshift4-monitoring

@@ -11,7 +11,7 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
-    manifests_version: release-4.13
+    manifests_version: release-4.16
 
     customNodeExporter:
       enabled: true
@@ -25,7 +25,7 @@ parameters:
             labels:
               foo: foo
               generic: patch
-        release-4.13:
+        release-4.16:
           HighOverallControlPlaneMemory:
             labels:
               foo: bar
