@@ -223,9 +223,18 @@ local patchRules = {
       function(group)
         group {
           rules: std.map(
-            function(rule) alertpatching.patchRule(rule, rulePatches, false) {
-              expr: patchExpr(super.expr),
-            },
+            function(rule)
+              alertpatching.patchRule(rule, rulePatches, false) {
+                // NOTE(sg): Make runbook_url annotation visible so we can
+                // always patch it. This is necessary because some upstream
+                // Jsonnet hides the annotation with `runbook_url::` for
+                // alerts where they don't want to set the annotation.
+                annotations+:
+                  if std.objectHasAll(rule.annotations, 'runbook_url') then {
+                    runbook_url::: super.runbook_url,
+                  } else {},
+                expr: patchExpr(super.expr),
+              } + { annotations: std.prune(super.annotations) },
             group.rules
           ),
         },
