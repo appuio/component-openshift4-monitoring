@@ -375,6 +375,22 @@ spec:
             severity: critical
             syn: 'true'
             syn_component: openshift4-monitoring
+        - alert: SYN_PodDisruptionBudgetAtLimit
+          annotations:
+            description: The pod disruption budget is at the minimum disruptions allowed
+              level. The number of current healthy pods is equal to the desired healthy
+              pods.
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-kube-controller-manager-operator/PodDisruptionBudgetAtLimit.md
+            summary: The pod disruption budget is preventing further disruption to
+              pods.
+            syn_component: openshift4-monitoring
+          expr: |
+            max by(namespace, poddisruptionbudget) (kube_poddisruptionbudget_status_current_healthy == kube_poddisruptionbudget_status_desired_healthy and on (namespace, poddisruptionbudget) kube_poddisruptionbudget_status_expected_pods > 0)
+          for: 60m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_PodDisruptionBudgetLimit
           annotations:
             description: The pod disruption budget is below the minimum disruptions
@@ -647,13 +663,13 @@ spec:
       rules:
         - alert: SYN_KubeContainerWaiting
           annotations:
-            description: pod/{{ $labels.pod }} in namespace {{ $labels.namespace }}
-              on container {{ $labels.container}} has been in waiting state for longer
-              than 1 hour.
+            description: 'pod/{{ $labels.pod }} in namespace {{ $labels.namespace
+              }} on container {{ $labels.container}} has been in waiting state for
+              longer than 1 hour. (reason: "{{ $labels.reason }}").'
             summary: Pod container waiting longer than 1 hour
             syn_component: openshift4-monitoring
           expr: |
-            sum by (namespace, pod, container, cluster) (kube_pod_container_status_waiting_reason{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-adp)",job="kube-state-metrics"}) > 0
+            kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-adp)",job="kube-state-metrics"} > 0
           for: 1h
           labels:
             severity: warning
@@ -1983,11 +1999,11 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_PrometheusErrorSendingAlertsToSomeAlertmanagers
           annotations:
-            description: '{{ printf "%.1f" $value }}% errors while sending alerts
-              from Prometheus {{$labels.namespace}}/{{$labels.pod}} to Alertmanager
-              {{$labels.alertmanager}}.'
-            summary: Prometheus has encountered more than 1% errors sending alerts
-              to a specific Alertmanager.
+            description: '{{ printf "%.1f" $value }}% of alerts sent by Prometheus
+              {{$labels.namespace}}/{{$labels.pod}} to Alertmanager {{$labels.alertmanager}}
+              were affected by errors.'
+            summary: More than 1% of alerts sent by Prometheus to a specific Alertmanager
+              were affected by errors.
             syn_component: openshift4-monitoring
           expr: |
             (

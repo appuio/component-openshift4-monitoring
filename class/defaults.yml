@@ -151,7 +151,6 @@ parameters:
         - NodeFilesystemAlmostOutOfFiles
         - NodeFilesystemAlmostOutOfSpace
         - NodeFilesystemFilesFillingUp
-        - PodDisruptionBudgetAtLimit
         - ThanosRuleRuleEvaluationLatencyHigh
         - etcdDatabaseHighFragmentationRatio
         - etcdExcessiveDatabaseGrowth
