@@ -19,6 +19,9 @@ data:
     "kubeStateMetrics":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
+    "metricsServer":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
     "openshiftStateMetrics":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""

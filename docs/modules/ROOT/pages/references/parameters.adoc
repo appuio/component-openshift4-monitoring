@@ -81,29 +81,7 @@ A parameter to enable https://docs.openshift.com/container-platform/latest/monit
 
 [horizontal]
 type:: dictionary
-default::
-+
-[source,yaml]
-----
-prometheusK8s:
-  remoteWrite: []
-  _remoteWrite: {}
-  externalLabels:
-    cluster_id: ${cluster:name}
-    tenant_id: ${cluster:tenant}
-  retention: 8d
-  volumeClaimTemplate:
-    spec:
-      resources:
-        requests:
-          storage: 50Gi
-alertmanagerMain:
-  volumeClaimTemplate:
-    spec:
-      resources:
-        requests:
-          storage: 2Gi
-----
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[monitoring components].
 
@@ -123,7 +101,8 @@ This table shows the monitoring components you can configure and the keys used t
 |openshift-state-metrics|`openshiftStateMetrics`
 |Grafana|`grafana`
 |Telemeter Client|`telemeterClient`
-|Prometheus Adapter|`k8sPrometheusAdapter`
+|Prometheus Adapter (for OpenShift 4.15 and older)|`k8sPrometheusAdapter`
+|Metrics Server (for OpenShift 4.16 and newer)|`metricsServer`
 |Thanos Querier|`thanosQuerier`
 |====
 
