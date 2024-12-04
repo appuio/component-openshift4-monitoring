@@ -54,6 +54,7 @@ parameters:
       k8sPrometheusAdapter: {}
       openshiftStateMetrics: {}
       thanosQuerier: {}
+      metricsServer: {}
     configsUserWorkload:
       alertmanager:
         enabled: true
