@@ -60,3 +60,20 @@ spec:
           - alertmanager
   policyTypes:
     - Ingress
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  annotations:
+    syn.tools/description: |
+      Note that this policy isn't named allow-from-cluster-nodes, even
+      though its content is identical to ensure that Espejo doesn't delete
+      the policy.
+  name: allow-from-cluster-nodes-custom
+  namespace: openshift-user-workload-monitoring
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node

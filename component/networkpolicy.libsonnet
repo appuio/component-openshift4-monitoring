@@ -5,6 +5,8 @@ local kube = import 'lib/kube.libjsonnet';
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 
+local cilium_cluster = std.member(inv.applications, 'cilium');
+
 [
   kube.NetworkPolicy('alertmanager-allow-web') {
     spec: {
@@ -82,4 +84,32 @@ local params = inv.parameters.openshift4_monitoring;
       },
     },
   },
-]
+] + if cilium_cluster then [
+  // allow all traffic from the cluster nodes, so that the HAproxy ingress can
+  // do healthchecks for routes in the openshift-monitoring namespace.
+  {
+    apiVersion: 'cilium.io/v2',
+    kind: 'CiliumNetworkPolicy',
+    metadata: {
+      annotations: {
+        'syn.tools/description': |||
+          Note that this policy isn't named allow-from-cluster-nodes, even
+          though its content is identical to ensure that Espejo doesn't delete
+          the policy.
+        |||,
+      },
+      name: 'allow-from-cluster-nodes-custom',
+    },
+    spec: {
+      endpointSelector: {},
+      ingress: [
+        {
+          fromEntities: [
+            'host',
+            'remote-node',
+          ],
+        },
+      ],
+    },
+  },
+] else []
