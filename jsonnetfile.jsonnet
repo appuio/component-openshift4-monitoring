@@ -4,6 +4,16 @@
     {
       source: {
         git: {
+          remote: 'https://github.com/projectsyn/jsonnet-libs',
+          subdir: '',
+        },
+      },
+      version: 'initial-implementation',
+      name: 'syn',
+    },
+    {
+      source: {
+        git: {
           remote: 'https://github.com/openshift/cluster-monitoring-operator',
           subdir: 'jsonnet',
         },

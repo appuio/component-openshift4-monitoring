@@ -2,7 +2,7 @@
 // arbitrary alert rules to adhere to the format required by the component's
 // approach for allowing us to patch upstream rules.
 local com = import 'lib/commodore.libjsonnet';
-local prom = import 'lib/prom.libsonnet';
+local syn_teams = import 'syn/syn-teams.libsonnet';
 
 local inv = com.inventory();
 
@@ -99,6 +99,9 @@ local filterRules(group, ignoreNames=[], preserveRecordingRules=false) =
  * \returns The patched rule
  */
 local patchRule(rule, patches={}, patchName=true) =
+  local fallbackTeam = std.get(inv.parameters, 'syn', {
+    owner: inv.parameters.openshift4_monitoring.fallback_team,
+  }).owner;
   if !std.objectHas(rule, 'alert') then
     rule
   else
@@ -113,7 +116,7 @@ local patchRule(rule, patches={}, patchName=true) =
       then
         rule.labels.syn_team
       else
-        prom.teamForApplication(inv.parameters._instance);
+        syn_teams.teamForApplication(inv.parameters._instance);
     rule {
       // Change alert names so we don't get multiple alerts with the same
       // name, as the logging operator deploys its own copy of these
