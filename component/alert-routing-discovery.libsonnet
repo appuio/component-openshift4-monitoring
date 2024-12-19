@@ -2,6 +2,7 @@ local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local prom = import 'lib/prom.libsonnet';
+local syn_teams = import 'syn/syn-teams.libsonnet';
 
 local inv = kap.inventory();
 local params = inv.parameters;
@@ -25,7 +26,7 @@ local discoverNS = function(app)
         else if std.isObject(p.namespace) && std.objectHas(p.namespace, 'name') && std.isString(p.namespace.name) then
           p.namespace.name;
 
-  local ks = prom.appKeys(app);
+  local ks = syn_teams.appKeys(app);
   local aliased = f(ks[0]);
   if aliased != null then
     aliased
@@ -44,7 +45,9 @@ local teamToNS = std.mapWithKey(
   function(_, a) std.uniq(std.sort(std.prune(a))),
   std.foldl(
     function(prev, app)
-      prev { [prom.teamForApplication(app)]+: [ discoverNS(app) ] },
+      local instance = syn_teams.appKeys(app, true)[0];
+      local team = syn_teams.teamForApplication(instance);
+      prev { [team]+: [ discoverNS(app) ] },
     inv.applications,
     {}
   )
@@ -86,7 +89,7 @@ local alertmanagerConfig =
   debugConfigMap: kube.ConfigMap('discovery-debug') {
     data: {
       local discoveredNamespaces = std.foldl(function(prev, app) prev { [app]: discoverNS(app) }, inv.applications, {}),
-      local discoveredTeams = std.foldl(function(prev, app) prev { [app]: prom.teamForApplication(app) }, inv.applications, {}),
+      local discoveredTeams = std.foldl(function(prev, app) prev { [app]: syn_teams.teamForApplication(syn_teams.appKeys(app, true)[0]) }, inv.applications, {}),
       applications: std.manifestJsonMinified(inv.applications),
       discovered_namespaces: std.manifestYamlDoc(discoveredNamespaces),
       apps_without_namespaces: std.manifestYamlDoc(std.foldl(function(prev, app) if discoveredNamespaces[app] == null then prev + [ app ] else prev, std.objectFields(discoveredNamespaces), [])),
