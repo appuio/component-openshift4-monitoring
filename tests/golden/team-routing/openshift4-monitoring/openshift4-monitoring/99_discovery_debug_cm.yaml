@@ -36,7 +36,7 @@ data:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"ns-string\""
+        - "namespace =~ \"ns-string|openshift-monitoring\""
         "receiver": "team_default_clumsy-donkeys"
       - "continue": true
         "matchers":
@@ -46,14 +46,14 @@ data:
       - "continue": false
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|ns-string|ns-object|same-ns\""
+        - "namespace =~ \"base|overridden|ns-string|openshift-monitoring|ns-object|same-ns\""
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""
         "receiver": "other"
       - "receiver": "team_default_clumsy-donkeys"
   applications: '["non-existing","no-ns","ns-string","ns-object","base as ns-in-base","base
-    as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2"]'
+    as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2","openshift4-monitoring"]'
   apps_without_namespaces: |-
     - "no-ns"
     - "non-existing"
@@ -66,6 +66,7 @@ data:
     "non-existing as still-non-existing": null
     "ns-object": "ns-object"
     "ns-string": "ns-string"
+    "openshift4-monitoring": "openshift-monitoring"
     "same-ns-1": "same-ns"
     "same-ns-2": "same-ns"
   discovered_teams: |-
@@ -76,6 +77,7 @@ data:
     "non-existing as still-non-existing": "clumsy-donkeys"
     "ns-object": "lovable-lizards"
     "ns-string": "clumsy-donkeys"
+    "openshift4-monitoring": "clumsy-donkeys"
     "same-ns-1": "lovable-lizards"
     "same-ns-2": "lovable-lizards"
   proposed_routes: |-
@@ -87,7 +89,7 @@ data:
     - "continue": true
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"ns-string\""
+      - "namespace =~ \"ns-string|openshift-monitoring\""
       "receiver": "team_default_clumsy-donkeys"
     - "continue": true
       "matchers":
@@ -97,7 +99,7 @@ data:
     - "continue": false
       "matchers":
       - "syn_team = \"\""
-      - "namespace =~ \"base|overridden|ns-string|ns-object|same-ns\""
+      - "namespace =~ \"base|overridden|ns-string|openshift-monitoring|ns-object|same-ns\""
       "receiver": "__component_openshift4_monitoring_null"
 kind: ConfigMap
 metadata:
