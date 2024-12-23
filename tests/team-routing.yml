@@ -8,6 +8,7 @@ applications:
   - non-existing as still-non-existing
   - same-ns-1
   - same-ns-2
+  - openshift4-monitoring
 
 parameters:
   kapitan:
