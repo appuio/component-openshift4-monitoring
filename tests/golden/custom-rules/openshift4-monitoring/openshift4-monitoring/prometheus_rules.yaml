@@ -665,7 +665,8 @@ spec:
           annotations:
             description: 'pod/{{ $labels.pod }} in namespace {{ $labels.namespace
               }} on container {{ $labels.container}} has been in waiting state for
-              longer than 1 hour. (reason: "{{ $labels.reason }}").'
+              longer than 1 hour. (reason: "{{ $labels.reason }}") on cluster {{ $labels.cluster
+              }}.'
             summary: Pod container waiting longer than 1 hour
             syn_component: openshift4-monitoring
           expr: |
@@ -678,7 +679,8 @@ spec:
         - alert: SYN_KubeDaemonSetMisScheduled
           annotations:
             description: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{
-              $labels.daemonset }} are running where they are not supposed to run.'
+              $labels.daemonset }} are running where they are not supposed to run
+              on cluster {{ $labels.cluster }}.'
             summary: DaemonSet pods are misscheduled.
             syn_component: openshift4-monitoring
           expr: |
@@ -691,7 +693,8 @@ spec:
         - alert: SYN_KubeDaemonSetNotScheduled
           annotations:
             description: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{
-              $labels.daemonset }} are not scheduled.'
+              $labels.daemonset }} are not scheduled on cluster {{ $labels.cluster
+              }}.'
             summary: DaemonSet pods are not scheduled.
             syn_component: openshift4-monitoring
           expr: |
@@ -742,7 +745,7 @@ spec:
           annotations:
             description: Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment
               }} does not match, this indicates that the Deployment has failed but
-              has not been rolled back.
+              has not been rolled back on cluster {{ $labels.cluster }}.
             summary: Deployment generation mismatch due to possible roll-back
             syn_component: openshift4-monitoring
           expr: |
@@ -757,7 +760,8 @@ spec:
         - alert: SYN_KubeDeploymentRolloutStuck
           annotations:
             description: Rollout of deployment {{ $labels.namespace }}/{{ $labels.deployment
-              }} is not progressing for longer than 15 minutes.
+              }} is not progressing for longer than 15 minutes on cluster {{ $labels.cluster
+              }}.
             summary: Deployment rollout is not progressing.
             syn_component: openshift4-monitoring
           expr: |
@@ -772,7 +776,7 @@ spec:
           annotations:
             description: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
               to complete. Removing failed job after investigation should clear this
-              alert.
+              alert on cluster {{ $labels.cluster }}.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubeJobFailed.md
             summary: Job failed to complete.
             syn_component: openshift4-monitoring
@@ -786,7 +790,8 @@ spec:
         - alert: SYN_KubeJobNotCompleted
           annotations:
             description: Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking
-              more than {{ "43200" | humanizeDuration }} to complete.
+              more than {{ "43200" | humanizeDuration }} to complete on cluster {{
+              $labels.cluster }}.
             summary: Job did not complete in time
             syn_component: openshift4-monitoring
           expr: |
@@ -800,7 +805,8 @@ spec:
         - alert: SYN_KubePodCrashLooping
           annotations:
             description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
-              }}) is in waiting state (reason: "CrashLoopBackOff").'
+              }}) is in waiting state (reason: "CrashLoopBackOff") on cluster {{ $labels.cluster
+              }}.'
             summary: Pod is crash looping.
             syn_component: openshift4-monitoring
           expr: |
@@ -813,7 +819,8 @@ spec:
         - alert: SYN_KubePodNotReady
           annotations:
             description: Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in
-              a non-ready state for longer than 15 minutes.
+              a non-ready state for longer than 15 minutes on cluster {{ $labels.cluster
+              }}.
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePodNotReady.md
             summary: Pod has been in a non-ready state for more than 15 minutes.
             syn_component: openshift4-monitoring
@@ -835,7 +842,7 @@ spec:
           annotations:
             description: StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset
               }} does not match, this indicates that the StatefulSet has failed but
-              has not been rolled back.
+              has not been rolled back on cluster {{ $labels.cluster }}.
             summary: StatefulSet generation mismatch due to possible roll-back
             syn_component: openshift4-monitoring
           expr: |
@@ -851,7 +858,7 @@ spec:
           annotations:
             description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset
               }} has not matched the expected number of replicas for longer than 15
-              minutes.
+              minutes on cluster {{ $labels.cluster }}.
             summary: StatefulSet has not matched the expected number of replicas.
             syn_component: openshift4-monitoring
           expr: |
@@ -872,7 +879,7 @@ spec:
         - alert: SYN_KubeStatefulSetUpdateNotRolledOut
           annotations:
             description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset
-              }} update has not been rolled out.
+              }} update has not been rolled out on cluster {{ $labels.cluster }}.
             summary: StatefulSet update has not been rolled out.
             syn_component: openshift4-monitoring
           expr: |
@@ -1029,7 +1036,8 @@ spec:
         - alert: SYN_KubeClientErrors
           annotations:
             description: Kubernetes API server client '{{ $labels.job }}/{{ $labels.instance
-              }}' is experiencing {{ $value | humanizePercentage }} errors.'
+              }}' is experiencing {{ $value | humanizePercentage }} errors on cluster
+              {{ $labels.cluster }}.
             summary: Kubernetes API server client is experiencing errors.
             syn_component: openshift4-monitoring
           expr: |
@@ -1060,7 +1068,7 @@ spec:
         - alert: SYN_KubeAPITerminatedRequests
           annotations:
             description: The kubernetes apiserver has terminated {{ $value | humanizePercentage
-              }} of its incoming requests.
+              }} of its incoming requests on cluster {{ $labels.cluster }}.
             summary: The kubernetes apiserver has terminated {{ $value | humanizePercentage
               }} of its incoming requests.
             syn_component: openshift4-monitoring
@@ -1074,7 +1082,8 @@ spec:
         - alert: SYN_KubeAggregatedAPIDown
           annotations:
             description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace
-              }} has been only {{ $value | humanize }}% available over the last 10m.
+              }} has been only {{ $value | humanize }}% available over the last 10m
+              on cluster {{ $labels.cluster }}.
             summary: Kubernetes aggregated API is down.
             syn_component: openshift4-monitoring
           expr: |
@@ -1103,7 +1112,8 @@ spec:
       rules:
         - alert: SYN_KubeNodeNotReady
           annotations:
-            description: '{{ $labels.node }} has been unready for more than 15 minutes.'
+            description: '{{ $labels.node }} has been unready for more than 15 minutes
+              on cluster {{ $labels.cluster }}.'
             runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubeNodeNotReady.md
             summary: Node is not ready.
             syn_component: openshift4-monitoring
@@ -1117,7 +1127,8 @@ spec:
         - alert: SYN_KubeNodeReadinessFlapping
           annotations:
             description: The readiness status of node {{ $labels.node }} has changed
-              {{ $value }} times in the last 15 minutes.
+              {{ $value }} times in the last 15 minutes on cluster {{ $labels.cluster
+              }}.
             summary: Node readiness status is flapping.
             syn_component: openshift4-monitoring
           expr: |
@@ -1131,7 +1142,7 @@ spec:
         - alert: SYN_KubeNodeUnreachable
           annotations:
             description: '{{ $labels.node }} is unreachable and some workloads may
-              be rescheduled.'
+              be rescheduled on cluster {{ $labels.cluster }}.'
             summary: Node is unreachable.
             syn_component: openshift4-monitoring
           expr: |
@@ -1144,7 +1155,8 @@ spec:
         - alert: SYN_KubeletClientCertificateRenewalErrors
           annotations:
             description: Kubelet on node {{ $labels.node }} has failed to renew its
-              client certificate ({{ $value | humanize }} errors in the last 5 minutes).
+              client certificate ({{ $value | humanize }} errors in the last 5 minutes)
+              on cluster {{ $labels.cluster }}.
             summary: Kubelet has failed to renew its client certificate.
             syn_component: openshift4-monitoring
           expr: |
@@ -1171,7 +1183,8 @@ spec:
         - alert: SYN_KubeletPlegDurationHigh
           annotations:
             description: The Kubelet Pod Lifecycle Event Generator has a 99th percentile
-              duration of {{ $value }} seconds on node {{ $labels.node }}.
+              duration of {{ $value }} seconds on node {{ $labels.node }} on cluster
+              {{ $labels.cluster }}.
             summary: Kubelet Pod Lifecycle Event Generator is taking too long to relist.
             syn_component: openshift4-monitoring
           expr: |
@@ -1185,7 +1198,8 @@ spec:
         - alert: SYN_KubeletPodStartUpLatencyHigh
           annotations:
             description: Kubelet Pod startup 99th percentile latency is {{ $value
-              }} seconds on node {{ $labels.node }}.
+              }} seconds on node {{ $labels.node }} on cluster {{ $labels.cluster
+              }}.
             summary: Kubelet Pod startup latency is too high.
             syn_component: openshift4-monitoring
           expr: |
@@ -1199,7 +1213,8 @@ spec:
         - alert: SYN_KubeletServerCertificateRenewalErrors
           annotations:
             description: Kubelet on node {{ $labels.node }} has failed to renew its
-              server certificate ({{ $value | humanize }} errors in the last 5 minutes).
+              server certificate ({{ $value | humanize }} errors in the last 5 minutes)
+              on cluster {{ $labels.cluster }}.
             summary: Kubelet has failed to renew its server certificate.
             syn_component: openshift4-monitoring
           expr: |
@@ -1597,8 +1612,8 @@ spec:
             syn_component: openshift4-monitoring
         - alert: SYN_NodeHighNumberConntrackEntriesUsed
           annotations:
-            description: '{{ $value | humanizePercentage }} of conntrack entries are
-              used.'
+            description: '{{ $labels.instance }} {{ $value | humanizePercentage }}
+              of conntrack entries are used.'
             summary: Number of conntrack are getting close to the limit.
             syn_component: openshift4-monitoring
           expr: |
