@@ -144,7 +144,7 @@ parameters:
       - input_paths:
           - openshift4-monitoring/component/app.jsonnet
         input_type: jsonnet
-        output_path: apps/
+        output_path: .
       - input_paths:
           - openshift4-monitoring/component/main.jsonnet
         input_type: jsonnet

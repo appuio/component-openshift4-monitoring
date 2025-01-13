@@ -6,6 +6,7 @@ parameters:
       library_aliases:
         prom.libsonnet: openshift4-monitoring-prom.libsonnet
         alert-patching.libsonnet: openshift4-monitoring-alert-patching.libsonnet
+      multi_tenant: true
     namespace: openshift-monitoring
     manifests_version: release-4.15
     # no release branches newer than 4.9 exist
