@@ -6,7 +6,7 @@ The parent key for all of the following parameters is `openshift4_monitoring`.
 
 [horizontal]
 type:: string
-default:: `release-4.16`
+default:: `release-4.17`
 
 Select which version of the upstream alerting (and recording) rules should be used by the component.
 This parameter must be changed to match the cluster's OCP4 minor version.

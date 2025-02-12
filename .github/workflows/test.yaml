@@ -39,10 +39,9 @@ jobs:
           - vsphere
           - custom-rules
           - team-routing
-          - release-4.14
           - ovn-kubernetes
-          - release-4.15
           - release-4.16
+          - release-4.17
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -64,10 +63,9 @@ jobs:
           - vsphere
           - custom-rules
           - team-routing
-          - release-4.14
           - ovn-kubernetes
-          - release-4.15
           - release-4.16
+          - release-4.17
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
