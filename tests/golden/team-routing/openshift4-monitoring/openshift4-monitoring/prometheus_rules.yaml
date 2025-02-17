@@ -924,7 +924,7 @@ spec:
             (
               kube_statefulset_status_replicas_ready{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                 !=
-              kube_statefulset_status_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
+              kube_statefulset_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
             ) and (
               changes(kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[10m])
                 ==
@@ -1617,6 +1617,21 @@ spec:
           expr: |
             rate(node_network_transmit_errs_total{job="node-exporter"}[2m]) / rate(node_network_transmit_packets_total{job="node-exporter"}[2m]) > 0.01
           for: 1h
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+            syn_team: clumsy-donkeys
+        - alert: SYN_NodeSystemdServiceCrashlooping
+          annotations:
+            description: Systemd service {{ $labels.name }} has being restarted too
+              many times at {{ $labels.instance }} for the last 15 minutes. Please
+              check if service is crash looping.
+            summary: Systemd service keeps restaring, possibly crash looping.
+            syn_component: openshift4-monitoring
+          expr: |
+            increase(node_systemd_service_restart_total{job="node-exporter"}[5m]) > 2
+          for: 15m
           labels:
             severity: warning
             syn: 'true'
