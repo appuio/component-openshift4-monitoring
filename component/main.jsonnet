@@ -86,7 +86,15 @@ local cronjobs = import 'cronjobs.libsonnet';
             {
               enableUserWorkload: params.enableUserWorkload,
             } + std.mapWithKey(
-              function(field, value) params.defaultConfig + com.makeMergeable(value),
+              function(field, value)
+                if !std.member([ 'nodeExporter', 'prometheusOperatorAdmissionWebhook' ], field) then
+                  params.defaultConfig + com.makeMergeable(value)
+                else
+                  // fields `nodeExporter` and `prometheusOperatorAdmissionWebhook`
+                  // don't support field `nodeSelector` which we set in the
+                  // default config, so we don't apply the default config for
+                  // those fields.
+                  std.trace("Not applying default config for '%s'" % field, value),
               params.configs {
                 prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
               }

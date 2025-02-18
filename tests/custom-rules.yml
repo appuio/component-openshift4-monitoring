@@ -13,6 +13,12 @@ parameters:
   openshift4_monitoring:
     manifests_version: release-4.16
 
+    # Validate that we don't inject the default nodeSelector for the fields
+    # that don't support it.
+    configs:
+      prometheusOperatorAdmissionWebhook: {}
+      nodeExporter: {}
+
     customNodeExporter:
       enabled: true
 

@@ -67,9 +67,6 @@ data:
     "prometheusOperator":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
-    "prometheusOperatorAdmissionWebhook":
-      "nodeSelector":
-        "node-role.kubernetes.io/infra": ""
     "telemeterClient":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""

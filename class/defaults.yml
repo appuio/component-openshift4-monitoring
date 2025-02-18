@@ -42,7 +42,6 @@ parameters:
               requests:
                 storage: 50Gi
       prometheusOperator: {}
-      prometheusOperatorAdmissionWebhook: {}
       alertmanagerMain:
         volumeClaimTemplate:
           spec:
