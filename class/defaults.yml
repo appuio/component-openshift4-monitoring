@@ -42,6 +42,7 @@ parameters:
               requests:
                 storage: 50Gi
       prometheusOperator: {}
+      prometheusOperatorAdmissionWebhook: {}
       alertmanagerMain:
         volumeClaimTemplate:
           spec:
@@ -49,12 +50,11 @@ parameters:
               requests:
                 storage: 2Gi
       kubeStateMetrics: {}
-      grafana: {}
       telemeterClient: {}
-      k8sPrometheusAdapter: {}
       openshiftStateMetrics: {}
       thanosQuerier: {}
       metricsServer: {}
+      monitoringPlugin: {}
     configsUserWorkload:
       alertmanager:
         enabled: true

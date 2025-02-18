@@ -10,16 +10,13 @@ data:
             "requests":
               "storage": "2Gi"
     "enableUserWorkload": true
-    "grafana":
-      "nodeSelector":
-        "node-role.kubernetes.io/infra": ""
-    "k8sPrometheusAdapter":
-      "nodeSelector":
-        "node-role.kubernetes.io/infra": ""
     "kubeStateMetrics":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
     "metricsServer":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "monitoringPlugin":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
     "openshiftStateMetrics":
@@ -40,6 +37,9 @@ data:
             "requests":
               "storage": "50Gi"
     "prometheusOperator":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "prometheusOperatorAdmissionWebhook":
       "nodeSelector":
         "node-role.kubernetes.io/infra": ""
     "telemeterClient":
