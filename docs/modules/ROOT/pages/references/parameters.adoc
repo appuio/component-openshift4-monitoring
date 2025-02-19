@@ -35,6 +35,7 @@ nodeSelector:
 
 A dictionary holding the default configuration which should be applied to all components.
 
+NOTE: The contents of this parameter aren't applied to components `nodeExporter` and `prometheusOperatorAdmissionWebhook` which don't support field `nodeSelector`.
 
 == `upstreamRules.networkPlugin`
 
