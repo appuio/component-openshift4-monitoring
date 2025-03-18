@@ -53,15 +53,20 @@ data:
         "receiver": "other"
       - "receiver": "team_default_clumsy-donkeys"
   applications: '["non-existing","no-ns","ns-string","ns-object","base as ns-in-base","base
-    as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2","openshift4-monitoring"]'
+    as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2","openshift4-monitoring","no-ns
+    as no-ns-team","no-ns as no-ns-team2"]'
   apps_without_namespaces: |-
     - "no-ns"
+    - "no-ns as no-ns-team"
+    - "no-ns as no-ns-team2"
     - "non-existing"
     - "non-existing as still-non-existing"
   discovered_namespaces: |-
     "base as ns-in-base": "base"
     "base as ns-overridden": "overridden"
     "no-ns": null
+    "no-ns as no-ns-team": null
+    "no-ns as no-ns-team2": null
     "non-existing": null
     "non-existing as still-non-existing": null
     "ns-object": "ns-object"
@@ -73,6 +78,8 @@ data:
     "base as ns-in-base": "chubby-cockroaches"
     "base as ns-overridden": "chubby-cockroaches"
     "no-ns": "clumsy-donkeys"
+    "no-ns as no-ns-team": "sleepy-badgers"
+    "no-ns as no-ns-team2": "lovable-lizards"
     "non-existing": "clumsy-donkeys"
     "non-existing as still-non-existing": "clumsy-donkeys"
     "ns-object": "lovable-lizards"

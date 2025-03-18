@@ -41,7 +41,10 @@ local ownerOrFallbackTeam =
     params.openshift4_monitoring.fallback_team;
 
 // teamToNS is a map from a team to namespaces.
-local teamToNS = std.mapWithKey(
+// The inner `std.prune()` is to drop `null` entries from a list that contains
+// a mix of null and non-null entries. The outer `std.prune()` drops teams
+// for which we haven't discovered any namespaces from the resulting object.
+local teamToNS = std.prune(std.mapWithKey(
   function(_, a) std.uniq(std.sort(std.prune(a))),
   std.foldl(
     function(prev, app)
@@ -51,7 +54,7 @@ local teamToNS = std.mapWithKey(
     inv.applications,
     {}
   )
-);
+));
 
 // teamBasedRouting contains discovered routes for teams.
 // The routes are set up with `continue: true` so we can route to multiple teams.

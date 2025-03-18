@@ -9,6 +9,8 @@ applications:
   - same-ns-1
   - same-ns-2
   - openshift4-monitoring
+  - no-ns as no-ns-team
+  - no-ns as no-ns-team2
 
 parameters:
   kapitan:
@@ -36,6 +38,10 @@ parameters:
           - same-ns-2
           - ns-in-base
           - ~ns-in-base
+          - no-ns-team2
+      sleepy-badgers:
+        instances:
+          - no-ns-team
 
   openshift4_monitoring:
     alertManagerConfig:
