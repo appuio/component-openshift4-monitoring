@@ -2,6 +2,7 @@
 
 The parent key for all of the following parameters is `openshift4_monitoring`.
 
+
 == `manifests_version`
 
 [horizontal]
@@ -21,7 +22,8 @@ manifests_version: release-${dynamic_facts:openshiftVersion:Major}.${dynamic_fac
 ----
 ====
 
-== `defaultConfig`
+
+== `defaultNodeSelector`
 
 [horizontal]
 type:: dictionary
@@ -29,13 +31,17 @@ default::
 +
 [source,yaml]
 ----
-nodeSelector:
+defaultNodeSelector:
   node-role.kubernetes.io/infra: ''
 ----
 
-A dictionary holding the default configuration which should be applied to all components.
+A dictionary holding the default node selector which should be applied to all components.
 
-NOTE: The contents of this parameter aren't applied to components `nodeExporter` and `prometheusOperatorAdmissionWebhook` which don't support field `nodeSelector`.
+[NOTE]
+====
+The contents of this parameter aren't applied to components `nodeExporter` and `prometheusOperatorAdmissionWebhook` which don't support field `nodeSelector`.
+====
+
 
 == `upstreamRules.networkPlugin`
 
@@ -48,41 +54,63 @@ If a custom network plugin is used, set any other string as the value for this p
 This ensures neither openshift-sdn nor OVN-Kubernetes monitoring rules are deployed.
 
 
-== `enableAlertmanagerIsolationNetworkPolicy`
+== `components.clusterMonitoring`
+
+Configuration of the cluster monitoring component.
+See subsections for supported keys.
+
+=== `components.clusterMonitoring.alertmanagerIsolationEnabled`
 
 [horizontal]
 type:: boolean
 default:: `true`
 
-Blocks all traffic to Alertmanager pods except the allowed API traffic.
+Whether to enable the alertmanager isolation network policy.
 
-This works around an observed accidental clustering with user workload or custom Alertmanager clusters in other namespaces.
-
-
-== `enableUserWorkloadAlertmanagerIsolationNetworkPolicy`
-
-[horizontal]
-type:: boolean
-default:: `true`
-
-Blocks all traffic to Alertmanager pods except the allowed API traffic.
-
-This works around an observed accidental clustering with system or custom Alertmanager clusters in other namespaces.
-
-
-== `enableUserWorkload`
-
-[horizontal]
-type:: boolean
-default:: `true`
-
-A parameter to enable https://docs.openshift.com/container-platform/latest/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
-
-== `configs`
+=== `components.clusterMonitoring.externalLabels`
 
 [horizontal]
 type:: dictionary
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+default::
++
+[source,yaml]
+----
+components:
+  clusterMonitoring:
+    externalLabels:
+      cluster_id: ${cluster:name}
+      cluster_name: ${cluster:display_name}
+      tenant_id: ${cluster:tenant}
+      tenant_name: ${cluster:tenant_display_name}
+----
+
+A dictionary holding the external labels which should be added to the cluster monitoring remote write configuration.
+
+=== `components.clusterMonitoring.remoteWriteDefaults`
+
+[horizontal]
+type:: dictionary
+default:: {}
+example::
++
+[source,yaml]
+----
+components:
+  clusterMonitoring:
+    remoteWriteDefaults:
+      cluster:
+        queueConfig:
+      maxShards: 80
+----
+
+A dict of default remote write configurations for the Prometheus component.
+Those values are merged into each remote write configuration in `compnents.clusterMonitoring.config.prometheusK8s.remoteWrite`.
+
+=== `components.clusterMonitoring.config`
+
+[horizontal]
+type:: dictionary
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[monitoring components].
 
@@ -108,7 +136,7 @@ This table shows the monitoring components you can configure and the keys used t
 |Console monitoring plugin|`monitoringPlugin`
 |====
 
-=== `configs.prometheusK8s._remoteWrite`
+==== `components.clusterMonitoring.config.prometheusK8s._remoteWrite`
 
 [horizontal]
 type:: dictionary
@@ -142,12 +170,34 @@ _remoteWrite:
 A dictionary holding the remote write configurations for the Prometheus component.
 The key is the name of the configuration, the value is the content of the configuration.
 
-The remote write configuration will be appended to the `configs.prometheusK8s.remoteWrite` parameter for backwards compatibility.
+The remote write configuration will be appended to the `components.clusterMonitoring.config.prometheusK8s._remoteWrite` parameter for backwards compatibility.
 
 In this configuration only, `writeRelabelConfigs` entries can hold an entry for `timeseries` containing a list of strings representing individual Prometheus timeseries.
 These will be translated into a `regex` entry, with a regular expression matching any one of the listed timeseries.
 
-== `configsUserWorkload`
+
+== `components.userWorkloadMonitoring`
+
+Configuration of the user workload monitoring component.
+See subsections for supported keys.
+
+=== `components.userWorkloadMonitoring.enabled`
+
+[horizontal]
+type:: boolean
+default:: `true`
+
+A parameter to enable https://docs.openshift.com/container-platform/latest/monitoring/enabling-monitoring-for-user-defined-projects.html[monitoring for user-defined projects].
+
+=== `components.userWorkloadMonitoring.alertmanagerIsolationEnabled`
+
+[horizontal]
+type:: boolean
+default:: `true`
+
+Whether to enable the alertmanager isolation network policy.
+
+=== `components.userWorkloadMonitoring.externalLabels`
 
 [horizontal]
 type:: dictionary
@@ -155,16 +205,42 @@ default::
 +
 [source,yaml]
 ----
-alertmanager:
-  enabled: true
-  enableAlertmanagerConfig: true
-  volumeClaimTemplate: ${openshift4_monitoring:configs:alertmanagerMain:volumeClaimTemplate}
-prometheusOperator: {}
-prometheus:
-  retention: 8d
-  volumeClaimTemplate: ${openshift4_monitoring:configs:prometheusK8s:volumeClaimTemplate}
-thanosRuler: {}
+components:
+  userWorkloadMonitoring:
+    externalLabels:
+      cluster_id: ${cluster:name}-user-workload
+      cluster_name: "${cluster:display_name} User Workload"
+      tenant_id: ${cluster:tenant}
+      tenant_name: ${cluster:tenant_display_name}
 ----
+
+A dictionary holding the external labels which should be added to the user workload monitoring remote write configuration.
+
+=== `components.userWorkloadMonitoring.remoteWriteDefaults`
+
+[horizontal]
+type:: dictionary
+default:: {}
+example::
++
+[source,yaml]
+----
+components:
+  clusterMonitoring:
+    remoteWriteDefaults:
+      cluster:
+        queueConfig:
+      maxShards: 80
+----
+
+A dict of default remote write configurations for the Prometheus component.
+Those values are merged into each remote write configuration in `compnents.userWorkloadMonitoring.config.prometheusK8s.remoteWrite`.
+
+=== `components.userWorkloadMonitoring.config`
+
+[horizontal]
+type:: dictionary
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[user workload monitoring components].
 
@@ -182,7 +258,7 @@ This table shows the monitoring components you can configure and the keys used t
 |Thanos Ruler|`thanosRuler`|
 |====
 
-=== `configsUserWorkload.prometheus._remoteWrite`
+==== `components.userWorkloadMonitoring.config.prometheus._remoteWrite`
 
 [horizontal]
 type:: dictionary
@@ -215,37 +291,17 @@ The key is the name of the configuration, the value is the content of the config
 The remote write configuration will be appended to the `configsUserWorkload.prometheus.remoteWrite` parameter for backwards compatibility.
 
 
+== `components.alertManager`
 
-== `alertManagerConfig`
+Configuration of the alert manager component.
+See subsections for supported keys.
+
+
+=== `components.alertManager.config`
 
 [horizontal]
 type:: dictionary
-default::
-+
-[source,yaml]
-----
-route:
-  group_wait: 0s
-  group_interval: 5s
-  repeat_interval: 10m
-inhibit_rules:
-  # Don't send warning or info if a critical is already firing
-  - target_match_re:
-      severity: warning|info
-    source_match:
-      severity: critical
-    equal:
-      - namespace
-      - alertname
-  # Don't send info if a warning is already firing
-  - target_match_re:
-      severity: info
-    source_match:
-      severity: warning
-    equal:
-      - namespace
-      - alertname
-----
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
 
 A dictionary holding the configuration for the AlertManager.
 
@@ -254,7 +310,8 @@ See the https://docs.openshift.com/container-platform/latest/monitoring/managing
 The component will silently drop any fields in the provided config which are empty.
 The component treats `null` as empty for scalar fields.
 
-== `alertManagerAutoDiscovery`
+
+== `components.alertManagerAutoDiscovery`
 
 [horizontal]
 type:: dictionary
@@ -262,16 +319,17 @@ default::
 +
 [source,yaml]
 ----
-alertManagerAutoDiscovery:
-  enabled: true
-  debug_config_map: false
-  team_receiver_format: team_default_%s
-  additional_alert_matchers: []
-  prepend_routes: []
-  append_routes: []
+components:
+  alertManagerAutoDiscovery:
+    enabled: true
+    debugConfigMap: false
+    teamReceiverFormat: team_default_%s
+    additionalAlertMatchers: []
+    prependRoutes: []
+    appendRoutes: []
 ----
 
-`alertManagerAutoDiscovery` holds the configuration for the Alertmanager auto-discovery feature.
+`components.alertManagerAutoDiscovery` holds the configuration for the Alertmanager auto-discovery feature.
 
 The auto-discovery routes alerts to the configured teams based on their namespaces and the top-level `syn.teams[*].instances` and `syn.owner` parameters.
 Auto-discovery first creates a list of Commodore component instances by parsing the `applications` array using the same rules as Commodore itself (see also the https://syn.tools/commodore/reference/architecture.html#_component_instantiation[Commodore component instantiation documentation]).
@@ -306,10 +364,16 @@ For example if an alert should go to a different team than the namespace suggest
 
 [source,yaml]
 ----
-alertManagerAutoDiscovery:
-  additional_alert_matchers:
-    - 'syn_team = ""'
-# becomes
+components:
+  alertManagerAutoDiscovery:
+    additionalAlertMatchers:
+      - 'syn_team = ""'
+----
+
+becomes
+
+[source,yaml]
+----
 - continue: true
   matchers:
     - syn_team = ""
@@ -322,6 +386,81 @@ alertManagerAutoDiscovery:
   receiver: __component_openshift4_monitoring_null
 ----
 
+== `components.capacityAlerts`
+
+[horizontal]
+type:: dict
+default::
++
+[source,yaml]
+----
+capacityAlerts:
+  enabled: true <1>
+  groupByNodeLabels: [] <2>
+----
+<1> Enables capacity alerts
+<2> List of node labels (as they show up in the `kube_node_labels` metric) by which alerts are grouped
+
+This parameter allows users to enable and configure alerts for capacity management.
+The capacity alerts are enabled by default and can be disabled completely by setting the key `components.capacityAlerts.enabled` to `false`.
+
+
+== `components.customNodeExporter`
+
+This parameter allows users to deploy an additional node-exporter DaemonSet.
+We provide this option, since OpenShift's cluster-monitoring stack currently doesn't allow users to customize the bundled node-exporter DaemonSet.
+
+Currently, the parameter is tailored to allow users to run an additional node-exporter which enables collectors that aren't enabled in the default node exporter.
+
+The configuration is rendered by using the same Jsonnet that's used by the OpenShift cluster-monitoring stack to generate the default node-exporter DaemonSet.
+The component further customizes the resulting manifests to ensure that there's no conflicts between the default node-exporter and the additional node-exporter.
+
+The additional node-exporter is deployed in the namespace indicated by parameter `namespace`.
+By default this is namespace `openshift-monitoring`.
+The component also deploys a `ServiceMonitor` which ensures that the additional node-exporter is scraped by the cluster-monitoring stack's Prometheus.
+
+Users can configure arbitrary recording and alerting rules which use metrics scraped from the additional node-exporter via parameter `rules`.
+
+=== `components.customNodeExporter.enabled`
+
+[horizontal]
+type:: bool
+default:: `false`
+
+Whether to deploy the additional node-exporter.
+
+=== `components.customNodeExporter.args`
+[horizontal]
+type:: list
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+
+
+Additional command line arguments to pass to the additional node-exporter.
+Please note that specifying `--[no-]collector.<name>` here will break the DaemonSet, since `node-exporter` doesn't support specifying these flags multiple times.
+Users should use parameter `customNodeExporter.collectors` to enable collectors.
+
+=== `components.customNodeExporter.collectors`
+
+[horizontal]
+type:: list
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+
+Which collectors to enable in the additional node-exporter.
+By default, all collectors are disabled.
+Users can remove entries from this list by providing an existing entry prefixed with `~`.
+
+=== `components.customNodeExporter.metricRelabelings`
+
+[horizontal]
+type:: list
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+
+This parameter allows users to specify the content of field `metricRelabelings` of the `ServiceMonitor` which is created for the additional node-exporter.
+By default, the component drops all metrics except `node_network_route*` metrics for host devices prefixed with `ens`.
+Since this component only applies to OpenShift 4, we know that any node's host interfaces will use device names that are prefixed with `ens`.
+
+Users are encouraged to extend or overwrite this parameter to ensure all the metrics they're interested in are actually scraped by Prometheus.
+
 
 == `alerts`
 
@@ -330,7 +469,7 @@ type:: dictionary
 
 Configuration parameters related to influence the resulting alert rules.
 
-=== `includeNamespaces`
+=== `alerts.includeNamespaces`
 
 [horizontal]
 type:: list
@@ -342,7 +481,10 @@ To inject the custom regex, the component searches for the exact string `namespa
 
 The component processes the list with `com.renderArray()` to allow users to drop entries in the hierarchy.
 
-IMPORTANT: The component doesn't validate that the list entries are valid regex patterns.
+[IMPORTANT]
+====
+The component doesn't validate that the list entries are valid regex patterns.
+====
 
 ==== Example
 
@@ -350,14 +492,15 @@ We assume that the input config has patterns `default` and `syn.*`:
 
 [source,yaml]
 ----
-includeNamespaces:
-  - default
-  - syn.*
+alerts:
+  includeNamespaces:
+    - default
+    - syn.*
 ----
 
 The component will generate namespace selector `namespace=~"(default|syn.*)"` from this input configuration.
 
-=== `excludeNamespaces`
+=== `alerts.excludeNamespaces`
 
 [horizontal]
 type:: list
@@ -369,7 +512,10 @@ To inject the custom regex, the component searches for the exact string `namespa
 
 The component processes the list with `com.renderArray()` to allow users to drop entries in the hierarchy.
 
-IMPORTANT: The component doesn't validate that the list entries are valid regex patterns.
+[IMPORTANT]
+====
+The component doesn't validate that the list entries are valid regex patterns.
+====
 
 ==== Example
 
@@ -377,17 +523,18 @@ We assume that the input config has patterns `default` and `openshift.*` and `sy
 
 [source,yaml]
 ----
-includeNamespaces:
-  - default
-  - openshift.*
-  - syn.*
-excludeNamespaces:
-  - openshift-adp
+alerts:
+  includeNamespaces:
+    - default
+    - openshift.*
+    - syn.*
+  excludeNamespaces:
+    - openshift-adp
 ----
 
 The component will generate namespace selector `namespace=~"(default|openshift.*|syn.*)",namespace!~"(openshift-adp)"` from this input configuration.
 
-=== `ignoreNames`
+=== `alerts.ignoreNames`
 
 [horizontal]
 type:: list
@@ -395,9 +542,12 @@ default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/
 
 List of alert rule names to be dropped.
 
-NOTE: This parameter is taken into account in the `filterRules` and `filterPatchRules` library functions.
+[NOTE]
+====
+This parameter is taken into account in the `filterRules` and `filterPatchRules` library functions.
+====
 
-=== `ignoreWarnings`
+=== `alerts.ignoreWarnings`
 
 [horizontal]
 type:: list
@@ -405,9 +555,12 @@ default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/
 
 List of alert rule names for which to drop alerts with label `severity: warning`.
 
-NOTE: In contrast to `ignoreNames`, this parameter is not taken into account in the `filterRules` and `filterPatchRules` library functions.
+[NOTE]
+====
+In contrast to `ignoreNames`, this parameter is not taken into account in the `filterRules` and `filterPatchRules` library functions.
+====
 
-=== `ignoreGroups`
+=== `alerts.ignoreGroups`
 
 [horizontal]
 type:: list
@@ -415,9 +568,12 @@ default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/
 
 List of complete alert rule groups to drop.
 
-NOTE: This parameter is not taken into account for `filterRules` and `filterPatchRules`.
+[NOTE]
+====
+This parameter is not taken into account for `filterRules` and `filterPatchRules`.
+====
 
-=== `customAnnotations`
+=== `alerts.customAnnotations`
 
 [horizontal]
 type:: dict
@@ -426,7 +582,7 @@ default:: `{}`
 Maps alert names to sets of custom annotations.
 Allows configuring custom annotations for individual alerts.
 
-Example:
+==== Example
 
 [source,yaml]
 ----
@@ -435,12 +591,13 @@ customAnnotations:
     runbook_url: https://www.google.com/?q=Watchdog
 ----
 
-=== `patchRules`
+=== `alerts.patchRules`
+
 type:: dict
 keys:: potential values of parameter `manifests_versions` and `*`
 default:: See https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[`class/defaults.yml` on GitHub]
 
-The parameter `patchRules` allows users to customize upstream alerts.
+The parameter `alerts.patchRules` allows users to customize upstream alerts.
 The component expects that top-level keys in the parameter correspond to values of parameter `manifests_versions`.
 Additionally, the component supports special top-level key `*`.
 
@@ -448,11 +605,10 @@ Alert patches which are defined under top-level key `\*` are applied regardless 
 Additionally, the component applies all patches under the key which matches the value of parameter `manifest_versions`.
 If an alert is patched in both top-level key `*` and the top-level key matching parameter `manifest_versions`, the patches are merged together, with the version-specific patch overriding the generic patch.
 
-
 The component expects alert names as keys and any alert configuration as values in each top-level key.
 See the Prometheus https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/[alerting rules documentation] for extended documentation on configuring alerting rules.
 
-Example:
+==== Example
 
 [source,yaml]
 ----
@@ -466,7 +622,7 @@ patchRules:
       for: 30m
 ----
 
-=== `ignoreUserWorkload`
+=== `alerts.ignoreUserWorkload`
 
 [horizontal]
 type:: list
@@ -488,6 +644,66 @@ parameters:
 ----
 
 
+== `capacityAlerts`
+
+[horizontal]
+type:: dict
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+
+Predictive alerts are disabled by default and can be enabled individually as shown below by setting `ExpectClusterCpuUsageHigh.enabled` to `true`.
+
+The dictionary will be transformed into a `PrometheusRule` object by the component.
+
+The component provides 10 alerts that are grouped in four groups.
+You can disable or modify each of these alert rules individually.
+The fields in these rules will be added to the final `PrometheusRule`, with the exception of `expr`.
+The `expr` field contains fields which can be used to tune the default alert rule.
+Alternatively the default rule can be completely overwritten by setting the `expr.raw` field (see example below).
+See xref:explanations/resource_management.adoc[Resource Management] for an explanation for every alert rule.
+
+=== Example
+
+[source,yaml]
+----
+capacityAlerts:
+  PodCapacity:
+    rules:
+      TooManyPods:
+        annotations:
+          message: 'The number of pods is too damn high' <1>
+        for: 3h <2>
+      ExpectTooManyPods:
+        expr: <3>
+          range: '2d'
+          predict: '5*24*60*60'
+
+  ResourceRequests:
+    rules:
+      TooMuchMemoryRequested:
+        enabled: true
+        expr:
+          raw: sum(kube_pod_resource_request{resource="memory"}) > 9000*1024*1024*1024 <4>
+
+  CpuCapacity:
+    rules:
+      ClusterCpuUsageHigh:
+        enabled: false <5>
+      ExpectClusterCpuUsageHigh:
+        enabled: false <5>
+
+  UnusedCapacity:
+    rules:
+      ClusterHasUnusedNodes:
+        enabled: false <6>
+----
+<1> Changes the alert message for the pod capacity alert
+<2> Only alerts for pod capacity if it fires for 3 hours
+<3> Change the pod count prediction to look at the last two days and predict the value in five days
+<4> Completely overrides the default alert rule and alerts if the total memory request is over 9000 GB
+<5> Disables both CPU capacity alert rules
+<6> Disables alert if the cluster has unused nodes.
+
+
 == `silence`
 
 [horizontal]
@@ -495,8 +711,7 @@ type:: dict
 
 Parameters to configure the silence CronJob.
 
-
-== `silence.silences`
+=== `silence.silences`
 
 [horizontal]
 type:: dict
@@ -521,7 +736,7 @@ Silences removed from the hierarchy stay active in Alertmanager for up to 24h un
 
 Silences all non-SYN alerts by default.
 
-=== `schedule`
+=== `silence.schedule`
 
 [horizontal]
 type:: string
@@ -529,7 +744,7 @@ default:: '0 */4 * * *'
 
 Schedule of the CronJob in cron syntax.
 
-=== `serviceAccountName`
+=== `silence.serviceAccountName`
 
 [horizontal]
 type:: string
@@ -538,7 +753,7 @@ default:: prometheus-k8s
 Name of the service account used when running the silence job.
 The service account must have permission to access the Alertmanager service through its oAuth proxy.
 
-=== `servingCertsCABundleName`
+=== `silence.servingCertsCABundleName`
 
 [horizontal]
 type:: string
@@ -546,14 +761,14 @@ default:: serving-certs-ca-bundle
 
 Name of the config map containing the CA bundle of the Alertmanager service.
 
-=== `jobHistoryLimit`
+=== `silence.jobHistoryLimit`
 
 [horizontal]
 type:: dict
 
 Parameters to configure the numbers of silence job objects to keep.
 
-==== `failed`
+==== `silence.jobHistoryLimitfailed`
 
 [horizontal]
 type:: number
@@ -561,76 +776,13 @@ default:: 3
 
 Number of failed jobs to keep.
 
-==== `successful`
+==== `silence.jobHistoryLimitsuccessful`
 
 [horizontal]
 type:: number
 default:: 3
 
 Number of successful jobs to keep.
-
-== `capacityAlerts`
-
-[horizontal]
-type:: dict
-
-This parameter allows users to enable and configure alerts for capacity management.
-The capacity alerts are enabled by default and can be disabled completely by setting the key `capacityAlerts.enabled` to `false`.
-Predictive alerts are disabled by default and can be enabled individually as shown below by setting `ExpectClusterCpuUsageHigh.enabled` to `true`.
-
-The dictionary will be transformed into a `PrometheusRule` object by the component.
-
-The component provides 10 alerts that are grouped in four groups.
-You can disable or modify each of these alert rules individually.
-The fields in these rules will be added to the final `PrometheusRule`, with the exception of `expr`.
-The `expr` field contains fields which can be used to tune the default alert rule.
-Alternatively the default rule can be completely overwritten by setting the `expr.raw` field (see example below).
-See xref:explanations/resource_management.adoc[Resource Management] for an explanation for every alert rule.
-
-Example:
-
-[source,yaml]
-----
-capacityAlerts:
-  enabled: true <1>
-  groupByNodeLabels: [] <2>
-  groups:
-    PodCapacity:
-      rules:
-        TooManyPods:
-          annotations:
-            message: 'The number of pods is too damn high' <3>
-          for: 3h <4>
-        ExpectTooManyPods:
-          expr: <5>
-            range: '2d'
-            predict: '5*24*60*60'
-
-    ResourceRequests:
-      rules:
-        TooMuchMemoryRequested:
-          enabled: true
-          expr:
-            raw: sum(kube_pod_resource_request{resource="memory"}) > 9000*1024*1024*1024 <6>
-    CpuCapacity:
-      rules:
-        ClusterCpuUsageHigh:
-          enabled: false <7>
-        ExpectClusterCpuUsageHigh:
-          enabled: false <7>
-    UnusedCapacity:
-      rules:
-        ClusterHasUnusedNodes:
-          enabled: false <8>
-----
-<1> Enables capacity alerts
-<2> List of node labels (as they show up in the `kube_node_labels` metric) by which alerts are grouped
-<3> Changes the alert message for the pod capacity alert
-<4> Only alerts for pod capacity if it fires for 3 hours
-<5> Change the pod count prediction to look at the last two days and predict the value in five days
-<6> Completely overrides the default alert rule and alerts if the total memory request is over 9000 GB
-<7> Disables both CPU capacity alert rules
-<8> Disables alert if the cluster has unused nodes.
 
 
 == `rules`
@@ -651,7 +803,7 @@ This field is then merged into the provided value which should be a valid rule d
 See the Prometheus docs for supported configurations for https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/[recording] and https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/[alerting] rules.
 
 
-Example:
+=== Example
 
 [source,yaml]
 ----
@@ -667,26 +819,6 @@ rules:
         severity: devnull
 ----
 
-== Example
-
-[source,yaml]
-----
-defaultConfig:
-  nodeSelector:
-    node-role.kubernetes.io/infra: ''
-configs:
-  prometheusK8s:
-    volumeClaimTemplate:
-      spec:
-        resources:
-          requests:
-            storage: 100Gi
-alerts:
-  ignoreNames:
-    - KubeAPIErrorsHigh
-    - KubeClientErrors
-----
-
 == `secrets`
 
 [horizontal]
@@ -697,35 +829,6 @@ A dict of secrets to create in the namespace.
 The key is the name of the secret, the value is the content of the secret.
 The value must be a dict with a key `stringData` which is a dict of key/value pairs to add to the secret.
 
-== `remoteWriteDefaults`
-
-[horizontal]
-type:: dict
-default::
-+
-[source,yaml]
-----
-remoteWriteDefaults:
-  cluster: {}
-  userWorkload: {}
-----
-example::
-+
-[source,yaml]
-----
-remoteWriteDefaults:
-  cluster:
-    queueConfig:
-      maxShards: 80
-  userWorkload:
-    queueConfig:
-      maxShards: 20
-----
-
-A dict of default remote write configurations for the Prometheus component.
-Those values are merged into each remote write configuration in `configs.prometheusK8s.remoteWrite` and `configsUserWorkload.prometheus.remoteWrite`.
-
-
 == `cronjobs`
 
 [horizontal]
@@ -734,41 +837,27 @@ type:: dict
 A dict of arbitrary cronjobs to create in the `openshift-monitoring` namespace.
 The key is the name of the cronjob and the values are its configuration options as shown below.
 
-=== `schedule`
+=== `cronjobs.schedule`
 
 [horizontal]
 type:: string
 
 Schedule of the CronJob in cron syntax.
 
-=== `script`
+=== `cronjobs.script`
 
 [horizontal]
 type:: string
 
 The script to execute as part of the cronjob.
 
-=== `image`
+=== `cronjobs.image`
 
 [horizontal]
 type:: dict
 default:: `images.oc` from https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[`class/defaults.yml`]
 
-=== `image.image`
-
-[horizontal]
-type:: string
-
-The image used by the cronjob.
-
-=== `image.tag`
-
-[horizontal]
-type:: string
-
-The image tag used by the cronjob.
-
-=== `config`
+=== `cronjobs.config`
 
 [horizontal]
 type:: dict
@@ -794,58 +883,32 @@ cronjobs:
         failedJobsHistoryLimit: 1
 ----
 
-== `customNodeExporter`
 
-This parameter allows users to deploy an additional node-exporter DaemonSet.
-We provide this option, since OpenShift's cluster-monitoring stack currently doesn't allow users to customize the bundled node-exporter DaemonSet.
-
-Currently, the parameter is tailored to allow users to run an additional node-exporter which enables collectors that aren't enabled in the default node exporter.
-
-The configuration is rendered by using the same Jsonnet that's used by the OpenShift cluster-monitoring stack to generate the default node-exporter DaemonSet.
-The component further customizes the resulting manifests to ensure that there's no conflicts between the default node-exporter and the additional node-exporter.
-
-The additional node-exporter is deployed in the namespace indicated by parameter `namespace`.
-By default this is namespace `openshift-monitoring`.
-The component also deploys a `ServiceMonitor` which ensures that the additional node-exporter is scraped by the cluster-monitoring stack's Prometheus.
-
-Users can configure arbitrary recording and alerting rules which use metrics scraped from the additional node-exporter via parameter `rules`.
-
-=== `enabled`
+== `images`
 
 [horizontal]
-type:: bool
-default:: `false`
+type:: dict
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
 
-Whether to deploy the additional node-exporter.
-
-=== `collectors`
-
-[horizontal]
-type:: list
-default:: `["network_route"]`
-
-Which collectors to enable in the additional node-exporter.
-By default, all collectors are disabled.
-Users can remove entries from this list by providing an existing entry prefixed with `~`.
-
-=== `args`
-[horizontal]
-type:: list
-default:: `[]`
+A dict of images to use for the components.
 
 
-Additional command line arguments to pass to the additional node-exporter.
-Please note that specifying `--[no-]collector.<name>` here will break the DaemonSet, since `node-exporter` doesn't support specifying these flags multiple times.
-Users should use parameter `customNodeExporter.collectors` to enable collectors.
+== Example
 
-=== `metricRelabelings`
-
-[horizontal]
-type:: list
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
-
-This parameter allows users to specify the content of field `metricRelabelings` of the `ServiceMonitor` which is created for the additional node-exporter.
-By default, the component drops all metrics except `node_network_route*` metrics for host devices prefixed with `ens`.
-Since this component only applies to OpenShift 4, we know that any node's host interfaces will use device names that are prefixed with `ens`.
-
-Users are encouraged to extend or overwrite this parameter to ensure all the metrics they're interested in are actually scraped by Prometheus.
+[source,yaml]
+----
+defaultConfig:
+  nodeSelector:
+    node-role.kubernetes.io/infra: ''
+configs:
+  prometheusK8s:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 100Gi
+alerts:
+  ignoreNames:
+    - KubeAPIErrorsHigh
+    - KubeClientErrors
+----
