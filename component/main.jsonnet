@@ -96,7 +96,7 @@ local cronjobs = import 'cronjobs.libsonnet';
                   // those fields.
                   std.trace("Not applying default config for '%s'" % field, value),
               config.configs {
-                prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
+                prometheusK8s: patchRemoteWrite(super.prometheusK8s, config.remoteWriteDefaults.cluster),
               }
             ),
           )
@@ -113,7 +113,7 @@ local cronjobs = import 'cronjobs.libsonnet';
           std.mapWithKey(
             function(field, value) config.defaultConfig + com.makeMergeable(value),
             config.configsUserWorkload {
-              prometheus: patchRemoteWrite(super.prometheus, params.remoteWriteDefaults.userWorkload),
+              prometheus: patchRemoteWrite(super.prometheus, config.remoteWriteDefaults.userWorkload),
             }
           )
         ),

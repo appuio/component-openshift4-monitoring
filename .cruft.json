@@ -7,7 +7,7 @@
       "name": "OpenShift4 Monitoring",
       "slug": "openshift4-monitoring",
       "parameter_key": "openshift4_monitoring",
-      "test_cases": "defaults remote-write user-workload-monitoring capacity-alerts-with-node-labels vsphere custom-rules team-routing ovn-kubernetes release-4.16 release-4.17",
+      "test_cases": "defaults legacy remote-write user-workload-monitoring capacity-alerts-with-node-labels vsphere custom-rules team-routing ovn-kubernetes release-4.16 release-4.17",
       "add_lib": "y",
       "add_pp": "n",
       "add_golden": "y",

@@ -60,7 +60,7 @@ local userWorkloadMonitoringConfig = {
 local customNodeExporter = {
   enabled: params.components.customNodeExporter.enabled,
   args: params.components.customNodeExporter.args,
-  collectors: [ 'network_route' ] + com.makeMergeable(params.components.customNodeExporter.collectors),
+  collectors: [ 'network_route' ] + params.components.customNodeExporter.collectors,
   metricRelabelings: [
     // only keep routes for host interfaces (assumes that host interfaces
     // are `ensX` which should hold on RHCOS)
@@ -69,7 +69,7 @@ local customNodeExporter = {
       sourceLabels: [ '__name__', 'device' ],
       regex: 'node_network_route.*;ens.*',
     },
-  ] + com.makeMergeable(params.components.customNodeExporter.metricRelabelings),
+  ] + params.components.customNodeExporter.metricRelabelings,
 };
 
 local capacityAlerts = {
@@ -453,13 +453,14 @@ local silence = {
   },
   nodeSelector: params.defaultNodeSelector,
   silences: {
-    "Silence non syn alerts": {
+    'Silence non syn alerts': {
       matchers: [
         {
           name: 'alertname',
           value: '.+',
           isRegex: true,
-        }, {
+        },
+        {
           name: 'syn',
           value: '',
           isRegex: false,
@@ -508,7 +509,7 @@ local silence = {
     ),
     userWorkload: params.components.userWorkloadMonitoring.remoteWriteDefaults + com.makeMergeable(
       local defaults = std.get(params, 'remoteWriteDefaults', { userWorkload: {} });
-      if std.length(defaults.cluster) > 0 then
+      if std.length(defaults.userWorkload) > 0 then
         std.trace('Parameter `remoteWriteDefaults.userWorkload` is deprecated, please use `components.userWorkloadMonitoring.remoteWriteDefaults`.', defaults.userWorkload)
       else {},
     ),

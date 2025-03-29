@@ -13,6 +13,16 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
+    components:
+      userWorkloadMonitoring:
+        config:
+          prometheus:
+            nodeSelector:
+              appuio.io/dedicated: monitoring
+            tolerations:
+              - key: "appuio.io/dedicated"
+                operator: "Exists"
+                effect: "NoSchedule"
     alerts:
       ignoreUserWorkload:
         - AlertmanagerFailedToSendAlerts
@@ -28,11 +38,3 @@ parameters:
         - PrometheusScrapeBodySizeLimitHit
         - PrometheusScrapeSampleLimitHit
         - PrometheusTargetSyncFailure
-    configsUserWorkload:
-      prometheus:
-        nodeSelector:
-          appuio.io/dedicated: monitoring
-        tolerations:
-          - key: "appuio.io/dedicated"
-            operator: "Exists"
-            effect: "NoSchedule"

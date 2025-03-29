@@ -1,0 +1,54 @@
+apiVersion: v1
+data:
+  config.yaml: |-
+    "alertmanagerMain":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+      "volumeClaimTemplate":
+        "spec":
+          "resources":
+            "requests":
+              "storage": "1Gi"
+    "enableUserWorkload": false
+    "kubeStateMetrics":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "metricsServer":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "monitoringPlugin":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "openshiftStateMetrics":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "prometheusK8s":
+      "externalLabels":
+        "cluster_id": "c-green-test-1234"
+        "cluster_name": "Test Cluster 1234"
+        "tenant_id": "t-silent-test-1234"
+        "tenant_name": "Test Tenant 1234"
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+      "retention": "10d"
+      "volumeClaimTemplate":
+        "spec":
+          "resources":
+            "requests":
+              "storage": "10Gi"
+    "prometheusOperator":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "telemeterClient":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+    "thanosQuerier":
+      "nodeSelector":
+        "node-role.kubernetes.io/infra": ""
+kind: ConfigMap
+metadata:
+  annotations: {}
+  labels:
+    name: cluster-monitoring-config
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring

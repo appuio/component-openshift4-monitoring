@@ -1,0 +1,374 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/part-of: openshift4-monitoring
+  name: appuio-node-exporter
+rules:
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+  - apiGroups:
+      - security.openshift.io
+    resourceNames:
+      - node-exporter
+    resources:
+      - securitycontextconstraints
+    verbs:
+      - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: openshift4-monitoring
+  name: appuio-node-exporter
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: appuio-node-exporter
+subjects:
+  - kind: ServiceAccount
+    name: appuio-node-exporter
+    namespace: openshift-monitoring
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: cluster-monitoring-operator
+    app.kubernetes.io/part-of: openshift4-monitoring
+  name: appuio-node-exporter
+  namespace: openshift-monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: openshift4-monitoring
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/enable-ds-eviction: 'false'
+        kubectl.kubernetes.io/default-container: appuio-node-exporter
+        openshift.io/required-scc: node-exporter
+      labels:
+        app.kubernetes.io/managed-by: cluster-monitoring-operator
+        app.kubernetes.io/part-of: openshift4-monitoring
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - args:
+            - --web.listen-address=127.0.0.1:9199
+            - --path.sysfs=/host/sys
+            - --path.rootfs=/host/root
+            - --path.udev.data=/host/root/run/udev/data
+            - --no-collector.arp
+            - --no-collector.bcache
+            - --no-collector.bonding
+            - --no-collector.btrfs
+            - --no-collector.buddyinfo
+            - --no-collector.cgroups
+            - --no-collector.conntrack
+            - --no-collector.cpu
+            - --no-collector.cpufreq
+            - --no-collector.diskstats
+            - --no-collector.dmi
+            - --no-collector.drbd
+            - --no-collector.drm
+            - --no-collector.edac
+            - --no-collector.entropy
+            - --no-collector.ethtool
+            - --no-collector.fibrechannel
+            - --no-collector.filefd
+            - --no-collector.filesystem
+            - --no-collector.hwmon
+            - --no-collector.infiniband
+            - --no-collector.interrupts
+            - --no-collector.ipvs
+            - --no-collector.ksmd
+            - --no-collector.lnstat
+            - --no-collector.loadavg
+            - --no-collector.logind
+            - --no-collector.mdadm
+            - --no-collector.meminfo
+            - --no-collector.meminfo_numa
+            - --no-collector.mountstats
+            - --no-collector.netclass
+            - --no-collector.netdev
+            - --no-collector.netstat
+            - --no-collector.nfs
+            - --no-collector.nfsd
+            - --no-collector.ntp
+            - --no-collector.nvme
+            - --no-collector.os
+            - --no-collector.perf
+            - --no-collector.powersupplyclass
+            - --no-collector.pressure
+            - --no-collector.processes
+            - --no-collector.rapl
+            - --no-collector.schedstat
+            - --no-collector.selinux
+            - --no-collector.slabinfo
+            - --no-collector.sockstat
+            - --no-collector.softirqs
+            - --no-collector.softnet
+            - --no-collector.stat
+            - --no-collector.supervisord
+            - --no-collector.sysctl
+            - --no-collector.systemd
+            - --no-collector.tapestats
+            - --no-collector.tcpstat
+            - --no-collector.textfile
+            - --no-collector.thermal_zone
+            - --no-collector.time
+            - --no-collector.timex
+            - --no-collector.udp_queues
+            - --no-collector.uname
+            - --no-collector.vmstat
+            - --no-collector.watchdog
+            - --no-collector.wifi
+            - --no-collector.xfs
+            - --no-collector.zfs
+            - --no-collector.zoneinfo
+            - --collector.network_route
+            - --collector.network_route_test
+            - my-arg
+          command:
+            - /bin/sh
+            - -c
+            - |
+              export GOMAXPROCS=4
+              # We don't take CPU affinity into account as the container doesn't have integer CPU requests.
+              # In case of error, fallback to the default value.
+              NUM_CPUS=$(grep -c '^processor' "/proc/cpuinfo" 2>/dev/null || echo "0")
+              if [ "$NUM_CPUS" -lt "$GOMAXPROCS" ]; then
+                export GOMAXPROCS="$NUM_CPUS"
+              fi
+              echo "ts=$(date -Iseconds) num_cpus=$NUM_CPUS gomaxprocs=$GOMAXPROCS"
+              exec /bin/node_exporter "$0" "$@"
+          env:
+            - name: DBUS_SYSTEM_BUS_ADDRESS
+              value: unix:path=/host/root/var/run/dbus/system_bus_socket
+          image: quay.io/prometheus/node-exporter:v1.9.0
+          name: appuio-node-exporter
+          resources:
+            limits:
+              cpu: 250m
+              memory: 180Mi
+            requests:
+              cpu: 8m
+              memory: 32Mi
+          securityContext: {}
+          volumeMounts:
+            - mountPath: /host/sys
+              mountPropagation: HostToContainer
+              name: sys
+              readOnly: true
+            - mountPath: /host/root
+              mountPropagation: HostToContainer
+              name: root
+              readOnly: true
+            - mountPath: /var/node_exporter/textfile
+              name: node-exporter-textfile
+              readOnly: true
+          workingDir: /var/node_exporter/textfile
+        - args:
+            - --secure-listen-address=[$(IP)]:9199
+            - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+            - --upstream=http://127.0.0.1:9199/
+            - --tls-cert-file=/etc/tls/private/tls.crt
+            - --tls-private-key-file=/etc/tls/private/tls.key
+            - --client-ca-file=/etc/tls/client/client-ca.crt
+            - --config-file=/etc/kube-rbac-policy/config.yaml
+          env:
+            - name: IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          image: quay.io/brancz/kube-rbac-proxy:v0.19.0
+          name: kube-rbac-proxy
+          ports:
+            - containerPort: 9199
+              hostPort: 9199
+              name: https
+          resources:
+            requests:
+              cpu: 1m
+              memory: 15Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - mountPath: /etc/tls/private
+              name: node-exporter-tls
+              readOnly: false
+            - mountPath: /etc/tls/client
+              name: metrics-client-ca
+              readOnly: false
+            - mountPath: /etc/kube-rbac-policy
+              name: node-exporter-kube-rbac-proxy-config
+              readOnly: true
+      hostNetwork: true
+      hostPID: true
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - '[[ ! -d /node_exporter/collectors/init ]] || find /node_exporter/collectors/init
+              -perm /111 -type f -exec {} \;'
+          env:
+            - name: TMPDIR
+              value: /tmp
+          image: quay.io/prometheus/node-exporter:v1.9.0
+          name: init-textfile
+          resources:
+            requests:
+              cpu: 1m
+              memory: 1Mi
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /var/node_exporter/textfile
+              name: node-exporter-textfile
+              readOnly: false
+            - mountPath: /var/log/wtmp
+              name: node-exporter-wtmp
+              readOnly: true
+          workingDir: /var/node_exporter/textfile
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical
+      securityContext: {}
+      serviceAccountName: appuio-node-exporter
+      tolerations:
+        - operator: Exists
+      volumes:
+        - hostPath:
+            path: /sys
+          name: sys
+        - hostPath:
+            path: /
+          name: root
+        - emptyDir: {}
+          name: node-exporter-textfile
+        - name: node-exporter-tls
+          secret:
+            secretName: appuio-node-exporter-tls
+        - hostPath:
+            path: /var/log/wtmp
+            type: File
+          name: node-exporter-wtmp
+        - configMap:
+            name: metrics-client-ca
+          name: metrics-client-ca
+        - name: node-exporter-kube-rbac-proxy-config
+          secret:
+            secretName: node-exporter-kube-rbac-proxy-config
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10%
+    type: RollingUpdate
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/part-of: openshift4-monitoring
+  name: node-exporter-kube-rbac-proxy-config
+  namespace: openshift-monitoring
+stringData:
+  config.yaml: |-
+    "authorization":
+      "static":
+      - "path": "/metrics"
+        "resourceRequest": false
+        "user":
+          "name": "system:serviceaccount:openshift-monitoring:prometheus-k8s"
+        "verb": "get"
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    openshift.io/description: Expose the `/metrics` endpoint on port 9199. This port
+      is for internal use, and no other usage is guaranteed.
+    service.beta.openshift.io/serving-cert-secret-name: appuio-node-exporter-tls
+  labels:
+    app.kubernetes.io/part-of: openshift4-monitoring
+  name: appuio-node-exporter
+  namespace: openshift-monitoring
+spec:
+  clusterIP: None
+  ports:
+    - name: https
+      port: 9199
+      targetPort: https
+  selector:
+    app.kubernetes.io/part-of: openshift4-monitoring
+---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/part-of: openshift4-monitoring
+  name: appuio-node-exporter
+  namespace: openshift-monitoring
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: openshift4-monitoring
+    monitoring.openshift.io/collection-profile: full
+  name: appuio-node-exporter
+  namespace: openshift-monitoring
+spec:
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      interval: 15s
+      metricRelabelings:
+        - action: keep
+          regex: node_network_route.*;ens.*
+          sourceLabels:
+            - __name__
+            - device
+      port: https
+      relabelings:
+        - action: replace
+          regex: (.*)
+          replacement: $1
+          sourceLabels:
+            - __meta_kubernetes_pod_node_name
+          targetLabel: instance
+      scheme: https
+      tlsConfig:
+        ca: {}
+        caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+        cert: {}
+        certFile: /etc/prometheus/secrets/metrics-client-certs/tls.crt
+        keyFile: /etc/prometheus/secrets/metrics-client-certs/tls.key
+        serverName: appuio-node-exporter.openshift-monitoring.svc
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: openshift4-monitoring

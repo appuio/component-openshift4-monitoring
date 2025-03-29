@@ -33,6 +33,7 @@ jobs:
       matrix:
         instance:
           - defaults
+          - legacy
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
@@ -57,6 +58,7 @@ jobs:
       matrix:
         instance:
           - defaults
+          - legacy
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels

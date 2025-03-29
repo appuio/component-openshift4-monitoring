@@ -1,4 +1,4 @@
-local config = import 'config.libjsonnet';
+local config = import 'config.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
@@ -100,7 +100,7 @@ local neCollectorArgs = [
   for c in enabledCollectors
 ];
 
-local config = {
+local conf = {
   commonLabels: {
     'app.kubernetes.io/part-of': 'openshift4-monitoring',
   },
@@ -113,7 +113,7 @@ local config = {
   ignoredNetworkDevices:: '^.*$',
 };
 
-local ne = nodeExporter(config) {
+local ne = nodeExporter(conf) {
   // customize node-exporter args. We disable all collectors by default, and
   // only enable the ones requested via component parameters.
   daemonset+: {

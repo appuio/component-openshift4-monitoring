@@ -11,6 +11,69 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
+    components:
+      clusterMonitoring:
+        remoteWriteDefaults:
+          queueConfig:
+            maxShards: 80
+        config:
+          prometheusK8s:
+            remoteWrite:
+              - name: backwards-compatibility
+                queueConfig:
+                  minShards: 5
+            _remoteWrite:
+              example:
+                url: https://prometheus.example.com/api/v1/write
+                headers:
+                  "X-Scope-OrgID": example
+                writeRelabelConfigs:
+                  - sourceLabels: ['syn']
+                    regex: '.+'
+                    action: keep
+                  - timeseries:
+                      - foo_metric_number_one
+                      - foo_metric_number_two
+                      - foo_metric_number_three
+                      - ~foo_metric_number_three
+                    action: keep
+                  - timeseries: []
+                    sourceLabels: ['foo']
+                    action: keep
+                basicAuth:
+                  username:
+                    name: remote-write
+                    key: username
+                  password:
+                    name: remote-write
+                    key: password
+                queueConfig:
+                  maxShards: 70
+      userWorkloadMonitoring:
+        remoteWriteDefaults:
+          queueConfig:
+            maxShards: 20
+        config:
+          prometheus:
+            remoteWrite:
+              - name: backwards-compatibility-user
+            _remoteWrite:
+              example:
+                url: https://user-prometheus.example.com/api/v1/write
+                headers:
+                  "X-Scope-OrgID": customer
+                writeRelabelConfigs:
+                  - sourceLabels: ['customer']
+                    regex: '.+'
+                    action: keep
+                basicAuth:
+                  username:
+                    name: remote-write-user
+                    key: username
+                  password:
+                    name: remote-write-user
+                    key: password
+
     secrets:
       remote-write:
         stringData:
@@ -22,66 +85,3 @@ parameters:
         stringData:
           username: prometheus
           password: prometheus
-
-    remoteWriteDefaults:
-      cluster:
-        queueConfig:
-          maxShards: 80
-      userWorkload:
-        queueConfig:
-          maxShards: 20
-
-    configs:
-      prometheusK8s:
-        remoteWrite:
-          - name: backwards-compatibility
-            queueConfig:
-              minShards: 5
-        _remoteWrite:
-          example:
-            url: https://prometheus.example.com/api/v1/write
-            headers:
-              "X-Scope-OrgID": example
-            writeRelabelConfigs:
-              - sourceLabels: ['syn']
-                regex: '.+'
-                action: keep
-              - timeseries:
-                  - foo_metric_number_one
-                  - foo_metric_number_two
-                  - foo_metric_number_three
-                  - ~foo_metric_number_three
-                action: keep
-              - timeseries: []
-                sourceLabels: ['foo']
-                action: keep
-            basicAuth:
-              username:
-                name: remote-write
-                key: username
-              password:
-                name: remote-write
-                key: password
-            queueConfig:
-              maxShards: 70
-
-    configsUserWorkload:
-      prometheus:
-        remoteWrite:
-          - name: backwards-compatibility-user
-        _remoteWrite:
-          example:
-            url: https://user-prometheus.example.com/api/v1/write
-            headers:
-              "X-Scope-OrgID": customer
-            writeRelabelConfigs:
-              - sourceLabels: ['customer']
-                regex: '.+'
-                action: keep
-            basicAuth:
-              username:
-                name: remote-write-user
-                key: username
-              password:
-                name: remote-write-user
-                key: password

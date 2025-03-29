@@ -1,0 +1,139 @@
+parameters:
+  kapitan:
+    dependencies:
+      - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
+        output_path: vendor/lib/patch-operator.libsonnet
+
+  patch_operator:
+    namespace: syn-patch-operator
+    patch_serviceaccount:
+      name: patch-sa
+
+  openshift4_monitoring:
+    # enable keys
+    enableUserWorkload: false
+    enableAlertmanagerIsolationNetworkPolicy: false
+    enableUserWorkloadAlertmanagerIsolationNetworkPolicy: false
+    # cluster monitoring configuration
+    configs:
+      prometheusK8s:
+        retention: 10d
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 10Gi
+      alertmanagerMain:
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 1Gi
+    # user workload monitoring configuration
+    configsUserWorkload:
+      alertmanager:
+        enabled: true
+        enableAlertmanagerConfig: true
+        volumeClaimTemplate: ${openshift4_monitoring:configs:alertmanagerMain:volumeClaimTemplate}
+      prometheus:
+        retention: 10d
+        volumeClaimTemplate: ${openshift4_monitoring:configs:prometheusK8s:volumeClaimTemplate}
+    # remote write configuration
+    remoteWriteDefaults:
+      cluster:
+        queueConfig:
+          maxShards: 80
+      userWorkload:
+        queueConfig:
+          maxShards: 20
+    # custom node exporter configuration
+    customNodeExporter:
+      enabled: true
+      collectors:
+        - network_route_test
+      args:
+        - my-arg
+
+    capacityAlerts:
+      enabled: true
+      groupByNodeLabels: []
+      groups:
+        PodCapacity:
+          rules:
+            TooManyPods:
+              enabled: true
+              annotations:
+                message: 'Only {{ $value }} more pods can be started.'
+                runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/podcapacity.html#SYN_TooManyPods
+                description: 'The cluster is close to the limit of running pods. The cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
+              for: 30m
+              labels: {}
+              expr:
+                # The alert specific threshold is multiplied by this factor. 1 == one node
+                factor: 1
+            ExpectTooManyPods:
+              enabled: false
+              annotations:
+                message: 'Expected to exceed the threshold of running pods in 3 days'
+                runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/podcapacity.html#SYN_ExpectTooManyPods
+                description: 'The cluster is getting close to the limit of running pods. Soon the cluster might not be able to handle node failures and might not be able to start new pods. Consider adding new nodes.'
+              for: 3h
+              labels: {}
+              expr:
+                # The alert specific threshold is multiplied by this factor. 1 == one node
+                factor: 1
+                # How much of the past to consider for the prediction
+                range: '1d'
+                # How far into the future to predict (in seconds)
+                predict: '3*24*60*60'
+
+    alertManagerConfig:
+      route:
+        group_wait: 0s
+        group_interval: 5s
+        repeat_interval: 10m
+      inhibit_rules:
+        # Don't send warning or info if a critical is already firing
+        - target_match_re:
+            severity: warning|info
+          source_match:
+            severity: critical
+          equal:
+            - namespace
+            - alertname
+        # Don't send info if a warning is already firing
+        - target_match_re:
+            severity: info
+          source_match:
+            severity: warning
+          equal:
+            - namespace
+            - alertname
+
+    alertManagerAutoDiscovery:
+      enabled: true
+      debug_config_map: false
+      team_receiver_format: team_default_%s
+      additional_alert_matchers: []
+      prepend_routes: []
+      append_routes: []
+
+    silence:
+      schedule: '0 */4 * * *'
+      serviceAccountName: prometheus-k8s
+      servingCertsCABundleName: serving-certs-ca-bundle
+      jobHistoryLimit:
+        failed: 3
+        successful: 3
+      nodeSelector:
+        node-role.kubernetes.io/infra: ''
+      silences:
+        "Silence non syn alerts":
+          matchers:
+            - name: alertname
+              value: ".+"
+              isRegex: true
+            - name: syn
+              value: ""
+              isRegex: false
