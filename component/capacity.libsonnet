@@ -1,4 +1,5 @@
 local monitoringOperator = import 'cluster-monitoring-operator/main.jsonnet';
+local config = import 'config.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
@@ -7,7 +8,7 @@ local prom = import 'lib/prom.libsonnet';
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 local customAnnotations = params.alerts.customAnnotations;
-local byLabels = com.renderArray(params.capacityAlerts.groupByNodeLabels);
+local byLabels = com.renderArray(config.capacityAlerts.groupByNodeLabels);
 local defaultAnnotations = {
   syn_component: inv.parameters._instance,
 };
@@ -80,7 +81,7 @@ local podThreshold = maxPerNode('kube_node_status_capacity{resource="pods"}');
 local podCapacity = resourceCapacity('pods');
 local podCount = aggregate(filterWorkerNodes('kubelet_running_pods'));
 
-local getExpr = function(group, rule) params.capacityAlerts.groups[group].rules[rule].expr;
+local getExpr = function(group, rule) config.capacityAlerts.groups[group].rules[rule].expr;
 local unusedReserved = getExpr('UnusedCapacity', 'ClusterHasUnusedNodes').reserved;
 
 local exprMap = {
@@ -159,7 +160,7 @@ local exprMap = {
     spec+: {
       groups: std.filter(function(x) std.length(x.rules) > 0, [
         {
-          local group = params.capacityAlerts.groups[alertGroupName],
+          local group = config.capacityAlerts.groups[alertGroupName],
           name: 'syn-' + alertGroupName,
           rules: [
             group.rules[ruleName] {
@@ -177,7 +178,7 @@ local exprMap = {
             if group.rules[ruleName].enabled
           ],
         }
-        for alertGroupName in std.objectFields(params.capacityAlerts.groups)
+        for alertGroupName in std.objectFields(config.capacityAlerts.groups)
       ]),
     },
   },

@@ -1,9 +1,9 @@
+local config = import 'config.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local po = import 'lib/patch-operator.libsonnet';
 local prom = import 'lib/prom.libsonnet';
-
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
@@ -75,7 +75,7 @@ local cronjobs = import 'cronjobs.libsonnet';
   '00_namespace_labels': ns_patch,
   '01_secrets': secrets,
   '02_aggregated_clusterroles': (import 'aggregated-clusterroles.libsonnet'),
-  [if std.length(params.configs) > 0 then '10_configmap']:
+  [if std.length(config.configs) > 0 then '10_configmap']:
     kube.ConfigMap('cluster-monitoring-config') {
       metadata+: {
         namespace: ns,
@@ -84,18 +84,18 @@ local cronjobs = import 'cronjobs.libsonnet';
         'config.yaml': std.manifestYamlDoc(
           std.prune(
             {
-              enableUserWorkload: params.enableUserWorkload,
+              enableUserWorkload: config.enableUserWorkload,
             } + std.mapWithKey(
               function(field, value)
                 if !std.member([ 'nodeExporter', 'prometheusOperatorAdmissionWebhook' ], field) then
-                  params.defaultConfig + com.makeMergeable(value)
+                  config.defaultConfig + com.makeMergeable(value)
                 else
                   // fields `nodeExporter` and `prometheusOperatorAdmissionWebhook`
                   // don't support field `nodeSelector` which we set in the
                   // default config, so we don't apply the default config for
                   // those fields.
                   std.trace("Not applying default config for '%s'" % field, value),
-              params.configs {
+              config.configs {
                 prometheusK8s: patchRemoteWrite(super.prometheusK8s, params.remoteWriteDefaults.cluster),
               }
             ),
@@ -103,7 +103,7 @@ local cronjobs = import 'cronjobs.libsonnet';
         ),
       },
     },
-  [if params.enableUserWorkload then '10_configmap_user_workload']:
+  [if config.enableUserWorkload then '10_configmap_user_workload']:
     kube.ConfigMap('user-workload-monitoring-config') {
       metadata+: {
         namespace: 'openshift-user-workload-monitoring',
@@ -111,8 +111,8 @@ local cronjobs = import 'cronjobs.libsonnet';
       data: {
         'config.yaml': std.manifestYamlDoc(
           std.mapWithKey(
-            function(field, value) params.defaultConfig + com.makeMergeable(value),
-            params.configsUserWorkload {
+            function(field, value) config.defaultConfig + com.makeMergeable(value),
+            config.configsUserWorkload {
               prometheus: patchRemoteWrite(super.prometheus, params.remoteWriteDefaults.userWorkload),
             }
           )
@@ -125,27 +125,27 @@ local cronjobs = import 'cronjobs.libsonnet';
     },
     stringData: {
       'alertmanager.yaml': std.manifestYamlDoc(
-        if params.alertManagerAutoDiscovery.enabled then
+        if config.alertManagerAutoDiscovery.enabled then
           alertDiscovery.alertmanagerConfig
         else
           // We prune the user-provided config in the alert-discovery
           // implementation. To avoid surprises, we explicitly prune the
           // user-provided config here, if discovery is disabled.
-          std.prune(params.alertManagerConfig)
+          std.prune(config.alertManagerConfig)
       ),
     },
   },
-  [if params.alertManagerAutoDiscovery.enabled && params.alertManagerAutoDiscovery.debug_config_map then '99_discovery_debug_cm']: alertDiscovery.debugConfigMap,
+  [if config.alertManagerAutoDiscovery.enabled && config.alertManagerAutoDiscovery.debug_config_map then '99_discovery_debug_cm']: alertDiscovery.debugConfigMap,
 
-  [if params.enableAlertmanagerIsolationNetworkPolicy then '20_networkpolicy']: std.map(function(p) com.namespaced('openshift-monitoring', p), import 'networkpolicy.libsonnet'),
-  [if params.enableUserWorkload && params.enableUserWorkloadAlertmanagerIsolationNetworkPolicy then '20_user_workload_networkpolicy']: std.map(function(p) com.namespaced('openshift-user-workload-monitoring', p), import 'networkpolicy.libsonnet'),
+  [if config.enableAlertmanagerIsolationNetworkPolicy then '20_networkpolicy']: std.map(function(p) com.namespaced('openshift-monitoring', p), import 'networkpolicy.libsonnet'),
+  [if config.enableUserWorkload && config.enableUserWorkloadAlertmanagerIsolationNetworkPolicy then '20_user_workload_networkpolicy']: std.map(function(p) com.namespaced('openshift-user-workload-monitoring', p), import 'networkpolicy.libsonnet'),
   rbac: import 'rbac.libsonnet',
   prometheus_rules: rules,
   silence: import 'silence.jsonnet',
-  [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
+  [if config.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
   [if std.length(customRules.spec.groups) > 0 then 'custom_rules']: customRules,
   [if std.length(cronjobs.cronjobs) > 0 then 'cronjobs']: cronjobs.cronjobs,
   // TODO: enable flag
-  [if params.customNodeExporter.enabled then 'appuio_node_exporter']:
+  [if config.customNodeExporter.enabled then 'appuio_node_exporter']:
     (import 'custom-node-exporter.libsonnet'),
 }

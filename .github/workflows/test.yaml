@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         instance:
-          - capacity-alerts
+          - defaults
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
@@ -56,7 +56,7 @@ jobs:
     strategy:
       matrix:
         instance:
-          - capacity-alerts
+          - defaults
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels

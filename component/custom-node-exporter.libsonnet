@@ -1,3 +1,4 @@
+local config = import 'config.libjsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
@@ -85,7 +86,7 @@ local neDefaultArgs = [
 local containsStr(pat, str) = std.length(std.findSubstr(pat, str)) > 0;
 
 local enabledCollectors =
-  com.renderArray(params.customNodeExporter.collectors);
+  com.renderArray(config.customNodeExporter.collectors);
 
 local skipDefaultArg(a) = std.foldl(
   function(skip, c) skip || containsStr(c, a),
@@ -134,7 +135,7 @@ local ne = nodeExporter(config) {
                     a
                     for a in neDefaultArgs
                     if !skipDefaultArg(a)
-                  ] + neCollectorArgs + params.customNodeExporter.args,
+                  ] + neCollectorArgs + config.customNodeExporter.args,
                   // fixup `date` call to use busybox compatible option
                   command: std.map(
                     function(cmd)
@@ -176,7 +177,7 @@ local ne = nodeExporter(config) {
     spec+: {
       endpoints: std.map(
         function(ep) ep {
-          metricRelabelings: params.customNodeExporter.metricRelabelings,
+          metricRelabelings: config.customNodeExporter.metricRelabelings,
           tlsConfig: {
             ca: {},
             caFile: '/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt',
