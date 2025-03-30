@@ -1,4 +1,4 @@
-local config = import 'config.libsonnet';
+// main template for openshift4-monitoring
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
@@ -7,6 +7,46 @@ local nodeExporter = import 'github.com/openshift/cluster-monitoring-operator/js
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
+
+local jsonnetConfig = {
+  commonLabels: {
+    'app.kubernetes.io/part-of': 'openshift4-monitoring',
+  },
+  name: 'appuio-node-exporter',
+  namespace: 'openshift-monitoring',
+  version: params.images.node_exporter.tag,
+  port: 9199,
+  image: '%(registry)s/%(repository)s:%(tag)s' % params.images.node_exporter,
+  kubeRbacProxyImage: '%(registry)s/%(repository)s:%(tag)s' % params.images.kube_rbac_proxy,
+  ignoredNetworkDevices:: '^.*$',
+};
+
+// Configuration: Defaults and Legacy
+
+local _defaultsNodeExporter = {
+  enabled: params.components.customNodeExporter.enabled,
+  args: params.components.customNodeExporter.args,
+  collectors: [ 'network_route' ] + params.components.customNodeExporter.collectors,
+  metricRelabelings: [
+    // only keep routes for host interfaces (assumes that host interfaces
+    // are `ensX` which should hold on RHCOS)
+    {
+      action: 'keep',
+      sourceLabels: [ '__name__', 'device' ],
+      regex: 'node_network_route.*;ens.*',
+    },
+  ] + params.components.customNodeExporter.metricRelabelings,
+};
+
+local _legacyNodeExporter = com.makeMergeable(
+  if std.objectHas(params, 'customNodeExporter') then
+    std.trace('Parameter `customNodeExporter` is deprecated, please use `components.customNodeExporter`.', params.customNodeExporter)
+  else {},
+);
+
+local configNodeExporter = _defaultsNodeExporter + _legacyNodeExporter;
+
+// Helpers: Node Exporter
 
 // Disable all collectors by default. Note that this list may need to be
 // updated manually if a new node-exporter release introduces additional
@@ -85,11 +125,10 @@ local neDefaultArgs = [
 
 local containsStr(pat, str) = std.length(std.findSubstr(pat, str)) > 0;
 
-local enabledCollectors =
-  com.renderArray(config.customNodeExporter.collectors);
+local enabledCollectors = com.renderArray(configNodeExporter.collectors);
 
-local skipDefaultArg(a) = std.foldl(
-  function(skip, c) skip || containsStr(c, a),
+local skipDefaultArg(arg) = std.foldl(
+  function(skip, c) skip || containsStr(c, arg),
   enabledCollectors,
   false
 );
@@ -100,20 +139,9 @@ local neCollectorArgs = [
   for c in enabledCollectors
 ];
 
-local conf = {
-  commonLabels: {
-    'app.kubernetes.io/part-of': 'openshift4-monitoring',
-  },
-  name: 'appuio-node-exporter',
-  namespace: params.namespace,
-  version: params.images.node_exporter.tag,
-  port: 9199,
-  image: '%(registry)s/%(repository)s:%(tag)s' % params.images.node_exporter,
-  kubeRbacProxyImage: '%(registry)s/%(repository)s:%(tag)s' % params.images.kube_rbac_proxy,
-  ignoredNetworkDevices:: '^.*$',
-};
+// Manifests
 
-local ne = nodeExporter(conf) {
+local customNodeExporter = nodeExporter(jsonnetConfig) {
   // customize node-exporter args. We disable all collectors by default, and
   // only enable the ones requested via component parameters.
   daemonset+: {
@@ -135,7 +163,7 @@ local ne = nodeExporter(conf) {
                     a
                     for a in neDefaultArgs
                     if !skipDefaultArg(a)
-                  ] + neCollectorArgs + config.customNodeExporter.args,
+                  ] + neCollectorArgs + configNodeExporter.args,
                   // fixup `date` call to use busybox compatible option
                   command: std.map(
                     function(cmd)
@@ -177,7 +205,7 @@ local ne = nodeExporter(conf) {
     spec+: {
       endpoints: std.map(
         function(ep) ep {
-          metricRelabelings: config.customNodeExporter.metricRelabelings,
+          metricRelabelings: configNodeExporter.metricRelabelings,
           tlsConfig: {
             ca: {},
             caFile: '/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt',
@@ -206,4 +234,8 @@ local ne = nodeExporter(conf) {
   prometheusRule:: {},
 };
 
-std.objectValues(ne)
+// Define outputs below
+if configNodeExporter.enabled then
+  {
+    '90_node_exporter': std.objectValues(customNodeExporter),
+  } else {}

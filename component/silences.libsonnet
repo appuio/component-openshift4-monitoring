@@ -1,18 +1,54 @@
-local config = import 'config.libsonnet';
+// main template for openshift4-monitoring
+local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 
-local namespace = {
-  metadata+: {
-    namespace: params.namespace,
+// Configuration
+
+local _defaultsSilences = {
+  schedule: '0 */4 * * *',
+  serviceAccountName: 'prometheus-k8s',
+  servingCertsCABundleName: 'serving-certs-ca-bundle',
+  jobHistoryLimit: {
+    failed: 3,
+    successful: 3,
+  },
+  nodeSelector: params.defaultNodeSelector,
+  silences: {
+    'Silence non syn alerts': {
+      matchers: [
+        {
+          name: 'alertname',
+          value: '.+',
+          isRegex: true,
+        },
+        {
+          name: 'syn',
+          value: '',
+          isRegex: false,
+        },
+      ],
+    },
   },
 };
 
-local cm = kube.ConfigMap('silence') + namespace {
-  local silences = config.silence.silences,
+local configSilences = _defaultsSilences + com.makeMergeable(params.silence);
+
+// Helpers
+
+local namespace = {
+  metadata+: {
+    namespace: 'openshift-monitoring',
+  },
+};
+
+// Manifests
+
+local configMap = kube.ConfigMap('silence') + namespace {
+  local silences = configSilences.silences,
   data: {
     silence: importstr './scripts/silence.sh',
     'silences.json': std.manifestJsonMinified([
@@ -24,16 +60,16 @@ local cm = kube.ConfigMap('silence') + namespace {
 
 local cronJob = kube.CronJob('silence') + namespace {
   spec+: {
-    schedule: config.silence.schedule,
-    failedJobsHistoryLimit: config.silence.jobHistoryLimit.failed,
-    successfulJobsHistoryLimit: config.silence.jobHistoryLimit.successful,
+    schedule: configSilences.schedule,
+    failedJobsHistoryLimit: configSilences.jobHistoryLimit.failed,
+    successfulJobsHistoryLimit: configSilences.jobHistoryLimit.successful,
     jobTemplate+: {
       spec+: {
         template+: {
           spec+: {
-            nodeSelector: config.silence.nodeSelector,
+            nodeSelector: configSilences.nodeSelector,
             restartPolicy: 'Never',
-            serviceAccountName: config.silence.serviceAccountName,
+            serviceAccountName: configSilences.serviceAccountName,
             containers_+: {
               silence: kube.Container('silence') {
                 image: '%(registry)s/%(repository)s:%(tag)s' % params.images.oc,
@@ -41,7 +77,7 @@ local cronJob = kube.CronJob('silence') + namespace {
                 env_+: {
                   SILENCES_JSON: {
                     configMapKeyRef: {
-                      name: cm.metadata.name,
+                      name: configMap.metadata.name,
                       key: 'silences.json',
                     },
                   },
@@ -66,14 +102,14 @@ local cronJob = kube.CronJob('silence') + namespace {
             volumes_+: {
               scripts: {
                 configMap: {
-                  name: cm.metadata.name,
+                  name: configMap.metadata.name,
                   defaultMode: std.parseOctal('0550'),
                 },
               },
               'ca-bundle': {
                 configMap: {
                   defaultMode: std.parseOctal('0440'),
-                  name: config.silence.servingCertsCABundleName,
+                  name: configSilences.servingCertsCABundleName,
                 },
               },
               // we need to explictly configure the projected volume as the
@@ -104,7 +140,7 @@ local cronJob = kube.CronJob('silence') + namespace {
   },
 };
 
-[
-  cm,
-  cronJob,
-]
+// Define outputs below
+{
+  '50_silences': [ configMap, cronJob ],
+}

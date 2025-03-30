@@ -1,9 +1,12 @@
+// main template for openshift4-monitoring
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
+
+// Helpers
 
 local makeCronjob(name, args) =
   local scriptSecret = kube.Secret(name) {
@@ -59,12 +62,16 @@ local makeCronjob(name, args) =
     } + com.makeMergeable(std.get(args, 'config', {})),
   ];
 
+// Manifests
+
 local cronjobs = std.flattenArrays([
   makeCronjob(name, params.cronjobs[name])
   for name in std.objectFields(params.cronjobs)
   if params.cronjobs[name] != null
 ]);
 
-{
-  cronjobs: cronjobs,
-}
+// Define outputs below
+if std.length(cronjobs) > 0 then
+  {
+    '90_cronjobs': cronjobs,
+  } else {}

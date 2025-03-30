@@ -110,7 +110,7 @@ Those values are merged into each remote write configuration in `compnents.clust
 
 [horizontal]
 type:: dictionary
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config_cluster.libsonnet[See `component/config_cluster.libsonnet`]
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[monitoring components].
 
@@ -240,7 +240,7 @@ Those values are merged into each remote write configuration in `compnents.userW
 
 [horizontal]
 type:: dictionary
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config_cluster.libsonnet[See `component/config_cluster.libsonnet`]
 
 A dictionary holding the configurations for the https://docs.openshift.com/container-platform/latest/monitoring/configuring-the-monitoring-stack.html#configuring-the-monitoring-stack_configuring-the-monitoring-stack[user workload monitoring components].
 
@@ -301,7 +301,7 @@ See subsections for supported keys.
 
 [horizontal]
 type:: dictionary
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config_alertmanager.libsonnet[See `component/config_alertmanager.libsonnet`]
 
 A dictionary holding the configuration for the AlertManager.
 
@@ -432,7 +432,7 @@ Whether to deploy the additional node-exporter.
 === `components.customNodeExporter.args`
 [horizontal]
 type:: list
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/node_exporter.libsonnet[See `component/node_exporter.libsonnet`]
 
 
 Additional command line arguments to pass to the additional node-exporter.
@@ -443,7 +443,7 @@ Users should use parameter `customNodeExporter.collectors` to enable collectors.
 
 [horizontal]
 type:: list
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/node_exporter.libsonnet[See `component/node_exporter.libsonnet`]
 
 Which collectors to enable in the additional node-exporter.
 By default, all collectors are disabled.
@@ -473,7 +473,7 @@ Configuration parameters related to influence the resulting alert rules.
 
 [horizontal]
 type:: list
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/rules.libsonnet[See `component/rules.libsonnet`]
 
 List of namespace patterns to use for alerts which have `namespace=~"(openshift-.\*|kube-.*|default)"` in the upstream rule.
 The component generates a regex pattern from the list by concatenating all elements into a large OR-regex.
@@ -551,7 +551,7 @@ This parameter is taken into account in the `filterRules` and `filterPatchRules`
 
 [horizontal]
 type:: list
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/rules.libsonnet[See `component/rules.libsonnet`]
 
 List of alert rule names for which to drop alerts with label `severity: warning`.
 
@@ -564,7 +564,7 @@ In contrast to `ignoreNames`, this parameter is not taken into account in the `f
 
 [horizontal]
 type:: list
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/rules.libsonnet[See `component/rules.libsonnet`]
 
 List of complete alert rule groups to drop.
 
@@ -648,7 +648,7 @@ parameters:
 
 [horizontal]
 type:: dict
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/rules_capacity.libsonnet[See `component/rules_capacity.libsonnet`]
 
 Predictive alerts are disabled by default and can be enabled individually as shown below by setting `ExpectClusterCpuUsageHigh.enabled` to `true`.
 
@@ -888,7 +888,7 @@ cronjobs:
 
 [horizontal]
 type:: dict
-default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/component/config.libsonnet[See `component/config.libsonnet`]
+default:: https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[See `class/defaults.yml`]
 
 A dict of images to use for the components.
 

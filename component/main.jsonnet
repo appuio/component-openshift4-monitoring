@@ -1,25 +1,20 @@
+// main template for openshift4-monitoring
 local config = import 'config.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 local po = import 'lib/patch-operator.libsonnet';
-local prom = import 'lib/prom.libsonnet';
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 
-local rules = import 'rules.jsonnet';
-local capacity = import 'capacity.libsonnet';
-
-local alertDiscovery = import 'alert-routing-discovery.libsonnet';
+// Namespaces
 
 local ns =
   if params.namespace != 'openshift-monitoring' then
     error 'Component openshift4-monitoring does not support values for parameter `namespace` other than "openshift-monitoring".'
   else
     params.namespace;
-
-local secrets = com.generateResources(params.secrets, kube.Secret);
 
 local ns_patch =
   po.Patch(
@@ -36,116 +31,97 @@ local ns_patch =
     }
   );
 
-local transformRelabelConfigs(remoteWriteConfig) = if std.objectHas(remoteWriteConfig, 'writeRelabelConfigs')
-then remoteWriteConfig {
-  writeRelabelConfigs: std.map(
-    function(wrlc) wrlc {
-      timeseries:: [],
-      [if std.objectHas(wrlc, 'timeseries') && std.length(com.renderArray(wrlc.timeseries)) > 0
-      then 'regex']: std.format('(%s)', std.join('|', com.renderArray(wrlc.timeseries))),
-    },
-    remoteWriteConfig.writeRelabelConfigs,
-  ),
+// RBAC
 
-}
-else remoteWriteConfig;
-
-local patchRemoteWrite(promConfig, defaults) = promConfig {
-  _remoteWrite+:: {},
-} + {
-  local rwd = super._remoteWrite,
-  remoteWrite+: std.filterMap(
-    function(name) rwd[name] != null,
-    function(name) transformRelabelConfigs(rwd[name] { name: name }),
-    std.objectFields(rwd)
-  ),
-} + {
-  remoteWrite: std.map(
-    function(rw) defaults + com.makeMergeable(rw),
-    super.remoteWrite,
-  ),
-};
-
-local customRules =
-  prom.generateRules('custom-rules', params.rules);
-
-local cronjobs = import 'cronjobs.libsonnet';
-
-{
-  '00_namespace_labels': ns_patch,
-  '01_secrets': secrets,
-  '02_aggregated_clusterroles': (import 'aggregated-clusterroles.libsonnet'),
-  [if std.length(config.configs) > 0 then '10_configmap']:
-    kube.ConfigMap('cluster-monitoring-config') {
-      metadata+: {
-        namespace: ns,
-      },
-      data: {
-        'config.yaml': std.manifestYamlDoc(
-          std.prune(
-            {
-              enableUserWorkload: config.enableUserWorkload,
-            } + std.mapWithKey(
-              function(field, value)
-                if !std.member([ 'nodeExporter', 'prometheusOperatorAdmissionWebhook' ], field) then
-                  config.defaultConfig + com.makeMergeable(value)
-                else
-                  // fields `nodeExporter` and `prometheusOperatorAdmissionWebhook`
-                  // don't support field `nodeSelector` which we set in the
-                  // default config, so we don't apply the default config for
-                  // those fields.
-                  std.trace("Not applying default config for '%s'" % field, value),
-              config.configs {
-                prometheusK8s: patchRemoteWrite(super.prometheusK8s, config.remoteWriteDefaults.cluster),
-              }
-            ),
-          )
-        ),
-      },
-    },
-  [if config.enableUserWorkload then '10_configmap_user_workload']:
-    kube.ConfigMap('user-workload-monitoring-config') {
-      metadata+: {
-        namespace: 'openshift-user-workload-monitoring',
-      },
-      data: {
-        'config.yaml': std.manifestYamlDoc(
-          std.mapWithKey(
-            function(field, value) config.defaultConfig + com.makeMergeable(value),
-            config.configsUserWorkload {
-              prometheus: patchRemoteWrite(super.prometheus, config.remoteWriteDefaults.userWorkload),
-            }
-          )
-        ),
-      },
-    },
-  '10_alertmanager_config': kube.Secret('alertmanager-main') {
-    metadata+: {
-      namespace: ns,
-    },
-    stringData: {
-      'alertmanager.yaml': std.manifestYamlDoc(
-        if config.alertManagerAutoDiscovery.enabled then
-          alertDiscovery.alertmanagerConfig
-        else
-          // We prune the user-provided config in the alert-discovery
-          // implementation. To avoid surprises, we explicitly prune the
-          // user-provided config here, if discovery is disabled.
-          std.prune(config.alertManagerConfig)
-      ),
+local rbacAggregatedClusterRole = kube.ClusterRole('syn-openshift4-monitoring-cluster-reader') {
+  metadata+: {
+    labels+: {
+      'rbac.authorization.k8s.io/aggregate-to-cluster-reader': 'true',
     },
   },
-  [if config.alertManagerAutoDiscovery.enabled && config.alertManagerAutoDiscovery.debug_config_map then '99_discovery_debug_cm']: alertDiscovery.debugConfigMap,
+  rules: [
+    {
+      apiGroups: [ 'monitoring.coreos.com' ],
+      resources: [ '*' ],
+      verbs: [
+        'get',
+        'list',
+        'watch',
+      ],
+    },
+  ],
+};
 
-  [if config.enableAlertmanagerIsolationNetworkPolicy then '20_networkpolicy']: std.map(function(p) com.namespaced('openshift-monitoring', p), import 'networkpolicy.libsonnet'),
-  [if config.enableUserWorkload && config.enableUserWorkloadAlertmanagerIsolationNetworkPolicy then '20_user_workload_networkpolicy']: std.map(function(p) com.namespaced('openshift-user-workload-monitoring', p), import 'networkpolicy.libsonnet'),
-  rbac: import 'rbac.libsonnet',
-  prometheus_rules: rules,
-  silence: import 'silence.jsonnet',
-  [if config.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
-  [if std.length(customRules.spec.groups) > 0 then 'custom_rules']: customRules,
-  [if std.length(cronjobs.cronjobs) > 0 then 'cronjobs']: cronjobs.cronjobs,
-  // TODO: enable flag
-  [if config.customNodeExporter.enabled then 'appuio_node_exporter']:
-    (import 'custom-node-exporter.libsonnet'),
+/*
+* Allows Prometheus auto-discovery.
+* Adds the recommended permissions from https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/rbac.md#prometheus-rbac
+*/
+local rbacDiscoveryRole = kube.ClusterRole('syn-prometheus-auto-discovery') {
+  metadata+: {
+    annotations+: {
+      syn_component: inv.parameters._instance,
+    },
+  },
+  rules: [
+    {
+      apiGroups: [
+        '',
+      ],
+      resources: [
+        'pods',
+        'services',
+        'endpoints',
+      ],
+      verbs: [
+        'get',
+        'list',
+        'watch',
+      ],
+    },
+    {
+      apiGroups: [
+        'networking.k8s.io',
+      ],
+      resources: [
+        'ingresses',
+      ],
+      verbs: [
+        'get',
+        'list',
+        'watch',
+      ],
+    },
+  ],
+};
+
+local rbacDiscoveryBinding = kube.ClusterRoleBinding('syn-prometheus-auto-discovery') {
+  metadata+: {
+    annotations+: {
+      syn_component: inv.parameters._instance,
+    },
+  },
+  roleRef_: rbacDiscoveryRole,
+  subjects: [
+    {
+      kind: 'ServiceAccount',
+      name: 'prometheus-k8s',
+      namespace: 'openshift-monitoring',
+    },
+  ],
+};
+
+// Define outputs below
+{
+  '00_namespace_labels': ns_patch,
+  '10_rbac_aggregated': rbacAggregatedClusterRole,
+  '10_rbac_discovery': [ rbacDiscoveryRole, rbacDiscoveryBinding ],
+  '10_secrets': com.generateResources(params.secrets, kube.Secret),
 }
++ (import 'config_cluster.libsonnet')
++ (import 'config_alertmanager.libsonnet')
++ (import 'networkpolicy.libsonnet')
++ (import 'rules.libsonnet')
++ (import 'rules_capacity.libsonnet')
++ (import 'silences.libsonnet')
++ (import 'cronjobs.libsonnet')
++ (import 'node_exporter.libsonnet')
