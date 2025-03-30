@@ -43,37 +43,6 @@ parameters:
         instances:
           - no-ns-team
 
-  openshift4_monitoring:
-    alertManagerConfig:
-      receivers:
-        - name: foo
-          opsgenie_configs:
-            - source: null
-      route:
-        routes:
-          - receiver: other
-            matchers:
-              - other = "true"
-    alertManagerAutoDiscovery:
-      debug_config_map: true
-      team_receiver_format: team_default_%s
-      additional_alert_matchers:
-        - 'syn_team = ""'
-      prepend_routes:
-        - matchers:
-            - alertname = Watchdog
-          repeat_interval: 60s
-          receiver: heartbeat
-
-    rules:
-      my-rules:
-        "alert:MyAlert":
-          expr: 'vector(1)'
-          labels:
-            syn_team: yet_another_team
-        "alert:NoLabels":
-          expr: 'vector(1)'
-
   no_ns: {}
 
   ns_string:
@@ -96,3 +65,36 @@ parameters:
 
   same_ns_2:
     namespace: same-ns
+
+  openshift4_monitoring:
+    components:
+      alertManager:
+        config:
+          receivers:
+            - name: foo
+              opsgenie_configs:
+                - source: null
+          route:
+            routes:
+              - receiver: other
+                matchers:
+                  - other = "true"
+      alertManagerAutoDiscovery:
+        debugConfigMap: true
+        teamReceiverFormat: team_default_%s
+        additionalAlertMatchers:
+          - 'syn_team = ""'
+        prependRoutes:
+          - matchers:
+              - alertname = Watchdog
+            repeat_interval: 60s
+            receiver: heartbeat
+
+    rules:
+      my-rules:
+        "alert:MyAlert":
+          expr: 'vector(1)'
+          labels:
+            syn_team: yet_another_team
+        "alert:NoLabels":
+          expr: 'vector(1)'

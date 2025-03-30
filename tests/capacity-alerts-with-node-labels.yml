@@ -11,8 +11,9 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
-    capacityAlerts:
-      enabled: true
-      groupByNodeLabels:
-        - label_appuio_io_node_class
-        - label_kubernetes_io_os
+    components:
+      capacityAlerts:
+        enabled: true
+        groupByNodeLabels:
+          - label_appuio_io_node_class
+          - label_kubernetes_io_os

@@ -1,9 +1,135 @@
+// main template for openshift4-monitoring
 local monitoringOperator = import 'cluster-monitoring-operator/main.jsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
+local prom = import 'lib/prom.libsonnet';
+
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
-local customAnnotations = params.alerts.customAnnotations;
+
+// Configuration
+
+local _defaultsAlerts = {
+  includeNamespaces: [
+    'appuio.*',
+    'cilium',
+    'default',
+    'kube-.*',
+    'openshift-.*',
+    'syn.*',
+  ],
+  ignoreNames: [
+    'AlertmanagerReceiversNotConfigured',
+    'CannotRetrieveUpdates',
+    'ClusterProxyApplySlow',
+    'ConfigReloaderSidecarErrors',
+    'FailingOperator',
+    'GarbageCollectorSyncFailed',
+    'ImageRegistryStorageReconfigured',
+    'IngressWithoutClassName',
+    'KubeCPUOvercommit',
+    'KubeCPUQuotaOvercommit',
+    'KubeHpaMaxedOut',
+    'KubeHpaReplicasMismatch',
+    'KubeMemoryOvercommit',
+    'KubeMemoryQuotaOvercommit',
+    'KubeQuotaExceeded',
+    'KubeStateMetricsListErrors',
+    'NodeRAIDDegraded',
+    'NodeRAIDDiskFailure',
+    'NodeSystemSaturation',
+    'NodeTextFileCollectorScrapeError',
+    'PrometheusOperatorListErrors',
+    'PrometheusOperatorNodeLookupErrors',
+    'SchedulerLegacyPolicySet',
+    'TechPreviewNoUpgrade',
+    'ThanosQueryGrpcClientErrorRate',
+    'ThanosQueryGrpcServerErrorRate',
+    'ThanosQueryHighDNSFailures',
+    'ThanosRuleAlertmanagerHighDNSFailures',
+    'ThanosRuleQueryHighDNSFailures',
+    'node_cpu_load5',
+  ],
+  ignoreWarnings: [
+    'ExtremelyHighIndividualControlPlaneCPU',
+    'MachineConfigControllerPausedPoolKubeletCA',
+    'NodeClockNotSynchronising',
+    'NodeFileDescriptorLimit',
+    'NodeFilesystemAlmostOutOfFiles',
+    'NodeFilesystemAlmostOutOfSpace',
+    'NodeFilesystemFilesFillingUp',
+    'ThanosRuleRuleEvaluationLatencyHigh',
+    'etcdDatabaseHighFragmentationRatio',
+    'etcdExcessiveDatabaseGrowth',
+    'etcdHighCommitDurations',
+    'etcdHighFsyncDurations',
+    'etcdHighNumberOfFailedGRPCRequests',
+    'etcdMemberCommunicationSlow',
+  ],
+  ignoreGroups: [
+    'CloudCredentialOperator',
+    'SamplesOperator',
+    'kube-apiserver-slos-basic',
+  ],
+  patchRules: {
+    // rules patched in '*' will be applied regardless of the value of
+    // parameter `manifests_version`.
+    '*': {
+      HighOverallControlPlaneMemory: {
+        annotations: {
+          description: |||
+            The overall memory usage is high.
+            kube-apiserver and etcd might be slow to respond.
+            To fix this, increase memory of the control plane nodes.
+
+            This alert was adjusted to be less sensitive in 4.11.
+            Newer Go versions use more memory, if available, to reduce GC pauses.
+
+            Old memory behavior can be restored by setting `GOGC=63`.
+            See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
+          |||,
+        },
+        expr: |||
+          (
+            1
+            -
+            sum (
+              node_memory_MemFree_bytes
+              + node_memory_Buffers_bytes
+              + node_memory_Cached_bytes
+              AND on (instance)
+              label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+            ) / sum (
+              node_memory_MemTotal_bytes
+              AND on (instance)
+              label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+            )
+          ) * 100 > 80
+        |||,
+      },
+      PrometheusRemoteWriteBehind: {
+        annotations: {
+          runbook_url: 'https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html',
+        },
+      },
+      PrometheusRemoteWriteDesiredShards: {
+        annotations: {
+          runbook_url: 'https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html',
+        },
+      },
+      NodeMemoryMajorPagesFaults: {
+        // Only alert for >100*cores major page faults/node instead of >500/node
+        expr: 'rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance) (count by (instance) (node_cpu_info{}) * 100)',
+      },
+    },
+  },
+};
+
+local configAlerts = _defaultsAlerts + com.makeMergeable(params.alerts);
+
+// Helpers
+
+local customAnnotations = configAlerts.customAnnotations;
 local defaultAnnotations = {
   syn_component: inv.parameters._instance,
 };
@@ -135,8 +261,7 @@ local additionalRules = {
       function(obj)
         if com.getValueOrDefault(obj, 'kind', '') == 'PrometheusRule' then
           // handle case for empty PrometheusRule objects
-          local groups =
-            com.getValueOrDefault(obj, 'spec', { groups: [] }).groups;
+          local groups = com.getValueOrDefault(obj, 'spec', { groups: [] }).groups;
           simpleRenderGoTemplate(groups)
         else if std.objectHas(obj, 'groups') then
           obj.groups
@@ -150,7 +275,7 @@ local additionalRules = {
 local filterRules = {
   spec+: {
     groups: [
-      alertpatching.filterRules(group, params.alerts.ignoreNames)
+      alertpatching.filterRules(group, configAlerts.ignoreNames)
       for group in super.groups
     ],
   },
@@ -181,10 +306,10 @@ local annotateRules = {
 };
 
 local renderedNamespaceSelector =
-  std.join('|', com.renderArray(params.alerts.includeNamespaces));
+  std.join('|', com.renderArray(configAlerts.includeNamespaces));
 
 local renderedExcludesSelector =
-  std.join('|', com.renderArray(params.alerts.excludeNamespaces));
+  std.join('|', com.renderArray(configAlerts.excludeNamespaces));
 
 local renderedSelector =
   local hasNsSel = std.length(renderedNamespaceSelector) > 0;
@@ -210,9 +335,9 @@ local patchExpr(expr) =
   );
 
 local rulePatches =
-  std.get(params.alerts.patchRules, '*', {}) +
+  std.get(configAlerts.patchRules, '*', {}) +
   com.makeMergeable(std.get(
-    params.alerts.patchRules,
+    configAlerts.patchRules,
     params.manifests_version,
     {}
   ));
@@ -245,7 +370,7 @@ local patchRules = {
 
 local patchPrometheusStackRules =
   local ignoreUserWorkload =
-    com.renderArray(params.alerts.ignoreUserWorkload);
+    com.renderArray(configAlerts.ignoreUserWorkload);
   local dropUserWorkload(alertname) = std.member(ignoreUserWorkload, alertname);
 
   local replacers = [
@@ -335,7 +460,7 @@ local dropRules =
     (
       std.get(rule.labels, 'severity', '') == 'warning' &&
       std.member(
-        com.renderArray(params.alerts.ignoreWarnings),
+        com.renderArray(configAlerts.ignoreWarnings),
         std.get(rule, 'alert', '')
       )
     );
@@ -346,7 +471,7 @@ local dropRules =
           rules: std.filter(function(rule) !drop(rule), super.rules),
         }
         for group in super.groups
-        if !std.member(com.renderArray(params.alerts.ignoreGroups), group.name)
+        if !std.member(com.renderArray(configAlerts.ignoreGroups), group.name)
       ],
     },
   };
@@ -370,7 +495,9 @@ local rules =
     {},
   );
 
-{
+// Manifests
+
+local alerts = {
   apiVersion: 'monitoring.coreos.com/v1',
   kind: 'PrometheusRule',
   metadata: {
@@ -405,4 +532,12 @@ local rules =
         ]
       ),
   },
+};
+
+local customRules = prom.generateRules('custom-rules', params.rules);
+
+// Define outputs below
+{
+  '40_rules': alerts,
+  [if std.length(params.rules) > 0 then '40_rules_custom']: customRules,
 }

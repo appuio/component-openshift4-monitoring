@@ -1,13 +1,15 @@
+// main template for openshift4-monitoring
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
 
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
+local hasCilium = std.member(inv.applications, 'cilium');
 
-local cilium_cluster = std.member(inv.applications, 'cilium');
+// Policies
 
-[
+local policies = [
   kube.NetworkPolicy('alertmanager-allow-web') {
     spec: {
       podSelector: {
@@ -84,7 +86,7 @@ local cilium_cluster = std.member(inv.applications, 'cilium');
       },
     },
   },
-] + if cilium_cluster then [
+] + if hasCilium then [
   // allow all traffic from the cluster nodes, so that the HAproxy ingress can
   // do healthchecks for routes in the openshift-monitoring namespace.
   {
@@ -112,4 +114,27 @@ local cilium_cluster = std.member(inv.applications, 'cilium');
       ],
     },
   },
-] else []
+] else [];
+
+// Manifests
+
+local clusterMonitoring = std.map(function(p) com.namespaced('openshift-monitoring', p), policies);
+local userWorkload = std.map(function(p) com.namespaced('openshift-user-workload-monitoring', p), policies);
+
+local clusterAlertmanagerIsolationEnabled =
+  if std.objectHas(params, 'enableAlertmanagerIsolationNetworkPolicy') then
+    std.trace('Parameter `enableAlertmanagerIsolationNetworkPolicy` is deprecated, please use `components.clusterMonitoring.alertmanagerIsolationEnabled`.', params.enableAlertmanagerIsolationNetworkPolicy)
+  else
+    params.components.clusterMonitoring.alertmanagerIsolationEnabled;
+
+local userWorkloadAlertmanagerIsolationEnabled =
+  if std.objectHas(params, 'enableUserWorkloadAlertmanagerIsolationNetworkPolicy') then
+    std.trace('Parameter `enableUserWorkloadAlertmanagerIsolationNetworkPolicy` is deprecated, please use `components.userWorkloadMonitoring.alertmanagerIsolationEnabled`.', params.enableUserWorkloadAlertmanagerIsolationNetworkPolicy)
+  else
+    params.components.userWorkloadMonitoring.alertmanagerIsolationEnabled;
+
+// Define outputs below
+{
+  [if clusterAlertmanagerIsolationEnabled then '30_netpol_cluster_monitoring']: clusterMonitoring,
+  [if userWorkloadAlertmanagerIsolationEnabled then '30_netpol_user_workload']: userWorkload,
+}

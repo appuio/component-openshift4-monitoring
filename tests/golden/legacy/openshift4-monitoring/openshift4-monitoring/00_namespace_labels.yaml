@@ -1,0 +1,23 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: Patch
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  labels:
+    name: namespace-openshift-monitoring-c4273dc15ddfdf7
+  name: namespace-openshift-monitoring-c4273dc15ddfdf7
+  namespace: syn-patch-operator
+spec:
+  patches:
+    namespace-openshift-monitoring-c4273dc15ddfdf7-patch:
+      patchTemplate: |-
+        "metadata":
+          "labels":
+            "network.openshift.io/policy-group": "monitoring"
+      patchType: application/strategic-merge-patch+json
+      targetObjectRef:
+        apiVersion: v1
+        kind: Namespace
+        name: openshift-monitoring
+  serviceAccountRef:
+    name: patch-sa

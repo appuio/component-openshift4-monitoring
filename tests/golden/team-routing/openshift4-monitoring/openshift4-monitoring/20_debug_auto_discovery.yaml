@@ -114,3 +114,4 @@ metadata:
   labels:
     name: discovery-debug
   name: discovery-debug
+  namespace: openshift-monitoring

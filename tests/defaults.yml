@@ -9,7 +9,3 @@ parameters:
     namespace: syn-patch-operator
     patch_serviceaccount:
       name: patch-sa
-
-  openshift4_monitoring:
-    capacityAlerts:
-      enabled: true
