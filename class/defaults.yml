@@ -236,7 +236,7 @@ parameters:
       node_exporter:
         registry: quay.io
         repository: prometheus/node-exporter
-        tag: v1.9.0
+        tag: v1.9.1
       kube_rbac_proxy:
         registry: quay.io
         repository: brancz/kube-rbac-proxy
