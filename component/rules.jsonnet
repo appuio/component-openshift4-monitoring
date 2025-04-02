@@ -1,9 +1,10 @@
 local monitoringOperator = import 'cluster-monitoring-operator/main.jsonnet';
+local config = import 'config.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
-local customAnnotations = params.alerts.customAnnotations;
+local customAnnotations = config.alerts.customAnnotations;
 local defaultAnnotations = {
   syn_component: inv.parameters._instance,
 };
@@ -150,7 +151,7 @@ local additionalRules = {
 local filterRules = {
   spec+: {
     groups: [
-      alertpatching.filterRules(group, params.alerts.ignoreNames)
+      alertpatching.filterRules(group, config.alerts.ignoreNames)
       for group in super.groups
     ],
   },
@@ -181,10 +182,10 @@ local annotateRules = {
 };
 
 local renderedNamespaceSelector =
-  std.join('|', com.renderArray(params.alerts.includeNamespaces));
+  std.join('|', com.renderArray(config.alerts.includeNamespaces));
 
 local renderedExcludesSelector =
-  std.join('|', com.renderArray(params.alerts.excludeNamespaces));
+  std.join('|', com.renderArray(config.alerts.excludeNamespaces));
 
 local renderedSelector =
   local hasNsSel = std.length(renderedNamespaceSelector) > 0;
@@ -210,9 +211,9 @@ local patchExpr(expr) =
   );
 
 local rulePatches =
-  std.get(params.alerts.patchRules, '*', {}) +
+  std.get(config.alerts.patchRules, '*', {}) +
   com.makeMergeable(std.get(
-    params.alerts.patchRules,
+    config.alerts.patchRules,
     params.manifests_version,
     {}
   ));
@@ -245,7 +246,7 @@ local patchRules = {
 
 local patchPrometheusStackRules =
   local ignoreUserWorkload =
-    com.renderArray(params.alerts.ignoreUserWorkload);
+    com.renderArray(config.alerts.ignoreUserWorkload);
   local dropUserWorkload(alertname) = std.member(ignoreUserWorkload, alertname);
 
   local replacers = [
@@ -335,7 +336,7 @@ local dropRules =
     (
       std.get(rule.labels, 'severity', '') == 'warning' &&
       std.member(
-        com.renderArray(params.alerts.ignoreWarnings),
+        com.renderArray(config.alerts.ignoreWarnings),
         std.get(rule, 'alert', '')
       )
     );
@@ -346,7 +347,7 @@ local dropRules =
           rules: std.filter(function(rule) !drop(rule), super.rules),
         }
         for group in super.groups
-        if !std.member(com.renderArray(params.alerts.ignoreGroups), group.name)
+        if !std.member(com.renderArray(config.alerts.ignoreGroups), group.name)
       ],
     },
   };

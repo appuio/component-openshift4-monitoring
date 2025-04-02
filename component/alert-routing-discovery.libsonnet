@@ -1,3 +1,4 @@
+local config = import 'config.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
@@ -7,7 +8,7 @@ local syn_teams = import 'syn/syn-teams.libsonnet';
 local inv = kap.inventory();
 local params = inv.parameters;
 
-local adParams = params.openshift4_monitoring.alertManagerAutoDiscovery;
+local adParams = config.alertManagerAutoDiscovery;
 
 local nullReceiver = '__component_openshift4_monitoring_null';
 
@@ -78,8 +79,8 @@ local teamBasedRouting = std.map(
 } ];
 
 local alertmanagerConfig =
-  local routes = std.get(params.openshift4_monitoring.alertManagerConfig.route, 'routes', []);
-  std.prune(params.openshift4_monitoring.alertManagerConfig) {
+  local routes = std.get(config.alertManagerConfig.route, 'routes', []);
+  std.prune(config.alertManagerConfig) {
     receivers+: [ { name: nullReceiver } ],
     route+: {
       routes: adParams.prepend_routes + teamBasedRouting + adParams.append_routes + routes + if ownerOrFallbackTeam != null then [ {

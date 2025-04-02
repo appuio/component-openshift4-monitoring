@@ -15,12 +15,14 @@ parameters:
 
     # Validate that we don't inject the default nodeSelector for the fields
     # that don't support it.
-    configs:
-      prometheusOperatorAdmissionWebhook: {}
-      nodeExporter: {}
+    components:
+      clusterMonitoring:
+        config:
+          prometheusOperatorAdmissionWebhook: {}
+          nodeExporter: {}
 
-    customNodeExporter:
-      enabled: true
+      customNodeExporter:
+        enabled: true
 
     alerts:
       excludeNamespaces:

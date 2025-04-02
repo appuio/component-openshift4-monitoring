@@ -24,7 +24,9 @@ Include the template in the cluster YAML:
 ----
 parameters:
   openshift4_monitoring:
-    alertManagerConfig: ${opsgenie:template}
+    components:
+      alertmanager:
+        config: ${opsgenie:template}
 ----
 
 And that's it!
@@ -72,9 +74,11 @@ For the global API key you'll want to reference the Vault secret holding the API
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    global:
-      opsgenie_api_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/api-key}
+  components:
+    alertManager:
+      config:
+        global:
+          opsgenie_api_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/api-key}
 ----
 
 Next, we need to configure the OpsGenie receiver.
@@ -99,15 +103,17 @@ curl -H "Authorization: GenieKey $OPSGENIE_REST_API_KEY" "https://api.opsgenie.c
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    receivers:
-      - name: opsgenie
-        opsgenie_configs:
-          - responders:
-              - id: <team-uuid>
-                type: team
-    route:
-      receiver: opsgenie
+  components:
+    alertManager:
+      config:
+        receivers:
+          - name: opsgenie
+            opsgenie_configs:
+              - responders:
+                  - id: <team-uuid>
+                    type: team
+        route:
+          receiver: opsgenie
 ----
 
 Additionally, we configure a number of things to make use of Project Syn and Openshift4 conventions in the alerts which are created in OpsGenie.
@@ -124,12 +130,14 @@ All alerts in a cluster's Alertmanager will have the same value for `tenant_id` 
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    route:
-      group_by:
-        - alertname
-        - namespace
-        - severity
+  components:
+    alertManager:
+      config:
+        route:
+          group_by:
+            - alertname
+            - namespace
+            - severity
 ----
 
 First we want to map the alert group's `severity` label to an OpsGenie priority.
@@ -140,11 +148,13 @@ To achieve this mapping we add the following configuration in the OpsGenie recei
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    receivers:
-      - name: opsgenie
-        opsgenie_configs:
-          - priority: '{{ if eq .GroupLabels.severity "critical" }}P1{{ else if eq .GroupLabels.severity "warning" }}P2{{ else if eq .GroupLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+  components:
+    alertManager:
+      config:
+        receivers:
+          - name: opsgenie
+            opsgenie_configs:
+              - priority: '{{ if eq .GroupLabels.severity "critical" }}P1{{ else if eq .GroupLabels.severity "warning" }}P2{{ else if eq .GroupLabels.severity "info" }}P3{{ else }}P4{{ end }}'
 ----
 
 Next, we want to have a title for the OpsGenie alerts which gives some Project Syn information at a glance (tenant and cluster):
@@ -152,11 +162,13 @@ Next, we want to have a title for the OpsGenie alerts which gives some Project S
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    receivers:
-      - name: opsgenie
-        opsgenie_configs:
-          - message: '[{{ .CommonLabels.tenant_id }}/{{ .CommonLabels.cluster_id }}] {{ .GroupLabels.alertname }} in {{ .GroupLabels.namespace }}'
+  components:
+    alertManager:
+      config:
+        receivers:
+          - name: opsgenie
+            opsgenie_configs:
+              - message: '[{{ .CommonLabels.tenant_id }}/{{ .CommonLabels.cluster_id }}] {{ .GroupLabels.alertname }} in {{ .GroupLabels.namespace }}'
 ----
 
 Because the https://github.com/prometheus/alertmanager/blob/master/template/default.tmpl[default Alertmanager template] for OpsGenie alert descriptions doesn't fully match our use case, we deploy a custom template for the alert description.
@@ -164,33 +176,35 @@ Because the https://github.com/prometheus/alertmanager/blob/master/template/defa
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    receivers:
-      - name: opsgenie
-        opsgenie_configs:
-          - description: |-
-              {{ if gt (len .Alerts.Firing) 0 -}}
-              Alerts Firing:
-              {{ range .Alerts.Firing }}
-               - Message: {{ .Annotations.message }}
-                 Labels:
-              {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-              {{ end }}   Annotations:
-              {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-              {{ end }}   Source: {{ .GeneratorURL }}
-              {{ end }}
-              {{- end }}
-              {{ if gt (len .Alerts.Resolved) 0 -}}
-              Alerts Resolved:
-              {{ range .Alerts.Resolved }}
-               - Message: {{ .Annotations.message }}
-                 Labels:
-              {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-              {{ end }}   Annotations:
-              {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-              {{ end }}   Source: {{ .GeneratorURL }}
-              {{ end }}
-              {{- end }}
+  components:
+    alertManager:
+      config:
+        receivers:
+          - name: opsgenie
+            opsgenie_configs:
+              - description: |-
+                  {{ if gt (len .Alerts.Firing) 0 -}}
+                  Alerts Firing:
+                  {{ range .Alerts.Firing }}
+                  - Message: {{ .Annotations.message }}
+                    Labels:
+                  {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Annotations:
+                  {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Source: {{ .GeneratorURL }}
+                  {{ end }}
+                  {{- end }}
+                  {{ if gt (len .Alerts.Resolved) 0 -}}
+                  Alerts Resolved:
+                  {{ range .Alerts.Resolved }}
+                  - Message: {{ .Annotations.message }}
+                    Labels:
+                  {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Annotations:
+                  {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Source: {{ .GeneratorURL }}
+                  {{ end }}
+                  {{- end }}
 ----
 
 To make alerts filterable, we add a number of key-value pairs as `details` and a number of values as `tags`.
@@ -206,24 +220,26 @@ As of 2021–02–24, there's no Alertmanager release which contains this change
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    receivers:
-      - name: opsgenie
-        opsgenie_configs:
-          - details:
-              namespace: '{{- if .CommonLabels.exported_namespace -}}{{- .CommonLabels.exported_namespace -}}{{- else if .CommonLabels.namespace -}}{{- .CommonLabels.namespace -}}{{- end -}}'
-              pod: '{{- if .CommonLabels.pod -}}{{- .CommonLabels.pod -}}{{- end -}}'
-              deployment: '{{- if .CommonLabels.deployment -}}{{- .CommonLabels.deployment -}}{{- end -}}'
-              alertname: '{{ .GroupLabels.alertname }}'
-              cluster_id: '{{ .CommonLabels.cluster_id }}'
-              tenant_id: '{{ .CommonLabels.tenant_id }}'
-              severity: '{{ .GroupLabels.severity }}'
-            tags: '{{ .CommonLabels.tenant_id }},
-              {{ .CommonLabels.cluster_id }},
-              {{ .GroupLabels.severity }},
-              {{ .GroupLabels.alertname }},
-              {{ .GroupLabels.namespace }},
-              {{- if .CommonLabels.exported_namespace -}}{{ .CommonLabels.exported_namespace }},{{- end -}}'
+  components:
+    alertManager:
+      config:
+        receivers:
+          - name: opsgenie
+            opsgenie_configs:
+              - details:
+                  namespace: '{{- if .CommonLabels.exported_namespace -}}{{- .CommonLabels.exported_namespace -}}{{- else if .CommonLabels.namespace -}}{{- .CommonLabels.namespace -}}{{- end -}}'
+                  pod: '{{- if .CommonLabels.pod -}}{{- .CommonLabels.pod -}}{{- end -}}'
+                  deployment: '{{- if .CommonLabels.deployment -}}{{- .CommonLabels.deployment -}}{{- end -}}'
+                  alertname: '{{ .GroupLabels.alertname }}'
+                  cluster_id: '{{ .CommonLabels.cluster_id }}'
+                  tenant_id: '{{ .CommonLabels.tenant_id }}'
+                  severity: '{{ .GroupLabels.severity }}'
+                tags: '{{ .CommonLabels.tenant_id }},
+                  {{ .CommonLabels.cluster_id }},
+                  {{ .GroupLabels.severity }},
+                  {{ .GroupLabels.alertname }},
+                  {{ .GroupLabels.namespace }},
+                  {{- if .CommonLabels.exported_namespace -}}{{ .CommonLabels.exported_namespace }},{{- end -}}'
 ----
 
 Finally, we need to make sure that the Watchdog alert is sent to OpsGenie as a heartbeat instead of a regular alert.
@@ -237,21 +253,23 @@ In addition to the receiver, we also add a routing configuration to match alerts
 [source,yaml]
 ----
 openshift4_monitoring:
-  alertManagerConfig:
-    receivers:
-      - name: heartbeat
-        webhook_configs:
-          - send_resolved: false
-            url: https://api.opsgenie.com/v2/heartbeats/${cluster:name}/ping
-            http_config:
-              basic_auth:
-                password: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/heartbeat-password}
-    route:
-      routes:
-        - match:
-            alertname: Watchdog
-          repeat_interval: 60s
-          receiver: heartbeat
+  components:
+    alertManager:
+      config:
+        receivers:
+          - name: heartbeat
+            webhook_configs:
+              - send_resolved: false
+                url: https://api.opsgenie.com/v2/heartbeats/${cluster:name}/ping
+                http_config:
+                  basic_auth:
+                    password: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/heartbeat-password}
+        route:
+          routes:
+            - match:
+                alertname: Watchdog
+              repeat_interval: 60s
+              receiver: heartbeat
 ----
 
 == Full component configuration
@@ -260,72 +278,73 @@ Since we've discussed individual elements of the Alertmanager configuration in t
 
 [source,yaml]
 ----
-parameters:
-  openshift4_monitoring:
-    alertManagerConfig:
-      global:
-        opsgenie_api_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/api-key}
-      receivers:
-        - name: opsgenie
-          opsgenie_configs:
-            - priority: '{{ if eq .GroupLabels.severity "critical" }}P1{{ else if eq .GroupLabels.severity "warning" }}P2{{ else if eq .GroupLabels.severity "info" }}P3{{ else }}P4{{ end }}'
-              message: '[{{ .CommonLabels.tenant_id }}/{{ .CommonLabels.cluster_id }}] {{ .GroupLabels.alertname }} in {{ .GroupLabels.namespace }}'
-              description: |-
-                {{ if gt (len .Alerts.Firing) 0 -}}
-                Alerts Firing:
-                {{ range .Alerts.Firing }}
-                 - Message: {{ .Annotations.message }}
-                   Labels:
-                {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-                {{ end }}   Annotations:
-                {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-                {{ end }}   Source: {{ .GeneratorURL }}
-                {{ end }}
-                {{- end }}
-                {{ if gt (len .Alerts.Resolved) 0 -}}
-                Alerts Resolved:
-                {{ range .Alerts.Resolved }}
-                 - Message: {{ .Annotations.message }}
-                   Labels:
-                {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-                {{ end }}   Annotations:
-                {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
-                {{ end }}   Source: {{ .GeneratorURL }}
-                {{ end }}
-                {{- end }}
-              details:
-                namespace: '{{- if .CommonLabels.exported_namespace -}}{{- .CommonLabels.exported_namespace -}}{{- else if .CommonLabels.namespace -}}{{- .CommonLabels.namespace -}}{{- end -}}'
-                pod: '{{- if .CommonLabels.pod -}}{{- .CommonLabels.pod -}}{{- end -}}'
-                deployment: '{{- if .CommonLabels.deployment -}}{{- .CommonLabels.deployment -}}{{- end -}}'
-                alertname: '{{ .GroupLabels.alertname }}'
-                cluster_id: '{{ .CommonLabels.cluster_id }}'
-                tenant_id: '{{ .CommonLabels.tenant_id }}'
-                severity: '{{ .GroupLabels.severity }}'
-              tags: '{{ .CommonLabels.tenant_id }},
-                {{ .CommonLabels.cluster_id }},
-                {{ .GroupLabels.severity }},
-                {{ .GroupLabels.alertname }},
-                {{ .GroupLabels.namespace }},
-                {{- if .CommonLabels.exported_namespace -}}{{ .CommonLabels.exported_namespace }},{{- end -}}'
-              responders:
-                - id: <team-uuid>
-                  type: team
-        - name: heartbeat
-          webhook_configs:
-            - send_resolved: false
-              url: https://api.opsgenie.com/v2/heartbeats/${cluster:name}/ping
-              http_config:
-                basic_auth:
-                  password: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/heartbeat-password}
-      route:
-        group_by:
-          - alertname
-          - namespace
-          - severity
-        receiver: opsgenie
-        routes:
-          - match:
-              alertname: Watchdog
-            repeat_interval: 60s
-            receiver: heartbeat
+openshift4_monitoring:
+  components:
+    alertManager:
+      config:
+        global:
+          opsgenie_api_key: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/api-key}
+        receivers:
+          - name: opsgenie
+            opsgenie_configs:
+              - priority: '{{ if eq .GroupLabels.severity "critical" }}P1{{ else if eq .GroupLabels.severity "warning" }}P2{{ else if eq .GroupLabels.severity "info" }}P3{{ else }}P4{{ end }}'
+                message: '[{{ .CommonLabels.tenant_id }}/{{ .CommonLabels.cluster_id }}] {{ .GroupLabels.alertname }} in {{ .GroupLabels.namespace }}'
+                description: |-
+                  {{ if gt (len .Alerts.Firing) 0 -}}
+                  Alerts Firing:
+                  {{ range .Alerts.Firing }}
+                  - Message: {{ .Annotations.message }}
+                    Labels:
+                  {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Annotations:
+                  {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Source: {{ .GeneratorURL }}
+                  {{ end }}
+                  {{- end }}
+                  {{ if gt (len .Alerts.Resolved) 0 -}}
+                  Alerts Resolved:
+                  {{ range .Alerts.Resolved }}
+                  - Message: {{ .Annotations.message }}
+                    Labels:
+                  {{ range .Labels.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Annotations:
+                  {{ range .Annotations.SortedPairs }}   - {{ .Name }} = {{ .Value }}
+                  {{ end }}   Source: {{ .GeneratorURL }}
+                  {{ end }}
+                  {{- end }}
+                details:
+                  namespace: '{{- if .CommonLabels.exported_namespace -}}{{- .CommonLabels.exported_namespace -}}{{- else if .CommonLabels.namespace -}}{{- .CommonLabels.namespace -}}{{- end -}}'
+                  pod: '{{- if .CommonLabels.pod -}}{{- .CommonLabels.pod -}}{{- end -}}'
+                  deployment: '{{- if .CommonLabels.deployment -}}{{- .CommonLabels.deployment -}}{{- end -}}'
+                  alertname: '{{ .GroupLabels.alertname }}'
+                  cluster_id: '{{ .CommonLabels.cluster_id }}'
+                  tenant_id: '{{ .CommonLabels.tenant_id }}'
+                  severity: '{{ .GroupLabels.severity }}'
+                tags: '{{ .CommonLabels.tenant_id }},
+                  {{ .CommonLabels.cluster_id }},
+                  {{ .GroupLabels.severity }},
+                  {{ .GroupLabels.alertname }},
+                  {{ .GroupLabels.namespace }},
+                  {{- if .CommonLabels.exported_namespace -}}{{ .CommonLabels.exported_namespace }},{{- end -}}'
+                responders:
+                  - id: <team-uuid>
+                    type: team
+          - name: heartbeat
+            webhook_configs:
+              - send_resolved: false
+                url: https://api.opsgenie.com/v2/heartbeats/${cluster:name}/ping
+                http_config:
+                  basic_auth:
+                    password: ?{vaultkv:${cluster:tenant}/${cluster:name}/opsgenie/heartbeat-password}
+        route:
+          group_by:
+            - alertname
+            - namespace
+            - severity
+          receiver: opsgenie
+          routes:
+            - match:
+                alertname: Watchdog
+              repeat_interval: 60s
+              receiver: heartbeat
 ----
