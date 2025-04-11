@@ -1207,6 +1207,7 @@ spec:
               be blocked. For more details check MachineConfigController pod logs:
               oc logs -f -n {{ $labels.namespace }} machine-config-controller-xxxxx
               -c machine-config-controller'
+            runbook_url: https://github.com/openshift/runbooks/blob/master/alerts/machine-config-operator/MachineConfigControllerDrainError.md
             summary: Alerts the user to a failed node drain. Always triggers when
               the failure happens one or more times.
             syn_component: openshift4-monitoring
@@ -1623,7 +1624,7 @@ spec:
           expr: |
             histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job="etcd", grpc_method!="Defragment", grpc_type="unary"}[10m])) without(grpc_type))
             > 1
-          for: 30m
+          for: 60m
           labels:
             severity: critical
             syn: 'true'
@@ -2292,6 +2293,52 @@ spec:
             (sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_failed_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m])) / sum by (cluster,controller,namespace) (rate(prometheus_operator_watch_operations_total{job="prometheus-operator", namespace=~"openshift-monitoring|openshift-user-workload-monitoring"}[5m]))) > 0.4
           for: 15m
           labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: syn-pvc-problem-detector.rules
+      rules:
+        - alert: SYN_ImageRegistryStorageFull
+          annotations:
+            description: The image registry storage disk is full. A full disk affects
+              direct pushes to the image registry, and pull-through proxy caching.
+              In the case of pull-through proxy caching, disk space is particularly
+              important because without it the image registry won't be actually caching
+              anything. Please verify your backing storage solution and make sure
+              the volume mounted on the image-registry pods have enough free disk
+              space to avoid potential outages.
+            message: The image registry storage disk is full and no images will be
+              committed to storage.
+            summary: The image registry storage disk is full and no images will be
+              committed to storage.
+            syn_component: openshift4-monitoring
+          expr: sum without(instance, pod, operation) (rate(imageregistry_storage_errors_total{code="DEVICE_OUT_OF_SPACE"}[5m]))
+            > 0
+          for: 10m
+          labels:
+            kubernetes_operator_part_of: image-registry
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: SYN_ImageRegistryStorageReadOnly
+          annotations:
+            description: The image registry storage is read-only. Read-only storage
+              affects direct pushes to the image registry, and pull-through proxy
+              caching. In the case of pull-through proxy caching, read-only storage
+              is particularly important because without it the image registry won't
+              be actually caching anything. Please verify your backing storage solution
+              and make sure the volume mounted on the image-registry pods is writable
+              to avoid potential outages.
+            message: The image registry storage is read-only and no images will be
+              committed to storage.
+            summary: The image registry storage is read-only and no images will be
+              committed to storage.
+            syn_component: openshift4-monitoring
+          expr: sum without(instance, pod, operation) (rate(imageregistry_storage_errors_total{code="READ_ONLY_FILESYSTEM"}[5m]))
+            > 0
+          for: 10m
+          labels:
+            kubernetes_operator_part_of: image-registry
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
