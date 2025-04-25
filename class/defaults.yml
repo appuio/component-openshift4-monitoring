@@ -8,11 +8,12 @@ parameters:
         alert-patching.libsonnet: openshift4-monitoring-alert-patching.libsonnet
       multi_tenant: true
     namespace: openshift-monitoring
-    manifests_version: release-4.17
+    manifests_version: release-4.18
     # no release branches newer than 4.9 exist
     =_operator_lifecycle_manager_map:
       release-4.16: release-4.9
       release-4.17: release-4.9
+      release-4.18: release-4.9
     jsonnetfile_parameters:
       cmo_version: ${openshift4_monitoring:manifests_version}
       etcd_version: ${openshift4_monitoring:manifests_version}
