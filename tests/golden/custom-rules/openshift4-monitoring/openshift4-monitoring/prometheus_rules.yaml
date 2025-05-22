@@ -801,6 +801,25 @@ spec:
             severity: warning
             syn: 'true'
             syn_component: openshift4-monitoring
+        - alert: SYN_KubePdbNotEnoughHealthyPods
+          annotations:
+            description: PDB {{ $labels.cluster }}/{{ $labels.namespace }}/{{ $labels.poddisruptionbudget
+              }} expects {{ $value }} more healthy pods. The desired number of healthy
+              pods has not been met for at least 15m.
+            summary: PDB does not have enough healthy pods.
+            syn_component: openshift4-monitoring
+          expr: |
+            (
+              kube_poddisruptionbudget_status_desired_healthy{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-adp)",job="kube-state-metrics"}
+              -
+              kube_poddisruptionbudget_status_current_healthy{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-adp)",job="kube-state-metrics"}
+            )
+            > 0
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
         - alert: SYN_KubePodCrashLooping
           annotations:
             description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
