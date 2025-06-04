@@ -61,6 +61,35 @@ local roleBinding(ns) = {
 };
 
 /**
+ * \brief create a RoleBinding for accessomg the global JsonnetLibrary.
+ *
+ * \arg ns
+ *        The namespace where the ManagedResource is deployed to.
+ * \returns
+ *        A RoleBinding CR for accessing the global JsonnetLibrary.
+ */
+local roleBindingGlobal(ns) = {
+  apiVersion: 'rbac.authorization.k8s.io/v1',
+  kind: 'RoleBinding',
+  metadata: {
+    name: '%s-%s' % [ global_name, ns ],
+    namespace: global_namespace,
+  },
+  roleRef: {
+    apiGroup: 'rbac.authorization.k8s.io',
+    kind: 'Role',
+    name: global_name,
+  },
+  subjects: [
+    {
+      kind: 'ServiceAccount',
+      name: serviceAccount(ns).metadata.name,
+      namespace: ns,
+    },
+  ],
+};
+
+/**
  * \brief create a minimal ManagedResource for managing operator PrometheusRules.
  *
  * \arg ns
@@ -91,7 +120,6 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
               },
             ],
           },
-          namespace: ns,
         },
       },
     ],
@@ -100,6 +128,23 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
         name: 'op_rules',
         watchContextResource: {
           name: 'op_rules',
+        },
+      },
+      {
+        name: 'generated_rules',
+        watchResource: {
+          apiVersion: 'monitoring.coreos.com/v1',
+          kind: 'PrometheusRule',
+          labelSelector: {
+            // Only match rules that are created by espejote: 'espejote.io/created-by=openshift4-monitoring-rules'
+            matchExpressions: [
+              {
+                key: 'espejote.io/created-by',
+                operator: 'In',
+                values: [ 'openshift4-monitoring-rules' ],
+              },
+            ],
+          },
         },
       },
       //   {
@@ -117,7 +162,6 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
       //       apiVersion: jsonnetLibrary(ns).apiVersion,
       //       kind: jsonnetLibrary(ns).kind,
       //       name: jsonnetLibrary(ns).metadata.name,
-      //       namespace: jsonnetLibrary(ns).metadata.namespace,
       //     },
       //   },
     ],
@@ -131,7 +175,7 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
       local opRules = esp.context().op_rules;
 
       [
-        renderer.parse(or, configGlobal, configComponent),
+        renderer.process(or, configGlobal, configComponent),
         for or in opRules
       ]
     |||,
@@ -141,5 +185,6 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
 {
   serviceAccount: serviceAccount,
   roleBinding: roleBinding,
+  roleBindingGlobal: roleBindingGlobal,
   managedResourceV1: managedResource,
 }

@@ -37,16 +37,6 @@ A dictionary holding the default configuration which should be applied to all co
 
 NOTE: The contents of this parameter aren't applied to components `nodeExporter` and `prometheusOperatorAdmissionWebhook` which don't support field `nodeSelector`.
 
-== `upstreamRules.networkPlugin`
-
-[horizontal]
-type:: string
-default:: `openshift-sdn`
-
-Choose either `openshift-sdn` or `ovn-kubernetes` depending on the installed network plugin.
-If a custom network plugin is used, set any other string as the value for this parameter.
-This ensures neither openshift-sdn nor OVN-Kubernetes monitoring rules are deployed.
-
 
 == `enableAlertmanagerIsolationNetworkPolicy`
 
@@ -215,7 +205,6 @@ The key is the name of the configuration, the value is the content of the config
 The remote write configuration will be appended to the `configsUserWorkload.prometheus.remoteWrite` parameter for backwards compatibility.
 
 
-
 == `alertManagerConfig`
 
 [horizontal]
@@ -331,6 +320,13 @@ alertManagerAutoDiscovery:
   receiver: __component_openshift4_monitoring_null
 ----
 
+== `operatorRuleNamespaces`
+
+[horizontal]
+type:: list
+default:: `[]`
+
+Additional namespaces to manage operator managed PrometheusRules.
 
 == `alerts`
 
@@ -446,17 +442,10 @@ customAnnotations:
 
 === `patchRules`
 type:: dict
-keys:: potential values of parameter `manifests_versions` and `*`
 default:: See https://github.com/appuio/component-openshift4-monitoring/blob/master/class/defaults.yml[`class/defaults.yml` on GitHub]
 
 The parameter `patchRules` allows users to customize upstream alerts.
-The component expects that top-level keys in the parameter correspond to values of parameter `manifests_versions`.
-Additionally, the component supports special top-level key `*`.
-
-Alert patches which are defined under top-level key `\*` are applied regardless of the OpenShift 4 version specified in parameter `manifest_versions`.
-Additionally, the component applies all patches under the key which matches the value of parameter `manifest_versions`.
-If an alert is patched in both top-level key `*` and the top-level key matching parameter `manifest_versions`, the patches are merged together, with the version-specific patch overriding the generic patch.
-
+The component expects that top-level keys in the parameter correspond to the name of the alert.
 
 The component expects alert names as keys and any alert configuration as values in each top-level key.
 See the Prometheus https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/[alerting rules documentation] for extended documentation on configuring alerting rules.
@@ -466,13 +455,11 @@ Example:
 [source,yaml]
 ----
 patchRules:
-  '*':
-    PrometheusRemoteWriteBehind:
-      annotations:
-        runbook_url: https://example.com/runbooks/PrometheusRemoteWriteBehind.html
-  release-4.16:
-    SystemMemoryExceedsReservation:
-      for: 30m
+  PrometheusRemoteWriteBehind:
+    annotations:
+      runbook_url: https://example.com/runbooks/PrometheusRemoteWriteBehind.html
+  SystemMemoryExceedsReservation:
+    for: 30m
 ----
 
 === `ignoreUserWorkload`

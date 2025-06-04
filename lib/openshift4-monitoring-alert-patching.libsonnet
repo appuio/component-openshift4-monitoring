@@ -6,20 +6,6 @@ local syn_teams = import 'syn/syn-teams.libsonnet';
 
 local inv = com.inventory();
 
-local makeMergeable(o) = {
-  [key]+: makeMergeable(o[key])
-  for key in std.objectFields(o)
-  if std.isObject(o[key])
-} + {
-  [key]+: o[key]
-  for key in std.objectFields(o)
-  if std.isArray(o[key])
-} + {
-  [key]: o[key]
-  for key in std.objectFields(o)
-  if !std.isObject(o[key]) && !std.isArray(o[key])
-};
-
 local global_alert_params =
   local p =
     std.get(
@@ -60,17 +46,15 @@ local global_alert_params =
  *        but don't want to deploy duplicates of the recording rules which may
  *        be present in the same groups as the alerting rules in the upstream
  *        manifests.
- * \arg globalIgnoreNames
- *        A list of global alert names to ignore. This argument is optional and
- *        defaults to the value of `openshift4_monitoring.alerts.ignoreNames`.
+ *
  * \returns
  *    The group with alert rules whose field `alert` matches an entry in either
  *    component parameter `openshift4_monitoring.alerts.ignoreNames` or the
  *    function argument `ignoreNames` list removed. If `preserveRecordingRules`
  *    is `false`, all recording rules are also removed from the result.
  */
-local filterRules(group, ignoreNames=[], preserveRecordingRules=false, globalIgnoreNames=global_alert_params.ignoreNames) =
-  local ignore_set = std.set(globalIgnoreNames + ignoreNames);
+local filterRules(group, ignoreNames=[], preserveRecordingRules=false) =
+  local ignore_set = std.set(global_alert_params.ignoreNames + ignoreNames);
   group {
     rules:
       std.filter(
@@ -114,7 +98,7 @@ local filterRules(group, ignoreNames=[], preserveRecordingRules=false, globalIgn
  *
  * \returns The patched rule
  */
-local patchRule(rule, patches={}, patchName=true, customAnnotations=global_alert_params.customAnnotations) =
+local patchRule(rule, patches={}, patchName=true) =
   if !std.objectHas(rule, 'alert') then
     rule
   else
@@ -145,8 +129,8 @@ local patchRule(rule, patches={}, patchName=true, customAnnotations=global_alert
         [if syn_team_label != null then 'syn_team']: syn_team_label,
       },
       annotations+:
-        std.get(customAnnotations, super.alert, {}),
-    } + makeMergeable(rulepatch);
+        std.get(global_alert_params.customAnnotations, super.alert, {}),
+    } + com.makeMergeable(rulepatch);
 
 /**
  * \brief Convenience wrapper around filterRules and patchRule.
@@ -181,16 +165,13 @@ local patchRule(rule, patches={}, patchName=true, customAnnotations=global_alert
  *        Whether to prefix alert names with `SYN_` if they aren't already.
  *        This parameter is passed to `patchRule()` as argument `patchName`.
  *        This parameter is optional and defaults to `true`.
- * \arg globalIgnoreNames
- *        A list of global alert names to ignore. This argument is optional and
- *        defaults to the value of `openshift4_monitoring.alerts.ignoreNames`.
  *
  * \returns the provided `group` object with rules filtered and patched
  */
-local filterPatchRules(group, ignoreNames=[], patches={}, preserveRecordingRules=false, patchNames=true, globalIgnoreNames=global_alert_params.ignoreNames, customAnnotations=global_alert_params.customAnnotations) =
-  filterRules(group, ignoreNames, preserveRecordingRules, globalIgnoreNames) {
+local filterPatchRules(group, ignoreNames=[], patches={}, preserveRecordingRules=false, patchNames=true) =
+  filterRules(group, ignoreNames, preserveRecordingRules) {
     rules: std.map(
-      function(rule) patchRule(rule, patches, patchNames, customAnnotations),
+      function(rule) patchRule(rule, patches, patchNames),
       super.rules
     ),
   };

@@ -6,27 +6,23 @@ parameters:
       library_aliases:
         prom.libsonnet: openshift4-monitoring-prom.libsonnet
         alert-patching.libsonnet: openshift4-monitoring-alert-patching.libsonnet
+        operator-rules.libsonnet: openshift4-monitoring-operator-rules.libsonnet
       multi_tenant: true
+
     namespace: openshift-monitoring
-    manifests_version: release-4.18
-    # no release branches newer than 4.9 exist
-    =_operator_lifecycle_manager_map:
-      release-4.16: release-4.9
-      release-4.17: release-4.9
-      release-4.18: release-4.9
+
     jsonnetfile_parameters:
       cmo_version: ${openshift4_monitoring:manifests_version}
-      etcd_version: ${openshift4_monitoring:manifests_version}
-      # renovate repo=https://github.com/kubernetes/kube-state-metrics
-      kube_state_metrics_version: v2.15.0
+
+    manifests_version: release-4.18
+
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
     enableUserWorkload: true
     enableAlertmanagerIsolationNetworkPolicy: true
     enableUserWorkloadAlertmanagerIsolationNetworkPolicy: true
-    upstreamRules:
-      networkPlugin: openshift-sdn
+
     configs:
       prometheusK8s:
         remoteWrite: []
@@ -105,13 +101,29 @@ parameters:
       prepend_routes: []
       append_routes: []
 
-    globalAlerts:
-      ignoreGroups: []
-      ignoreNames:
-        - AlertmanagerClusterDown
-      ignoreWarnings: []
-      customAnnotations: {}
-      patchRules: {}
+    operatorRuleNamespaces:
+      - openshift-cloud-credential-operator
+      - openshift-cluster-machine-approver
+      - openshift-cluster-node-tuning-operator
+      - openshift-cluster-samples-operator
+      - openshift-cluster-storage-operator
+      - openshift-cluster-version
+      - openshift-console-operator
+      - openshift-dns-operator
+      - openshift-etcd-operator
+      - openshift-image-registry
+      - openshift-ingress-operator
+      - openshift-insights
+      - openshift-kube-apiserver-operator
+      - openshift-kube-apiserver
+      - openshift-kube-controller-manager-operator
+      - openshift-kube-scheduler-operator
+      - openshift-machine-api
+      - openshift-machine-config-operator
+      - openshift-multus
+      - openshift-network-operator
+      - openshift-operator-lifecycle-manager
+      - openshift-operators-redhat
 
     alerts:
       includeNamespaces:
@@ -174,48 +186,43 @@ parameters:
         - kube-apiserver-slos-basic
       customAnnotations: {}
       patchRules:
-        # rules patched in '*' will be applied regardless of the value of
-        # parameter `manifests_version`.
-        '*':
-          HighOverallControlPlaneMemory:
-            annotations:
-              description: |
-                The overall memory usage is high.
-                kube-apiserver and etcd might be slow to respond.
-                To fix this, increase memory of the control plane nodes.
+        HighOverallControlPlaneMemory:
+          annotations:
+            description: |
+              The overall memory usage is high.
+              kube-apiserver and etcd might be slow to respond.
+              To fix this, increase memory of the control plane nodes.
 
-                This alert was adjusted to be less sensitive in 4.11.
-                Newer Go versions use more memory, if available, to reduce GC pauses.
+              This alert was adjusted to be less sensitive in 4.11.
+              Newer Go versions use more memory, if available, to reduce GC pauses.
 
-                Old memory behavior can be restored by setting `GOGC=63`.
-                See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
-            expr: |
-              (
-                1
-                -
-                sum (
-                  node_memory_MemFree_bytes
-                  + node_memory_Buffers_bytes
-                  + node_memory_Cached_bytes
-                  AND on (instance)
-                  label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
-                ) / sum (
-                  node_memory_MemTotal_bytes
-                  AND on (instance)
-                  label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
-                )
-              ) * 100 > 80
-          PrometheusRemoteWriteBehind:
-            annotations:
-              runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
-          PrometheusRemoteWriteDesiredShards:
-            annotations:
-              runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
-          NodeMemoryMajorPagesFaults:
-            # Only alert for >100*cores major page faults/node instead of >500/node
-            expr: rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance) (count by (instance) (node_cpu_info{}) * 100)
-        release-4.16: {}
-        release-4.17: {}
+              Old memory behavior can be restored by setting `GOGC=63`.
+              See https://bugzilla.redhat.com/show_bug.cgi?id=2074031 for more details.
+          expr: |
+            (
+              1
+              -
+              sum (
+                node_memory_MemFree_bytes
+                + node_memory_Buffers_bytes
+                + node_memory_Cached_bytes
+                AND on (instance)
+                label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+              ) / sum (
+                node_memory_MemTotal_bytes
+                AND on (instance)
+                label_replace( kube_node_role{role="master"}, "instance", "$1", "node", "(.+)" )
+              )
+            ) * 100 > 80
+        PrometheusRemoteWriteBehind:
+          annotations:
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
+        PrometheusRemoteWriteDesiredShards:
+          annotations:
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/remotewrite.html
+        NodeMemoryMajorPagesFaults:
+          # Only alert for >100*cores major page faults/node instead of >500/node
+          expr: rate(node_vmstat_pgmajfault{job="node-exporter"}[5m]) > on (instance) (count by (instance) (node_cpu_info{}) * 100)
       # Alerts to ignore for user workload monitoring
       ignoreUserWorkload: []
 
@@ -238,7 +245,35 @@ parameters:
               value: ""
               isRegex: false
 
-    rules: {}
+    rules:
+      node-utilization:
+        "alert:NodeCpuLoad5":
+          expr: 'max by(instance) (node_load5) / count by(instance) (node_cpu_info) > 2'
+          for: '30m'
+          labels:
+            severity: 'critical'
+          annotations:
+            message: '{{ $labels.instance }}: Load higher than 2 (current value is: {{ $value }})'
+        "alert:NodeMemoryFreePercent":
+          expr: '(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.97'
+          for: '30m'
+          labels:
+            severity: 'critical'
+          annotations:
+            message: '{{ $labels.instance }}: Memory usage more than 97% (current value is: {{ $value | humanizePercentage }})%'
+        "alert:NodeTcpMemoryUtilizationHigh":
+          expr: 'node_sockstat_TCP_mem_bytes > on(instance) node_memory_MemTotal_bytes*0.0625'
+          for: '30m'
+          labels:
+            severity: 'critical'
+          annotations:
+            message: 'TCP memory usage is high on {{ $labels.instance }}'
+            description: |
+              TCP memory usage exceeds the TCP memory pressure threshold on node {{ $labels.instance }}.
+
+              Check the node for processes with unusual amounts of TCP sockets.
+            runbook_url: 'https://hub.syn.tools/openshift4-monitoring/runbooks/tcp-memory-usage.html'
+
     images:
       oc:
         image: quay.io/appuio/oc

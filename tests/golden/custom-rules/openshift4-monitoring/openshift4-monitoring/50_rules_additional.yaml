@@ -1,0 +1,72 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    espejote.io/ignore: openshift4-monitoring-rules
+  name: syn-additional-rules
+  namespace: openshift-monitoring
+spec:
+  groups:
+    - name: group-a
+      rules:
+        - alert: FooLow
+          annotations:
+            summary: Less than 10 Foos for 5 minutes
+          expr: foo:sum < 10
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - expr: sum(irate(bar[5m]))
+          record: bar:irate5m
+        - expr: sum(foo)
+          record: foo:sum
+    - name: group_b
+      rules:
+        - alert: AlertsFiring
+          annotations:
+            summary: Alerts have been firing for 15 minutes
+          expr: ALERTS{alertstate="firing"} > 0
+          for: 15m
+          labels:
+            syn: 'true'
+            syn_component: openshift4-monitoring
+    - name: node-utilization
+      rules:
+        - alert: NodeCpuLoad5
+          annotations:
+            message: '{{ $labels.instance }}: Load higher than 2 (current value is:
+              {{ $value }})'
+          expr: max by(instance) (node_load5) / count by(instance) (node_cpu_info)
+            > 2
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: NodeMemoryFreePercent
+          annotations:
+            message: '{{ $labels.instance }}: Memory usage more than 97% (current
+              value is: {{ $value | humanizePercentage }})%'
+          expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes
+            > 0.97
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
+        - alert: NodeTcpMemoryUtilizationHigh
+          annotations:
+            description: |
+              TCP memory usage exceeds the TCP memory pressure threshold on node {{ $labels.instance }}.
+
+              Check the node for processes with unusual amounts of TCP sockets.
+            message: TCP memory usage is high on {{ $labels.instance }}
+            runbook_url: https://hub.syn.tools/openshift4-monitoring/runbooks/tcp-memory-usage.html
+          expr: node_sockstat_TCP_mem_bytes > on(instance) node_memory_MemTotal_bytes*0.0625
+          for: 30m
+          labels:
+            severity: critical
+            syn: 'true'
+            syn_component: openshift4-monitoring
