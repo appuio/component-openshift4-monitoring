@@ -1,12 +1,21 @@
-parameters:
-  facts:
-    cloud: vsphere
+applications:
+  - espejote
 
+parameters:
   kapitan:
     dependencies:
       - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-espejote/master/lib/espejote.libsonnet
+        output_path: vendor/lib/espejote.libsonnet
+      - type: https
         source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
         output_path: vendor/lib/patch-operator.libsonnet
+
+  facts:
+    cloud: vsphere
+
+  espejote:
+    namespace: syn-espejote
 
   patch_operator:
     namespace: syn-patch-operator

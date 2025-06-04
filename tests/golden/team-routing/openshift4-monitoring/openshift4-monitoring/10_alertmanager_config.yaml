@@ -44,7 +44,11 @@ stringData:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
+<<<<<<< HEAD
         - "namespace =~ \"instance-ns|ns-string|openshift-monitoring\""
+=======
+        - "namespace =~ \"ns-string|openshift-monitoring|syn-espejote\""
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
         "receiver": "team_default_clumsy-donkeys"
       - "continue": true
         "matchers":
@@ -54,7 +58,11 @@ stringData:
       - "continue": false
         "matchers":
         - "syn_team = \"\""
+<<<<<<< HEAD
         - "namespace =~ \"base|overridden|instance-ns|ns-string|openshift-monitoring|ns-object|same-ns\""
+=======
+        - "namespace =~ \"base|overridden|ns-string|openshift-monitoring|syn-espejote|ns-object|same-ns\""
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""

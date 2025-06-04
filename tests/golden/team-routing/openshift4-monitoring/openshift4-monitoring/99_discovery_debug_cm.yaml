@@ -36,7 +36,11 @@ data:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
+<<<<<<< HEAD
         - "namespace =~ \"instance-ns|ns-string|openshift-monitoring\""
+=======
+        - "namespace =~ \"ns-string|openshift-monitoring|syn-espejote\""
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
         "receiver": "team_default_clumsy-donkeys"
       - "continue": true
         "matchers":
@@ -46,15 +50,25 @@ data:
       - "continue": false
         "matchers":
         - "syn_team = \"\""
+<<<<<<< HEAD
         - "namespace =~ \"base|overridden|instance-ns|ns-string|openshift-monitoring|ns-object|same-ns\""
+=======
+        - "namespace =~ \"base|overridden|ns-string|openshift-monitoring|syn-espejote|ns-object|same-ns\""
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""
         "receiver": "other"
       - "receiver": "team_default_clumsy-donkeys"
+<<<<<<< HEAD
   applications: '["non-existing","no-ns","ns-string","ns-object","base as ns-in-base","base
     as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2","openshift4-monitoring","no-ns
     as no-ns-team","no-ns as no-ns-team2","instance-ns"]'
+=======
+  applications: '["espejote","non-existing","no-ns","ns-string","ns-object","base
+    as ns-in-base","base as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2","openshift4-monitoring","no-ns
+    as no-ns-team","no-ns as no-ns-team2"]'
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
   apps_without_namespaces: |-
     - "no-ns"
     - "no-ns as no-ns-team"
@@ -64,7 +78,11 @@ data:
   discovered_namespaces: |-
     "base as ns-in-base": "base"
     "base as ns-overridden": "overridden"
+<<<<<<< HEAD
     "instance-ns": "instance-ns"
+=======
+    "espejote": "syn-espejote"
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
     "no-ns": null
     "no-ns as no-ns-team": null
     "no-ns as no-ns-team2": null
@@ -78,7 +96,11 @@ data:
   discovered_teams: |-
     "base as ns-in-base": "chubby-cockroaches"
     "base as ns-overridden": "chubby-cockroaches"
+<<<<<<< HEAD
     "instance-ns": "clumsy-donkeys"
+=======
+    "espejote": "clumsy-donkeys"
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
     "no-ns": "clumsy-donkeys"
     "no-ns as no-ns-team": "sleepy-badgers"
     "no-ns as no-ns-team2": "lovable-lizards"
@@ -98,7 +120,11 @@ data:
     - "continue": true
       "matchers":
       - "syn_team = \"\""
+<<<<<<< HEAD
       - "namespace =~ \"instance-ns|ns-string|openshift-monitoring\""
+=======
+      - "namespace =~ \"ns-string|openshift-monitoring|syn-espejote\""
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
       "receiver": "team_default_clumsy-donkeys"
     - "continue": true
       "matchers":
@@ -108,7 +134,11 @@ data:
     - "continue": false
       "matchers":
       - "syn_team = \"\""
+<<<<<<< HEAD
       - "namespace =~ \"base|overridden|instance-ns|ns-string|openshift-monitoring|ns-object|same-ns\""
+=======
+      - "namespace =~ \"base|overridden|ns-string|openshift-monitoring|syn-espejote|ns-object|same-ns\""
+>>>>>>> 87dcbec (Use Espejote to parse operator managed PrometheusRules)
       "receiver": "__component_openshift4_monitoring_null"
 kind: ConfigMap
 metadata:

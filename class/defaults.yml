@@ -104,6 +104,15 @@ parameters:
       additional_alert_matchers: []
       prepend_routes: []
       append_routes: []
+
+    globalAlerts:
+      ignoreGroups: []
+      ignoreNames:
+        - AlertmanagerClusterDown
+      ignoreWarnings: []
+      customAnnotations: {}
+      patchRules: {}
+
     alerts:
       includeNamespaces:
         - appuio.*
