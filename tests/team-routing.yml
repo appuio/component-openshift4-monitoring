@@ -11,6 +11,7 @@ applications:
   - openshift4-monitoring
   - no-ns as no-ns-team
   - no-ns as no-ns-team2
+  - instance-ns
 
 parameters:
   kapitan:
@@ -96,3 +97,7 @@ parameters:
 
   same_ns_2:
     namespace: same-ns
+
+  instance_ns:
+    # This will resolve to `instance-ns` or an instance when rendering the actual namespace
+    namespace: ${_instance}

@@ -275,8 +275,17 @@ alertManagerAutoDiscovery:
 
 The auto-discovery routes alerts to the configured teams based on their namespaces and the top-level `syn.teams[*].instances` and `syn.owner` parameters.
 Auto-discovery first creates a list of Commodore component instances by parsing the `applications` array using the same rules as Commodore itself (see also the https://syn.tools/commodore/reference/architecture.html#_component_instantiation[Commodore component instantiation documentation]).
-For each discovered instance, the component then renders the instance parameters, and reads the cmoponent's namespace from field `namespace` or `namespace.name` in the rendered parameters.
+For each discovered instance, the component then reads the component's namespace from field `namespace` or `namespace.name` in the rendered parameters of this component.
 Finally, routing rules are generated to route alerts from the discovered namespaces to the associated component instance's owning team.
+
+[NOTE]
+====
+Without special handling, the namespace discovery would discover namespace `openshift4-monitoring` for component instances that use `namespace: ${_instance}`.
+This is the case because we read the instance's namespace from the rendered parameters for component openshift4-monitoring and therefore `${_instance}` resolves to `openshift4-monitoring`.
+
+To address this case, the component has override logic in the namespace discovery for component instances which use `${_instance}` in their namespace definition.
+The override logic replaces all occurrences of `openshift4-monitoring` in the discovered namespace with the instance name for instances other than `openshift4-monitoring`.
+====
 
 .`syn` Team Example
 [source,yaml]

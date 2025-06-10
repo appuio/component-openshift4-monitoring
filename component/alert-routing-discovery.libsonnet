@@ -28,11 +28,33 @@ local discoverNS = function(app)
 
   local ks = syn_teams.appKeys(app);
   local aliased = f(ks[0]);
-  if aliased != null then
-    aliased
-  else if std.length(ks) == 2 then
-    f(ks[1]);
+  local ns =
+    if aliased != null then
+      aliased
+    else if std.length(ks) == 2 then
+      f(ks[1]);
 
+  // We tend to use `namespace: ${_instance}` for components where we deploy
+  // each instance in a separate namespace (e.g. component-vault,
+  // component-openshift4-operators). However, because we read the instance
+  // namespaces from openshift4-monitoring's parameters, `${_instance}` is
+  // resolved to `openshift4-monitoring` and not to the component instance
+  // name.
+  //
+  // We override the discovered namespace here if we discover a namespace that
+  // contains `openshift4-monitoring` for any app other than
+  // `openshift4-monitoring` itself.
+  if
+    ns != null &&
+    app != 'openshift4-monitoring' &&
+    std.length(std.findSubstr('openshift4-monitoring', ns)) > 0
+  then
+    std.trace(
+      'overriding namespace autodiscovery for `%s` (discovered namespace: %s)' % [ app, ns ],
+      std.strReplace(ns, 'openshift4-monitoring', std.strReplace(ks[0], '_', '-'))
+    )
+  else
+    ns;
 
 local ownerOrFallbackTeam =
   if std.objectHas(params, 'syn') && std.objectHas(params.syn, 'owner') then
