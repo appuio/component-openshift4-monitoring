@@ -969,13 +969,13 @@ spec:
                   unless
                 kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               )
-                *
+                * on(namespace, statefulset, job, cluster)
               (
                 kube_statefulset_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
                   !=
                 kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}
               )
-            )  and (
+            )  and on(namespace, statefulset, job, cluster) (
               changes(kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",job="kube-state-metrics"}[5m])
                 ==
               0
