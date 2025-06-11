@@ -102,6 +102,7 @@ local jsonnetLibrary(ns) = esp.jsonnetLibrary(global_name, ns) {
 } + {
   ['40_oprules_%s' % std.strReplace(ns, 'openshift-', '')]: [
     oplib.serviceAccount(ns),
+    oplib.role(ns),
     oplib.roleBinding(ns),
     oplib.managedResourceV1(ns),
     jsonnetLibrary(ns),

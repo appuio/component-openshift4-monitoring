@@ -33,6 +33,36 @@ local serviceAccount(ns) = {
 };
 
 /**
+ * \brief create a Role for managing operator PrometheusRules.
+ *
+ * \arg ns
+ *        The namespace to deploy the RoleBinding to.
+ * \returns
+ *        A Role CR for managing operator PrometheusRules.
+ */
+local role(ns) = {
+  apiVersion: 'rbac.authorization.k8s.io/v1',
+  kind: 'Role',
+  metadata: {
+    name: global_name,
+    namespace: ns,
+  },
+  rules: [
+    {
+      apiGroups: [ 'monitoring.coreos.com' ],
+      resources: [ 'prometheusrules' ],
+      verbs: [ '*' ],
+    },
+    {
+      apiGroups: [ 'espejote.io' ],
+      resources: [ 'jsonnetlibraries' ],
+      resourceNames: [ global_name ],
+      verbs: [ 'get', 'list', 'watch' ],
+    },
+  ],
+};
+
+/**
  * \brief create a RoleBinding for managing operator PrometheusRules.
  *
  * \arg ns
@@ -49,8 +79,8 @@ local roleBinding(ns) = {
   },
   roleRef: {
     apiGroup: 'rbac.authorization.k8s.io',
-    kind: 'ClusterRole',
-    name: 'monitoring-rules-edit',
+    kind: 'Role',
+    name: global_name,
   },
   subjects: [
     {
@@ -147,23 +177,24 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
           },
         },
       },
-      //   {
-      //     name: 'jslib_global',
-      //     watchResource: {
-      //       apiVersion: esp_gv,
-      //       kind: 'JsonnetLibrary',
-      //       name: global_name,
-      //       namespace: global_namespace,
-      //     },
-      //   },
-      //   {
-      //     name: 'jslib_component',
-      //     watchResource: {
-      //       apiVersion: jsonnetLibrary(ns).apiVersion,
-      //       kind: jsonnetLibrary(ns).kind,
-      //       name: jsonnetLibrary(ns).metadata.name,
-      //     },
-      //   },
+      {
+        name: 'jslib_global',
+        watchResource: {
+          apiVersion: esp_gv,
+          kind: 'JsonnetLibrary',
+          name: global_name,
+          namespace: global_namespace,
+        },
+      },
+      {
+        name: 'jslib_component',
+        watchResource: {
+          apiVersion: esp_gv,
+          kind: 'JsonnetLibrary',
+          name: global_name,
+          namespace: ns,
+        },
+      },
     ],
     template: |||
       local esp = import 'espejote.libsonnet';
@@ -173,10 +204,25 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
       local configComponent = import 'openshift4-monitoring-rules/config.json';
 
       local opRules = esp.context().op_rules;
+      local inDelete(obj) = std.get(obj.metadata, 'deletionTimestamp', '') != '';
 
-      [
+      if std.member([ 'op_rules', 'generated_rules' ], esp.triggerName) then
+        // if the trigger is 'op_rules' or 'generated_rules', render single op_rule
+        local trigger = esp.triggerData();
+        local or = if esp.triggerName == 'op_rules' then
+          trigger.resource
+        else
+          local cand = std.filter(function(r) r.metadata.name == trigger.resource.metadata.ownerReferences[0].name, opRules);
+          if std.length(cand) > 0 then cand[0];
+
+        if trigger != null && !inDelete(trigger) && or != null && !inDelete(or) then [
+          renderer.process(or, configGlobal, configComponent)
+        ]
+      else [
+        // if the trigger is not 'op_rules' or 'generated_rules', render all op_rules
         renderer.process(or, configGlobal, configComponent),
         for or in opRules
+        if !inDelete(or)
       ]
     |||,
   },
@@ -184,6 +230,7 @@ local managedResource(ns) = esp.managedResource(global_name, ns) {
 
 {
   serviceAccount: serviceAccount,
+  role: role,
   roleBinding: roleBinding,
   roleBindingGlobal: roleBindingGlobal,
   managedResourceV1: managedResource,

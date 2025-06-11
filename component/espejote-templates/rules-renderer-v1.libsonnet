@@ -62,8 +62,8 @@ local procPatchRules(group, config) =
 
 local procPatchExprUserWorkload(group, config) =
   local dropUserWorkload(alert) = std.member(config.ignoreUserWorkload, alert);
-  local patchThingy(field) = std.foldl(
-    function(a, b) b(a),
+  local patchSelectors(field) = std.foldl(
+    function(f, patch_fn) patch_fn(f),
     [
       function(e)
         std.strReplace(
@@ -90,11 +90,11 @@ local procPatchExprUserWorkload(group, config) =
     rules: [
       if dropUserWorkload(std.get(rule, 'alert', '')) then
         rule {
-          expr: patchThingy(super.expr),
+          expr: patchSelectors(super.expr),
           // I have no clue what this part is originally for.
           // I know what it does, just not why...
           [if std.objectHas(std.get(rule, 'annotations', {}), 'description') then 'annotations']+: {
-            description: patchThingy(super.description),
+            description: patchSelectors(super.description),
           },
         }
       else
@@ -159,7 +159,7 @@ local procFilterRules(group, config) =
   };
 
 local processGroup(group, config) = std.foldl(
-  function(a, b) b(a, config),
+  function(g, func) func(g, config),
   [
     procFilterRules,
     procPatchExprSelector,
