@@ -9,10 +9,14 @@ parameters:
         operator-rules.libsonnet: openshift4-monitoring-operator-rules.libsonnet
       multi_tenant: true
 
+    =_cmo_version:
+      'True': ${openshift4_monitoring:manifests_version}
+      'False': ''
+
     namespace: openshift-monitoring
 
     jsonnetfile_parameters:
-      cmo_version: ${openshift4_monitoring:manifests_version}
+      cmo_version: ${openshift4_monitoring:_cmo_version:${openshift4_monitoring:customNodeExporter:enabled}}
 
     manifests_version: release-4.18
 

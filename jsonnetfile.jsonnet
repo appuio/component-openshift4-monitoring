@@ -1,3 +1,4 @@
+local cmo_version = std.extVar('cmo_version');
 {
   version: 1,
   dependencies: std.prune([
@@ -11,7 +12,7 @@
       version: 'main',
       name: 'syn',
     },
-    {
+    if cmo_version != '' then {
       name: 'cluster-monitoring-operator',
       source: {
         git: {

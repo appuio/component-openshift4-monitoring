@@ -129,18 +129,19 @@ spec:
     local opRules = esp.context().op_rules;
     local inDelete(obj) = std.get(obj.metadata, 'deletionTimestamp', '') != '';
 
-    if std.member([ 'op_rules', 'generated_rules' ], esp.triggerName) then
+    if std.member([ 'op_rules', 'generated_rules' ], esp.triggerName()) then (
       // if the trigger is 'op_rules' or 'generated_rules', render single op_rule
       local trigger = esp.triggerData();
-      local or = if esp.triggerName == 'op_rules' then
+      local or = if esp.triggerName() == 'op_rules' then
         trigger.resource
       else
         local cand = std.filter(function(r) r.metadata.name == trigger.resource.metadata.ownerReferences[0].name, opRules);
         if std.length(cand) > 0 then cand[0];
 
-      if trigger != null && !inDelete(trigger) && or != null && !inDelete(or) then [
+      if or != null && !inDelete(or) then [
         renderer.process(or, configGlobal, configComponent)
       ]
+    )
     else [
       // if the trigger is not 'op_rules' or 'generated_rules', render all op_rules
       renderer.process(or, configGlobal, configComponent),
