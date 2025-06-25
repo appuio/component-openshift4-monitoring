@@ -18,7 +18,7 @@ parameters:
       cmo_version: ${openshift4_monitoring:manifests_version}
       etcd_version: ${openshift4_monitoring:manifests_version}
       # renovate repo=https://github.com/kubernetes/kube-state-metrics
-      kube_state_metrics_version: v2.15.0
+      kube_state_metrics_version: v2.16.0
     defaultConfig:
       nodeSelector:
         node-role.kubernetes.io/infra: ''
