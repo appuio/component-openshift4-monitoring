@@ -56,5 +56,5 @@ KUBENT_ARGS     ?= -c=false --helm3=false -e
 KUBENT_IMAGE    ?= ghcr.io/doitintl/kube-no-trouble:latest
 KUBENT_DOCKER   ?= $(DOCKER_CMD) $(DOCKER_ARGS) $(root_volume) --entrypoint=/app/kubent $(KUBENT_IMAGE)
 
-instance ?= capacity-alerts
-test_instances = tests/capacity-alerts.yml tests/remote-write.yml tests/user-workload-monitoring.yml tests/capacity-alerts-with-node-labels.yml tests/vsphere.yml tests/custom-rules.yml tests/team-routing.yml tests/ovn-kubernetes.yml tests/release-4.16.yml tests/release-4.17.yml
+instance ?= defaults
+test_instances = tests/defaults.yml tests/remote-write.yml tests/user-workload-monitoring.yml tests/capacity-alerts-with-node-labels.yml tests/vsphere.yml tests/custom-rules.yml tests/team-routing.yml

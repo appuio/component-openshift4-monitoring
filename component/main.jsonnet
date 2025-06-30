@@ -8,9 +8,6 @@ local prom = import 'lib/prom.libsonnet';
 local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 
-local rules = import 'rules.jsonnet';
-local capacity = import 'capacity.libsonnet';
-
 local alertDiscovery = import 'alert-routing-discovery.libsonnet';
 
 local ns =
@@ -65,9 +62,6 @@ local patchRemoteWrite(promConfig, defaults) = promConfig {
     super.remoteWrite,
   ),
 };
-
-local customRules =
-  prom.generateRules('custom-rules', params.rules);
 
 local cronjobs = import 'cronjobs.libsonnet';
 
@@ -140,10 +134,7 @@ local cronjobs = import 'cronjobs.libsonnet';
   [if params.enableAlertmanagerIsolationNetworkPolicy then '20_networkpolicy']: std.map(function(p) com.namespaced('openshift-monitoring', p), import 'networkpolicy.libsonnet'),
   [if params.enableUserWorkload && params.enableUserWorkloadAlertmanagerIsolationNetworkPolicy then '20_user_workload_networkpolicy']: std.map(function(p) com.namespaced('openshift-user-workload-monitoring', p), import 'networkpolicy.libsonnet'),
   rbac: import 'rbac.libsonnet',
-  prometheus_rules: rules,
   silence: import 'silence.jsonnet',
-  [if params.capacityAlerts.enabled then 'capacity_rules']: capacity.rules,
-  [if std.length(customRules.spec.groups) > 0 then 'custom_rules']: customRules,
   [if std.length(cronjobs.cronjobs) > 0 then 'cronjobs']: cronjobs.cronjobs,
   // TODO: enable flag
   [if params.customNodeExporter.enabled then 'appuio_node_exporter']:

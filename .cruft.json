@@ -7,7 +7,7 @@
       "name": "OpenShift4 Monitoring",
       "slug": "openshift4-monitoring",
       "parameter_key": "openshift4_monitoring",
-      "test_cases": "capacity-alerts remote-write user-workload-monitoring capacity-alerts-with-node-labels vsphere custom-rules team-routing ovn-kubernetes release-4.16 release-4.17",
+      "test_cases": "defaults remote-write user-workload-monitoring capacity-alerts-with-node-labels vsphere custom-rules team-routing",
       "add_lib": "y",
       "add_pp": "n",
       "add_golden": "y",
@@ -24,7 +24,8 @@
       "github_owner": "appuio",
       "github_name": "component-openshift4-monitoring",
       "github_url": "https://github.com/appuio/component-openshift4-monitoring",
-      "_template": "https://github.com/projectsyn/commodore-component-template.git"
+      "_template": "https://github.com/projectsyn/commodore-component-template.git",
+      "_commit": "98d16f99766e6c6d97322dbe42e058f0e2bf73d0"
     }
   },
   "directory": null

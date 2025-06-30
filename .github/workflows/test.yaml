@@ -32,16 +32,13 @@ jobs:
     strategy:
       matrix:
         instance:
-          - capacity-alerts
+          - defaults
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
           - vsphere
           - custom-rules
           - team-routing
-          - ovn-kubernetes
-          - release-4.16
-          - release-4.17
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}
@@ -56,16 +53,13 @@ jobs:
     strategy:
       matrix:
         instance:
-          - capacity-alerts
+          - defaults
           - remote-write
           - user-workload-monitoring
           - capacity-alerts-with-node-labels
           - vsphere
           - custom-rules
           - team-routing
-          - ovn-kubernetes
-          - release-4.16
-          - release-4.17
     defaults:
       run:
         working-directory: ${{ env.COMPONENT_NAME }}

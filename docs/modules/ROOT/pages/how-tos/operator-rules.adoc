@@ -1,0 +1,155 @@
+= Operator Managed PrometheusRules
+
+This how-to describes how to manage PrometheusRules that are deployed by an operator.
+Using Espejote's ManagedResources, we can copy, filter and patch the PrometheusRules on-the-fly inside the cluster.
+
+== What does component-openshift4-monitoring provide?
+
+This component provides a JsonnetLibrary (from Espejote) which:
+* contains a global configuration for managing the PrometheusRules
+* contains a jsonnet function for filtering and patching the PrometheusRules
+
+This way you only need a minimal template in your ManagedResource to parse the rules.
+
+=== Global configuration
+
+The global configuration contains the following fields:
+[source,yaml]
+----
+openshift4_monitoring:
+  alerts:
+    ignoreGroups: [] <1>
+    ignoreNames: [] <2>
+    ignoreWarnings: [] <3>
+    customAnnotations: {} <4>
+    patchRules: [] <5>
+    includeNamespaces: [] <6>
+    excludeNamespaces: [] <7>
+    teamLabel: "" <8>
+----
+<1> A list of rule groups to ignore
+<2> A list of rule names to ignore
+<3> A list of rule names to ignore that have severity warning
+<4> A map of custom annotations to add to the rules
+<5> A map of rules with their patches
+<6> A list of namespaces to include in namespace-selectors, modifies the expression `namespace=~"(openshift-.*|kube-.*|default)"`
+<7> A list of namespaces to exclude from namespace-selectors, modifies the expression `namespace=~"(openshift-.*|kube-.*|default)"`
+<8> The team label to add to the rules
+
+== How to use in your component
+
+To use this in your component, you need to:
+* provide a component-specific configuration, which will be merged into the global configuration
+* create a minimal template for your ManagedResource
+* the necessary RBAC for the ManagedResource
+
+=== Component-specific configuration
+
+Create a JsonnetLibrary in your component, with the following format:
+[source,yaml]
+----
+apiVersion: espejote.io/v1alpha1
+kind: JsonnetLibrary
+metadata:
+  labels:
+    app.kubernetes.io/name: openshift4-monitoring-rules
+  name: openshift4-monitoring-rules <1>
+  namespace: <YOUR_NAMESPACE> <2>
+spec:
+  data:
+    config.json: |-
+      {
+          "ignoreGroups": [],
+          "ignoreNames": [],
+          "ignoreWarnings": [],
+          "customAnnotations": {},
+          "patchRules": {},
+          "teamLabel": ""
+      }
+----
+<1> The name of the JsonnetLibrary, can be anything but for ease of use with the components helper library use this name.
+<2> The namespace where the ManagedResource will be deployed, usually the same as the component.
+
+Above configuration will be merged with the global configuration in the rendering function.
+The component-specific configuration can be empty.
+
+=== Minimal template for the ManagedResource
+
+[NOTE]
+====
+This component provides a library for generating the ManagedResource and all RBAC rules needed.
+https://github.com/appuio/component-openshift4-monitoring/blob/master/lib/openshift4-monitoring-operator-rules.libsonnet[see openshift4-monitoring-operator-rules.libsonnet]
+====
+
+Create a minimal template for your ManagedResource, with the following format:
+[source,yaml]
+----
+apiVersion: espejote.io/v1alpha1
+kind: ManagedResource
+metadata:
+  name: <YOUR_NAME>
+  namespace: <YOUR_NAMESPACE>
+spec:
+  serviceAccountRef:
+    name: openshift4-monitoring-rules
+  context:
+    - name: op_rules
+      resource:
+        apiVersion: monitoring.coreos.com/v1
+        kind: PrometheusRule
+        labelSelector:
+          matchExpressions:
+            - key: espejote.io/created-by
+              operator: DoesNotExist <1>
+            - key: espejote.io/ignore
+              operator: DoesNotExist <2>
+        namespace: <YOUR_NAMESPACE>
+  triggers:
+    - name: op_rules
+      watchContextResource:
+        name: op_rules
+    - name: generated_rules
+      watchResource:
+        apiVersion: monitoring.coreos.com/v1
+        kind: PrometheusRule
+        labelSelector:
+          matchExpressions:
+            - key: espejote.io/created-by
+              operator: In
+              values:
+                - openshift4-monitoring-rules
+        namespace: <YOUR_NAMESPACE>
+  template: |
+    local esp = import 'espejote.libsonnet';
+
+    local renderer = import 'lib/openshift4-monitoring-rules/renderer_v1.libsonnet'; <3>
+    local configGlobal = import 'lib/openshift4-monitoring-rules/config_v1.json'; <4>
+    local configComponent = import 'openshift4-monitoring-rules/config.json';
+
+    local opRules = esp.context().op_rules;
+    local inDelete(obj) = std.get(obj.metadata, 'deletionTimestamp', '') != '';
+
+    if std.member([ 'op_rules', 'generated_rules' ], esp.triggerName()) then (
+      // if the trigger is 'op_rules' or 'generated_rules', render single op_rule
+      local trigger = esp.triggerData();
+      local or = if esp.triggerName() == 'op_rules' then
+        trigger.resource
+      else
+        local cand = std.filter(function(r) r.metadata.name == trigger.resource.metadata.ownerReferences[0].name, opRules);
+        if std.length(cand) > 0 then cand[0];
+
+      if or != null && !inDelete(or) then [
+        renderer.process(or, configGlobal, configComponent)
+      ]
+    )
+    else [
+      // if the trigger is not 'op_rules' or 'generated_rules', render all op_rules
+      renderer.process(or, configGlobal, configComponent),
+      for or in opRules
+      if !inDelete(or)
+    ]
+----
+<1> Ignore PrometheusRules that are created by this ManagedResource
+<2> Ignore PrometheusRules that have the espejote.io/ignore label
+<3> The renderer is versioned, currently v1 is available
+<4> The global configuration is versioned, currently v1 is available

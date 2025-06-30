@@ -44,7 +44,7 @@ stringData:
       - "continue": true
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"instance-ns|ns-string|openshift-monitoring\""
+        - "namespace =~ \"instance-ns|ns-string|openshift-monitoring|syn-espejote\""
         "receiver": "team_default_clumsy-donkeys"
       - "continue": true
         "matchers":
@@ -54,7 +54,7 @@ stringData:
       - "continue": false
         "matchers":
         - "syn_team = \"\""
-        - "namespace =~ \"base|overridden|instance-ns|ns-string|openshift-monitoring|ns-object|same-ns\""
+        - "namespace =~ \"base|overridden|instance-ns|ns-string|openshift-monitoring|syn-espejote|ns-object|same-ns\""
         "receiver": "__component_openshift4_monitoring_null"
       - "matchers":
         - "other = \"true\""

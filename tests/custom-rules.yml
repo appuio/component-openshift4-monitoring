@@ -1,9 +1,18 @@
+applications:
+  - espejote
+
 parameters:
   kapitan:
     dependencies:
       - type: https
+        source: https://raw.githubusercontent.com/projectsyn/component-espejote/master/lib/espejote.libsonnet
+        output_path: vendor/lib/espejote.libsonnet
+      - type: https
         source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
         output_path: vendor/lib/patch-operator.libsonnet
+
+  espejote:
+    namespace: syn-espejote
 
   patch_operator:
     namespace: syn-patch-operator
@@ -11,8 +20,6 @@ parameters:
       name: patch-sa
 
   openshift4_monitoring:
-    manifests_version: release-4.16
-
     # Validate that we don't inject the default nodeSelector for the fields
     # that don't support it.
     configs:
@@ -26,16 +33,10 @@ parameters:
       excludeNamespaces:
         - openshift-adp
       patchRules:
-        '*':
-          HighOverallControlPlaneMemory:
-            labels:
-              foo: foo
-              generic: patch
-        release-4.16:
-          HighOverallControlPlaneMemory:
-            labels:
-              foo: bar
-              specific: patch
+        HighOverallControlPlaneMemory:
+          labels:
+            foo: foo
+            generic: patch
 
     rules:
       group-a:
