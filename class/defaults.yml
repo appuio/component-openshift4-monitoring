@@ -168,7 +168,6 @@ parameters:
         - ThanosQueryHighDNSFailures
         - ThanosRuleAlertmanagerHighDNSFailures
         - ThanosRuleQueryHighDNSFailures
-        - node_cpu_load5
       ignoreWarnings:
         - ExtremelyHighIndividualControlPlaneCPU
         - MachineConfigControllerPausedPoolKubeletCA
@@ -251,13 +250,6 @@ parameters:
 
     rules:
       node-utilization:
-        "alert:NodeCpuLoad5":
-          expr: 'max by(instance) (node_load5) / count by(instance) (node_cpu_info) > 2'
-          for: '30m'
-          labels:
-            severity: 'critical'
-          annotations:
-            message: '{{ $labels.instance }}: Load higher than 2 (current value is: {{ $value }})'
         "alert:NodeMemoryFreePercent":
           expr: '(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.97'
           for: '30m'
