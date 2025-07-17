@@ -149,8 +149,7 @@ spec:
               "ThanosQueryGrpcServerErrorRate",
               "ThanosQueryHighDNSFailures",
               "ThanosRuleAlertmanagerHighDNSFailures",
-              "ThanosRuleQueryHighDNSFailures",
-              "node_cpu_load5"
+              "ThanosRuleQueryHighDNSFailures"
           ],
           "ignoreUserWorkload": [
               "AlertmanagerFailedToSendAlerts",
