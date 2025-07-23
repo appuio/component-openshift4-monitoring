@@ -153,21 +153,26 @@ local procFilterRules(group, config) =
         config.ignoreNames,
         std.get(r, 'alert', '')
       )
-    );
+    ) ||
+    // drop all recording rules
+    std.objectHas(r, 'record');
   group {
     rules: std.filter(function(rule) !drop(rule), super.rules),
   };
 
-local processGroup(group, config) = std.foldl(
-  function(g, func) func(g, config),
-  [
-    procFilterRules,
-    procPatchExprSelector,
-    procPatchExprUserWorkload,
-    procPatchRules,
-  ],
-  group
-);
+local processGroup(group, config) =
+  local processed = std.foldl(
+    function(g, func) func(g, config),
+    [
+      procFilterRules,
+      procPatchExprSelector,
+      procPatchExprUserWorkload,
+      procPatchRules,
+    ],
+    group
+  );
+  if std.length(processed.rules) > 0 then
+    processed;
 
 local process(rule, configGlobal, configComponent, enableOwnerRefrences=true) =
   local config = {
@@ -185,7 +190,7 @@ local process(rule, configGlobal, configComponent, enableOwnerRefrences=true) =
     renderedExcludeSelector: std.join('|', renderArray(configGlobal.excludeNamespaces + std.get(configComponent, 'excludeNamespaces', []))),
     componentName: std.get(configComponent, 'component', 'openshift4-monitoring'),
   };
-  {
+  local result = {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'PrometheusRule',
     metadata: {
@@ -203,14 +208,19 @@ local process(rule, configGlobal, configComponent, enableOwnerRefrences=true) =
       namespace: rule.metadata.namespace,
     },
     spec: {
-      groups: [
-        // Process each group and drop groups in `config.ignoreGroups`
-        processGroup(group, config)
-        for group in rule.spec.groups
-        if !std.member(config.ignoreGroups, group.name)
-      ],
+      groups: std.filter(
+        function(g) g != null,
+        [
+          // Process each group and drop groups in `config.ignoreGroups`
+          processGroup(group, config)
+          for group in rule.spec.groups
+          if !std.member(config.ignoreGroups, group.name)
+        ]
+      ),
     },
   };
+  if std.length(result.spec.groups) > 0 then
+    result;
 
 {
   process: process,
