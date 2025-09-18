@@ -281,7 +281,7 @@ parameters:
       kube_rbac_proxy:
         registry: quay.io
         repository: brancz/kube-rbac-proxy
-        tag: v0.19.1
+        tag: v0.20.0
 
     capacityAlerts:
       enabled: true
