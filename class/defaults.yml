@@ -124,6 +124,7 @@ parameters:
       - openshift-kube-scheduler-operator
       - openshift-machine-api
       - openshift-machine-config-operator
+      - openshift-marketplace
       - openshift-multus
       - openshift-network-operator
       - openshift-operator-lifecycle-manager
