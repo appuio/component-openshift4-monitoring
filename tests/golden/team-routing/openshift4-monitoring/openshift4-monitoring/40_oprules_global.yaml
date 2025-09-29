@@ -81,6 +81,9 @@ subjects:
     namespace: openshift-machine-config-operator
   - kind: ServiceAccount
     name: openshift4-monitoring-rules
+    namespace: openshift-marketplace
+  - kind: ServiceAccount
+    name: openshift4-monitoring-rules
     namespace: openshift-monitoring
   - kind: ServiceAccount
     name: openshift4-monitoring-rules
