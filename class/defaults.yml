@@ -273,7 +273,7 @@ parameters:
     images:
       oc:
         image: quay.io/appuio/oc
-        tag: v4.18
+        tag: v4.19
       node_exporter:
         registry: quay.io
         repository: prometheus/node-exporter
