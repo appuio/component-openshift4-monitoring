@@ -14,7 +14,7 @@ If the remote write receiver is a Mimir instance, the root cause may be that the
 +
 [source,bash]
 ----
-kubectl -n openshift-monitoring --as=cluster-admin exec -it prometheus-k8s-0 -- curl <remote-write-endpoint>
+kubectl -n openshift-monitoring --as=system:admin exec -it prometheus-k8s-0 -- curl <remote-write-endpoint>
 ----
 * Check the remote write receiver for any issues.
 If the remote write receiver is a Mimir instance, check the Mimir nginx pod logs.

@@ -17,8 +17,8 @@ NOTE: While we give `oc` commands to manage the ArgoCD apps, you can also perfor
 +
 [source,shell]
 ----
-oc --as=cluster-admin -n syn port-forward svc/argocd-server 8080:80 & sleep 1
-argocd login --plaintext --username=admin --password=$(oc --as=cluster-admin -n syn get secret steward -ojsonpath='{.data.token}' |base64 -d) localhost:8080
+oc --as=system:admin -n syn port-forward svc/argocd-server 8080:80 & sleep 1
+argocd login --plaintext --username=admin --password=$(oc --as=system:admin -n syn get secret steward -ojsonpath='{.data.token}' |base64 -d) localhost:8080
 ----
 
 . Disable auto sync for the ArgoCD apps `root` and `openshift4-monitoring`
@@ -35,9 +35,9 @@ With `oc`:
 +
 [source,shell]
 ----
-oc --as=cluster-admin -n syn patch apps root --type=json \
+oc --as=system:admin -n syn patch apps root --type=json \
   -p '[{"op":"replace", "path":"/spec/syncPolicy", "value": {}}]'
-oc --as=cluster-admin -n syn patch apps openshift4-monitoring --type=json \
+oc --as=system:admin -n syn patch apps openshift4-monitoring --type=json \
   -p '[{"op":"replace", "path":"/spec/syncPolicy", "value": {}}]'
 ----
 
@@ -45,7 +45,7 @@ oc --as=cluster-admin -n syn patch apps openshift4-monitoring --type=json \
 +
 [source,shell]
 ----
-oc --as=cluster-admin label ns openshift-monitoring argocd.argoproj.io/instance-
+oc --as=system:admin label ns openshift-monitoring argocd.argoproj.io/instance-
 ----
 
 . Update cluster to use openshift4-monitoring v1.0.0. Add the following configuration in the cluster config:
@@ -88,7 +88,7 @@ With `oc`:
 +
 [source,shell]
 ----
-oc --as=cluster-admin -n syn patch apps root --type=json \
+oc --as=system:admin -n syn patch apps root --type=json \
   -p '[{
     "op":"replace",
     "path":"/spec/syncPolicy",

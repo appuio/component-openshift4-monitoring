@@ -20,7 +20,7 @@ node_sockstat_TCP_mem_bytes
 +
 [source,bash]
 ----
-oc debug node/<nodename> --as=cluster-admin -n syn-debug-nodes
+oc debug node/<nodename> --as=system:admin -n syn-debug-nodes
 # Wait for pod to start
 chroot /host
 ----
