@@ -1,7 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  annotations: {}
   labels:
     name: syn-openshift4-monitoring-cluster-reader
     rbac.authorization.k8s.io/aggregate-to-cluster-reader: 'true'

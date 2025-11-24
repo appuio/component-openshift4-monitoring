@@ -4,8 +4,6 @@
  *        API reference: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md
  */
 
-local kube = import 'lib/kube.libjsonnet';
-
 local alertpatching = import 'lib/alert-patching.libsonnet';
 
 // Define Prometheus Operator API versions
@@ -13,8 +11,16 @@ local api_version = {
   monitoring: 'monitoring.coreos.com/v1',
 };
 
-local prometheusRule(name) =
-  kube._Object(api_version.monitoring, 'PrometheusRule', name);
+local prometheusRule(name) = {
+  apiVersion: api_version.monitoring,
+  kind: 'PrometheusRule',
+  metadata: {
+    labels: {
+      name: std.join('-', std.split(name, ':')),
+    },
+    name: name,
+  },
+};
 
 {
   api_version: api_version,
@@ -33,8 +39,16 @@ local prometheusRule(name) =
   * \arg The name of the Prometheus.
   * \return A Prometheus object.
   */
-  Prometheus(name):
-    kube._Object(api_version.monitoring, 'Prometheus', name),
+  Prometheus(name): {
+    apiVersion: api_version.monitoring,
+    kind: 'Prometheus',
+    metadata: {
+      labels: {
+        name: std.join('-', std.split(name, ':')),
+      },
+      name: name,
+    },
+  },
 
   /**
   * \brief Helper to create ServiceMonitor objects.
@@ -42,8 +56,16 @@ local prometheusRule(name) =
   * \arg The name of the ServiceMonitor.
   * \return A ServiceMonitor object.
   */
-  ServiceMonitor(name):
-    kube._Object(api_version.monitoring, 'ServiceMonitor', name),
+  ServiceMonitor(name): {
+    apiVersion: api_version.monitoring,
+    kind: 'ServiceMonitor',
+    metadata: {
+      labels: {
+        name: std.join('-', std.split(name, ':')),
+      },
+      name: name,
+    },
+  },
 
   /**
   * \brief Helper to create Alertmanager objects.
@@ -51,8 +73,16 @@ local prometheusRule(name) =
   * \arg The name of the Alertmanager.
   * \return A Alertmanager object.
   */
-  Alertmanager(name):
-    kube._Object(api_version.monitoring, 'Alertmanager', name),
+  Alertmanager(name): {
+    apiVersion: api_version.monitoring,
+    kind: 'Alertmanager',
+    metadata: {
+      labels: {
+        name: std.join('-', std.split(name, ':')),
+      },
+      name: name,
+    },
+  },
 
   /**
    * \brief Function to render rules defined in the hierarchy

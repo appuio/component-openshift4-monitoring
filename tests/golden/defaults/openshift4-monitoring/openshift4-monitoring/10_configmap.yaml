@@ -47,7 +47,6 @@ data:
         "node-role.kubernetes.io/infra": ""
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     name: cluster-monitoring-config
   name: cluster-monitoring-config

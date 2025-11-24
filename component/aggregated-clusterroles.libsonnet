@@ -1,4 +1,4 @@
-local kube = import 'lib/kube.libjsonnet';
+local kube = import 'kube-ssa-compat.libsonnet';
 
 local cluster_reader =
   kube.ClusterRole('syn-openshift4-monitoring-cluster-reader') {

@@ -1,6 +1,6 @@
+local kube = import 'kube-ssa-compat.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
-local kube = import 'lib/kube.libjsonnet';
 
 local nodeExporter = import 'github.com/openshift/cluster-monitoring-operator/jsonnet/components/node-exporter.libsonnet';
 
