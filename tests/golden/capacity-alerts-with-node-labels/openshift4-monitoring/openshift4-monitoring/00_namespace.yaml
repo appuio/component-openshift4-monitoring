@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  annotations:
-    argocd.argoproj.io/sync-options: Prune=false
+  annotations: {}
   labels:
     label-no-defaults: 'true'
     label-purge-defaults: 'true'

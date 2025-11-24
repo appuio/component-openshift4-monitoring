@@ -52,9 +52,6 @@ local cronjobs = import 'cronjobs.libsonnet';
 {
   '00_namespace': kube.Namespace(params.namespace) {
     metadata+: {
-      annotations+: {
-        'argocd.argoproj.io/sync-options': 'Prune=false',
-      },
       labels: {
         'network.openshift.io/policy-group': 'monitoring',
       } + if std.member(inv.applications, 'networkpolicy') then {
