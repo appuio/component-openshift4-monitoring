@@ -39,7 +39,6 @@ data:
         "node-role.kubernetes.io/infra": ""
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     name: user-workload-monitoring-config
   name: user-workload-monitoring-config

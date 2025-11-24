@@ -3,7 +3,15 @@ local inv = kap.inventory();
 local params = inv.parameters.openshift4_monitoring;
 local argocd = import 'lib/argocd.libjsonnet';
 
-local app = argocd.App('openshift4-monitoring', params.namespace);
+local app = argocd.App('openshift4-monitoring', params.namespace) {
+  spec+: {
+    syncPolicy+: {
+      syncOptions+: [
+        'ServerSideApply=true',
+      ],
+    },
+  },
+};
 
 local appPath =
   local project = std.get(std.get(app, 'spec', {}), 'project', 'syn');

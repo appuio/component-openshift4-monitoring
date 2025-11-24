@@ -114,7 +114,6 @@ data:
       "receiver": "__component_openshift4_monitoring_null"
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     name: discovery-debug
   name: discovery-debug

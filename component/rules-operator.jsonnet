@@ -1,7 +1,7 @@
+local kube = import 'kube-ssa-compat.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local esp = import 'lib/espejote.libsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
-local kube = import 'lib/kube.libjsonnet';
 local oplib = import 'lib/openshift4-monitoring-operator-rules.libsonnet';
 local syn_teams = import 'syn/syn-teams.libsonnet';
 

@@ -27,7 +27,6 @@ data:
   silences.json: '[{"comment":"Silence non syn alerts","matchers":[{"isRegex":true,"name":"alertname","value":".+"},{"isRegex":false,"name":"syn","value":""}]}]'
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     name: silence
   name: silence
@@ -36,7 +35,6 @@ metadata:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  annotations: {}
   labels:
     name: silence
   name: silence

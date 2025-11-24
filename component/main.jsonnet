@@ -1,6 +1,6 @@
+local kube = import 'kube-ssa-compat.libsonnet';
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
-local kube = import 'lib/kube.libjsonnet';
 local prom = import 'lib/prom.libsonnet';
 
 
@@ -52,6 +52,9 @@ local cronjobs = import 'cronjobs.libsonnet';
 {
   '00_namespace': kube.Namespace(params.namespace) {
     metadata+: {
+      annotations+: {
+        'argocd.argoproj.io/sync-options': 'Prune=false',
+      },
       labels: {
         'network.openshift.io/policy-group': 'monitoring',
       } + if std.member(inv.applications, 'networkpolicy') then {
