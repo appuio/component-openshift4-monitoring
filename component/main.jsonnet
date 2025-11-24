@@ -1,7 +1,6 @@
 local com = import 'lib/commodore.libjsonnet';
 local kap = import 'lib/kapitan.libjsonnet';
 local kube = import 'lib/kube.libjsonnet';
-local po = import 'lib/patch-operator.libsonnet';
 local prom = import 'lib/prom.libsonnet';
 
 
@@ -17,21 +16,6 @@ local ns =
     params.namespace;
 
 local secrets = com.generateResources(params.secrets, kube.Secret);
-
-local ns_patch =
-  po.Patch(
-    kube.Namespace(ns),
-    {
-      metadata: {
-        labels: {
-          'network.openshift.io/policy-group': 'monitoring',
-        } + if std.member(inv.applications, 'networkpolicy') then {
-          [inv.parameters.networkpolicy.labels.noDefaults]: 'true',
-          [inv.parameters.networkpolicy.labels.purgeDefaults]: 'true',
-        } else {},
-      },
-    }
-  );
 
 local transformRelabelConfigs(remoteWriteConfig) = if std.objectHas(remoteWriteConfig, 'writeRelabelConfigs')
 then remoteWriteConfig {
@@ -66,7 +50,19 @@ local patchRemoteWrite(promConfig, defaults) = promConfig {
 local cronjobs = import 'cronjobs.libsonnet';
 
 {
-  '00_namespace_labels': ns_patch,
+  '00_namespace': kube.Namespace(params.namespace) {
+    metadata+: {
+      annotations+: {
+        'argocd.argoproj.io/sync-options': 'Prune=false',
+      },
+      labels: {
+        'network.openshift.io/policy-group': 'monitoring',
+      } + if std.member(inv.applications, 'networkpolicy') then {
+        [inv.parameters.networkpolicy.labels.noDefaults]: 'true',
+        [inv.parameters.networkpolicy.labels.purgeDefaults]: 'true',
+      } else {},
+    },
+  },
   '01_secrets': secrets,
   '02_aggregated_clusterroles': (import 'aggregated-clusterroles.libsonnet'),
   [if std.length(params.configs) > 0 then '10_configmap']:

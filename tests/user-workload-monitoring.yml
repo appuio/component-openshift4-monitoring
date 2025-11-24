@@ -1,6 +1,7 @@
 applications:
-  - espejote
   - cilium
+  - espejote
+  - networkpolicy
 
 parameters:
   kapitan:
@@ -8,17 +9,14 @@ parameters:
       - type: https
         source: https://raw.githubusercontent.com/projectsyn/component-espejote/master/lib/espejote.libsonnet
         output_path: vendor/lib/espejote.libsonnet
-      - type: https
-        source: https://raw.githubusercontent.com/projectsyn/component-patch-operator/master/lib/patch-operator.libsonnet
-        output_path: vendor/lib/patch-operator.libsonnet
 
   espejote:
     namespace: syn-espejote
 
-  patch_operator:
-    namespace: syn-patch-operator
-    patch_serviceaccount:
-      name: patch-sa
+  networkpolicy:
+    labels:
+      noDefaults: label-no-defaults
+      purgeDefaults: label-purge-defaults
 
   openshift4_monitoring:
     alerts:
