@@ -61,7 +61,7 @@ spec:
                     configMapKeyRef:
                       key: silences.json
                       name: silence
-              image: quay.io/appuio/oc:v4.19
+              image: quay.io/appuio/oc:v4.20
               imagePullPolicy: IfNotPresent
               name: silence
               ports: []
