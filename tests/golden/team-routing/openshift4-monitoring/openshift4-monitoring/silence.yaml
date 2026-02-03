@@ -103,3 +103,69 @@ spec:
               name: scripts
   schedule: 0 */4 * * *
   successfulJobsHistoryLimit: 3
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    name: silence-ec7ce962
+  name: silence-ec7ce962
+  namespace: openshift-monitoring
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        name: silence-ec7ce962
+    spec:
+      containers:
+        - args: []
+          command:
+            - /usr/local/bin/silence
+          env:
+            - name: SILENCES_JSON
+              valueFrom:
+                configMapKeyRef:
+                  key: silences.json
+                  name: silence
+          image: quay.io/appuio/oc:v4.20
+          imagePullPolicy: IfNotPresent
+          name: silence
+          ports: []
+          stdin: false
+          tty: false
+          volumeMounts:
+            - mountPath: /etc/ssl/certs/serving-certs/
+              name: ca-bundle
+              readOnly: true
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: kube-api-access
+              readOnly: true
+            - mountPath: /usr/local/bin/silence
+              name: scripts
+              readOnly: true
+              subPath: silence
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector:
+        node-role.kubernetes.io/infra: ''
+      restartPolicy: OnFailure
+      serviceAccountName: prometheus-k8s
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            defaultMode: 288
+            name: serving-certs-ca-bundle
+          name: ca-bundle
+        - name: kube-api-access
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  expirationSeconds: 3607
+                  path: token
+        - configMap:
+            defaultMode: 360
+            name: silence
+          name: scripts
