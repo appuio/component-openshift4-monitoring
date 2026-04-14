@@ -20,7 +20,9 @@ local discoverNS = function(app)
   local f = function(k)
     if std.objectHas(params, k) then
       local p = params[k];
-      if std.objectHas(p, 'namespace') then
+      if !std.isObject(p) then
+        std.trace('[WARN] parameters for component instance "%s" not an object!' % k, null)
+      else if std.isObject(p) && std.objectHas(p, 'namespace') then
         if std.isString(p.namespace) then
           p.namespace
         else if std.isObject(p.namespace) && std.objectHas(p.namespace, 'name') && std.isString(p.namespace.name) then
