@@ -14,9 +14,12 @@ while IFS= read -r silence; do
       '.startsAt = $startsAt | .endsAt = $endsAt | .createdBy = $createdBy'
   )
 
-  id=$(curl "${curl_opts[@]}" | jq -r ".[] | select(.status.state == \"active\") | select(.comment == \"${comment}\") | .id" | head -n 1)
-  if [ -n "${id}" ]; then
-    body=$(printf %s "${body}" | jq --arg id "${id}" '.id = $id')
+  read id startsAt <<< "$(curl "${curl_opts[@]}" \
+    | jq -r --arg comment "$comment" \
+        '.[] | select(.status.state == "active") | select(.comment == $comment) | .id + " " + .startsAt' \
+    | head -n 1)"
+  if [ -n "${id}" ] && [ -n "${startsAt}" ]; then
+      body=$(printf %s "${body}" | jq --arg id "${id}" --arg startsAt "${startsAt}" '.id = $id | .startsAt |= $startsAt')
   fi
 
   curl "${curl_opts[@]}" -XPOST -d "${body}"
