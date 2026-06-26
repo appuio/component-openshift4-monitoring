@@ -17,9 +17,12 @@ data:
           '.startsAt = $startsAt | .endsAt = $endsAt | .createdBy = $createdBy'
       )
 
-      id=$(curl "${curl_opts[@]}" | jq -r ".[] | select(.status.state == \"active\") | select(.comment == \"${comment}\") | .id" | head -n 1)
-      if [ -n "${id}" ]; then
-        body=$(printf %s "${body}" | jq --arg id "${id}" '.id = $id')
+      read id startsAt <<< "$(curl "${curl_opts[@]}" \
+        | jq -r --arg comment "$comment" \
+            '.[] | select(.status.state == "active") | select(.comment == $comment) | .id + " " + .startsAt' \
+        | head -n 1)"
+      if [ -n "${id}" ] && [ -n "${startsAt}" ]; then
+          body=$(printf %s "${body}" | jq --arg id "${id}" --arg startsAt "${startsAt}" '.id = $id | .startsAt |= $startsAt')
       fi
 
       curl "${curl_opts[@]}" -XPOST -d "${body}"
@@ -108,8 +111,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
-    name: silence-02b30e88
-  name: silence-02b30e88
+    name: silence-16a68df8
+  name: silence-16a68df8
   namespace: openshift-monitoring
 spec:
   completions: 1
@@ -117,7 +120,7 @@ spec:
   template:
     metadata:
       labels:
-        name: silence-02b30e88
+        name: silence-16a68df8
     spec:
       containers:
         - args: []
