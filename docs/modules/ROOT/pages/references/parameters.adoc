@@ -276,6 +276,8 @@ To address this case, the component has override logic in the namespace discover
 The override logic replaces all occurrences of `openshift4-monitoring` in the discovered namespace with the instance name for instances other than `openshift4-monitoring`.
 ====
 
+NOTE: The core logic of this feature is provided through Jsonnet library `alert-routing-discovery.libsonnet` that's provided through the https://github.com/projectsyn/jsonnet-libs.git[Project Syn shared Jsonnet libraries repository].
+
 .`syn` Team Example
 [source,yaml]
 ----
