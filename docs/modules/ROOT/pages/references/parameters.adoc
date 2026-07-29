@@ -337,6 +337,8 @@ type:: dictionary
 
 Configuration parameters related to influence the resulting alert rules.
 
+NOTE: Fields `ignoreNames` and `customAnnotations` of this parameter are structured to be suitable for Jsonnet library `alerts.libsonnet` that's provided through the https://github.com/projectsyn/jsonnet-libs.git[Project Syn shared Jsonnet libraries repository].
+
 === `includeNamespaces`
 
 [horizontal]
