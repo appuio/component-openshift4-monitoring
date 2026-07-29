@@ -18,8 +18,8 @@ local global_alert_params =
   // approach allows users to only set the parameter which they care about for
   // their component tests.
   p {
-    ignoreNames: [],
-    customAnnotations: {},
+    ignoreNames+: [],
+    customAnnotations+: {},
   };
 
 /**

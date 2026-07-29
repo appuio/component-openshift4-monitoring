@@ -115,7 +115,9 @@ spec:
     config_v1.json: |-
       {
           "customAnnotations": {
-
+              "FooLow": {
+                  "test": "annotation"
+              }
           },
           "excludeNamespaces": [
               "openshift-adp"
