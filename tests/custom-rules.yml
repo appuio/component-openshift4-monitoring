@@ -28,6 +28,12 @@ parameters:
       enabled: true
 
     alerts:
+      customAnnotations:
+        # NOTE(sg): this should be applied to the custom `alert:FooLow`
+        # defined below. We have this to ensure the alert patching doesn't
+        # swallow global configurations.
+        FooLow:
+          test: annotation
       excludeNamespaces:
         - openshift-adp
       patchRules:

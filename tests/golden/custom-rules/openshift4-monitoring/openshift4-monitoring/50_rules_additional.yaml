@@ -12,6 +12,7 @@ spec:
         - alert: FooLow
           annotations:
             summary: Less than 10 Foos for 5 minutes
+            test: annotation
           expr: foo:sum < 10
           for: 5m
           labels:
