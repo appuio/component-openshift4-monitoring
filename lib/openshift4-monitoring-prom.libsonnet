@@ -4,7 +4,7 @@
  *        API reference: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md
  */
 
-local alertpatching = import 'lib/alert-patching.libsonnet';
+local alertpatching = import 'lib/openshift4-monitoring-alert-patching.libsonnet';
 
 // Define Prometheus Operator API versions
 local api_version = {
@@ -100,30 +100,7 @@ local prometheusRule(name) = {
   generateRules(name, rules):
     prometheusRule(name) {
       spec: {
-        groups: std.filter(
-          function(g) std.length(g.rules) > 0,
-          [
-            {
-              name: group_name,
-              rules: [
-                local rnamekey = std.splitLimit(rname, ':', 1);
-                alertpatching.patchRule(
-                  rules[group_name][rname] {
-                    // transform source key into "alert: alertname" or
-                    // "record: recordname"
-                    [rnamekey[0]]: rnamekey[1],
-                  },
-                  patches={},
-                  patchName=false,
-                )
-                for rname in std.objectFields(rules[group_name])
-                if rules[group_name][rname] != null
-              ],
-            }
-            for group_name in std.objectFields(rules)
-            if rules[group_name] != null
-          ]
-        ),
+        groups: alertpatching.renderGroups(rules),
       },
     },
 }
