@@ -107,6 +107,7 @@ local config = {
   namespace: params.namespace,
   version: params.images.node_exporter.tag,
   port: 9199,
+  internal_port: 9199,
   image: '%(registry)s/%(repository)s:%(tag)s' % params.images.node_exporter,
   kubeRbacProxyImage: '%(registry)s/%(repository)s:%(tag)s' % params.images.kube_rbac_proxy,
   ignoredNetworkDevices:: '^.*$',
