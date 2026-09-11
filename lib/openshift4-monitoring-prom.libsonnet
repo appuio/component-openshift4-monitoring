@@ -4,7 +4,10 @@
  *        API reference: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md
  */
 
-local alertpatching = import 'lib/openshift4-monitoring-alert-patching.libsonnet';
+// NOTE(sg): We import the component's alert-patching library through the
+// library alias here. This makes using the library in other components' tests
+// easier.
+local alertpatching = import 'lib/alert-patching.libsonnet';
 
 // Define Prometheus Operator API versions
 local api_version = {
