@@ -51,7 +51,8 @@ data:
       - "matchers":
         - "other = \"true\""
         "receiver": "other"
-      - "receiver": "team_default_clumsy-donkeys"
+      - "continue": false
+        "receiver": "team_default_clumsy-donkeys"
   applications: '["espejote","non-existing","no-ns","ns-string","ns-object","base
     as ns-in-base","base as ns-overridden","non-existing as still-non-existing","same-ns-1","same-ns-2","openshift4-monitoring","no-ns
     as no-ns-team","no-ns as no-ns-team2","instance-ns"]'

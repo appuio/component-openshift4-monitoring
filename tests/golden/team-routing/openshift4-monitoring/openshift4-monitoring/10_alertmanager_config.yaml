@@ -58,5 +58,6 @@ stringData:
       - "matchers":
         - "other = \"true\""
         "receiver": "other"
-      - "receiver": "team_default_clumsy-donkeys"
+      - "continue": false
+        "receiver": "team_default_clumsy-donkeys"
 type: Opaque
