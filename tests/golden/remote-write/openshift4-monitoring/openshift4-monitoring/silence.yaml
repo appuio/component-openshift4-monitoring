@@ -64,7 +64,7 @@ spec:
                     configMapKeyRef:
                       key: silences.json
                       name: silence
-              image: quay.io/appuio/oc:v4.21
+              image: quay.io/appuio/oc:v4.22
               imagePullPolicy: IfNotPresent
               name: silence
               ports: []
@@ -111,8 +111,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
-    name: silence-16a68df8
-  name: silence-16a68df8
+    name: silence-b9f63125
+  name: silence-b9f63125
   namespace: openshift-monitoring
 spec:
   completions: 1
@@ -120,7 +120,7 @@ spec:
   template:
     metadata:
       labels:
-        name: silence-16a68df8
+        name: silence-b9f63125
     spec:
       containers:
         - args: []
@@ -132,7 +132,7 @@ spec:
                 configMapKeyRef:
                   key: silences.json
                   name: silence
-          image: quay.io/appuio/oc:v4.21
+          image: quay.io/appuio/oc:v4.22
           imagePullPolicy: IfNotPresent
           name: silence
           ports: []
